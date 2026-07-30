@@ -753,9 +753,9 @@
     },
     {
       "name": "Lumen",
-      "type": "skip",
-      "url": "https://blog.lumen.com/",
-      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+      "type": "feed",
+      "url": "https://apac.lumen.com/en/feed/",
+      "notes": "APAC subdomain feed; blog.lumen.com has no feed. Confirmed 10 entries locally."
     },
     {
       "name": "txOne",
@@ -971,9 +971,9 @@
     },
     {
       "name": "Forescout",
-      "type": "skip",
-      "url": "https://www.forescout.com/blog",
-      "notes": "Bot-walled or dead domain as of last check - manual monitoring only"
+      "type": "feed",
+      "url": "https://www.forescout.com/feed",
+      "notes": "403 locally (IP block) but confirmed working in AAK1786/cti-monitor from GitHub Actions servers."
     },
     {
       "name": "Phylum",
@@ -1190,9 +1190,9 @@
     },
     {
       "name": "Sophos",
-      "type": "skip",
-      "url": "https://news.sophos.com/en-us/",
-      "notes": "HTTP/2 protocol error — headless Chromium cannot load the page; confirmed twice with --disable-http2 flag and extended timeout, issue is structural. Needs manual monitoring."
+      "type": "feed",
+      "url": "https://news.sophos.com/en-us/feed/",
+      "notes": "Redirects to www.sophos.com/blog/en-us/feed/; times out locally (IP block) but should work from GitHub Actions servers."
     },
     {
       "name": "Australian Signals Directorate's Australian Cyber Security Centre (ASD's ACSC)",
