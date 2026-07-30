@@ -22,7 +22,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install feedparser requests playwright
+          pip install feedparser requests playwright beautifulsoup4
           playwright install chromium
           playwright install-deps chromium
 

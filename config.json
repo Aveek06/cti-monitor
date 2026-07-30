@@ -732,9 +732,13 @@
     },
     {
       "name": "GetSafety",
-      "type": "skip",
-      "url": "https://www.getsafety.com/research",
-      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+      "type": "api",
+      "url": "https://fkwwwvpxhlwtemyrhypg.supabase.co/functions/v1/sanity-proxy?query=*%5B_type+%3D%3D+%22blog_post%22+%26%26+blog_category-%3Ename+%3D%3D+%22Research%22%5D+%7C+order%28coalesce%28publish_date_custom%2C+webflow_created_on%29+desc%29%7Bname%2C+%22slug%22%3A+slug.current%2C+short_info%2C+main_image%2C+thumb_image%2C+author_name%2C+read_time%2C+publish_date_custom%2C+webflow_created_on%2C+blog_category-%3E%7Bname%2C+color%7D%7D",
+      "method": "GET",
+      "items_path": "result",
+      "link_template": "https://www.getsafety.com/research/{slug}",
+      "date_field": "publish_date_custom",
+      "notes": "Sanity CMS via Supabase Edge Function proxy; returns all Research blog posts with slug"
     },
     {
       "name": "Lumen",
@@ -1098,9 +1102,16 @@
     },
     {
       "name": "LastPass",
-      "type": "skip",
+      "type": "playwright_api",
       "url": "https://blog.lastpass.com/",
-      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+      "intercept_url_contains": "/_next/data/",
+      "intercept_url_suffix": "/en.json",
+      "intercept_min_results": 5,
+      "items_path": "pageProps.posts",
+      "link_field": "url",
+      "base_url": "https://blog.lastpass.com",
+      "date_field": "date",
+      "notes": "Next.js blog; 403 on direct requests so uses Playwright; intercepts _next/data en.json which has pageProps.posts with url+date"
     },
     {
       "name": "Veriti AI",
@@ -1116,9 +1127,15 @@
     },
     {
       "name": "Zscaler",
-      "type": "skip",
+      "type": "playwright_api",
       "url": "https://www.zscaler.com/blogs?type=security-research",
-      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+      "intercept_url_contains": "/api/search",
+      "intercept_min_results": 5,
+      "items_path": "results",
+      "link_field": "url.raw",
+      "base_url": "https://www.zscaler.com",
+      "date_field": "published_at.raw",
+      "notes": "Elastic App Search API; requires browser session token so uses Playwright response interception; intercepts last /api/search call (Security Research filtered)"
     },
     {
       "name": "Blackpoint",

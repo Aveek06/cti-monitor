@@ -25,7 +25,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install openpyxl feedparser requests playwright
+          pip install openpyxl feedparser requests playwright beautifulsoup4
           playwright install chromium
           playwright install-deps chromium
 

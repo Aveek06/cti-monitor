@@ -23,6 +23,7 @@ import json
 import smtplib
 import feedparser
 import requests
+from bs4 import BeautifulSoup
 from datetime import datetime, timezone
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -73,6 +74,195 @@ def check_feed_site(site):
             entries.append((link, date_str))
     except Exception as ex:
         return entries, f"feed parse error: {ex}"
+    return entries, None
+
+
+def _get_nested(obj, dotpath):
+    """Walk a dot-separated path through dicts/lists. Returns '' on miss."""
+    for key in dotpath.split("."):
+        if isinstance(obj, dict):
+            obj = obj.get(key, "")
+        elif isinstance(obj, list):
+            obj = obj[0] if obj else ""
+        else:
+            return ""
+    return obj if obj is not None else ""
+
+
+def check_api_site(site):
+    """
+    Fetches a JSON API endpoint (GET or POST) and extracts blog post links.
+    Config fields:
+      method         GET | POST (default GET)
+      post_body      dict posted as JSON (POST only)
+      items_path     dot-path to the list of items in the response, e.g. "result" or "results"
+      link_field     dot-path inside each item to the link, e.g. "url.raw"
+      link_template  Python format string using item fields, e.g. "https://site.com/{slug}"
+      base_url       prepended to relative links
+      date_field     dot-path inside each item to the date string
+    """
+    entries = []
+    try:
+        ua = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+              "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+        headers = {"User-Agent": ua, "Accept": "application/json"}
+        method = site.get("method", "GET").upper()
+        if method == "POST":
+            r = requests.post(site["url"], json=site.get("post_body", {}),
+                              headers=headers, timeout=15)
+        else:
+            r = requests.get(site["url"], headers=headers, timeout=15)
+        r.raise_for_status()
+        data = r.json()
+
+        items = data
+        items_path = site.get("items_path", "")
+        if items_path:
+            items = _get_nested(data, items_path)
+        if not isinstance(items, list):
+            return entries, f"api error: items_path '{items_path}' did not resolve to a list"
+
+        link_field = site.get("link_field", "")
+        link_template = site.get("link_template", "")
+        base_url = site.get("base_url", "")
+        date_field = site.get("date_field", "")
+
+        for item in items:
+            if link_template:
+                link = link_template.format(**item)
+            elif link_field:
+                raw = _get_nested(item, link_field)
+                link = raw[0] if isinstance(raw, list) else str(raw)
+                if base_url and link.startswith("/"):
+                    link = base_url + link
+            else:
+                link = ""
+            date_str = str(_get_nested(item, date_field)) if date_field else ""
+            if link:
+                entries.append((link, date_str))
+    except Exception as ex:
+        return entries, f"api error: {ex}"
+    return entries, None
+
+
+def check_nextjs_site(site):
+    """
+    Fetches a Next.js page, extracts the __NEXT_DATA__ JSON blob, and
+    pulls blog post links from it.
+    Config fields:
+      items_path   dot-path from the root of __NEXT_DATA__ to the post list
+      link_field   field name inside each post item containing the URL
+      base_url     prepended to relative links
+      date_field   field name inside each post item for the date
+    """
+    entries = []
+    try:
+        ua = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+              "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+        r = requests.get(site["url"], headers={"User-Agent": ua}, timeout=15)
+        r.raise_for_status()
+        soup = BeautifulSoup(r.text, "html.parser")
+        script = soup.find("script", id="__NEXT_DATA__")
+        if not script:
+            return entries, "nextjs error: __NEXT_DATA__ script tag not found"
+        data = json.loads(script.string)
+
+        items = _get_nested(data, site.get("items_path", ""))
+        if not isinstance(items, list):
+            return entries, f"nextjs error: items_path did not resolve to a list"
+
+        link_field = site.get("link_field", "url")
+        base_url = site.get("base_url", "")
+        date_field = site.get("date_field", "")
+
+        for item in items:
+            link = item.get(link_field, "")
+            if base_url and link.startswith("/"):
+                link = base_url + link
+            date_str = str(item.get(date_field, "")) if date_field else ""
+            if link:
+                entries.append((link, date_str))
+    except Exception as ex:
+        return entries, f"nextjs error: {ex}"
+    return entries, None
+
+
+def check_playwright_api_site(site, browser):
+    """
+    Loads a page with Playwright, intercepts a JSON API response by URL pattern,
+    and extracts blog posts from it. For sites whose API requires browser session
+    tokens that can't be replayed externally.
+    Config fields:
+      url                     page URL to navigate to
+      intercept_url_contains  substring to identify the right API response URL
+      items_path              dot-path to post list in the response JSON
+      link_field              dot-path to URL inside each post item
+      base_url                prepended to relative links
+      date_field              dot-path to date inside each post item
+      intercept_min_results   minimum result count to accept (skips early/empty responses)
+    """
+    entries = []
+    captured_bodies = []
+    try:
+        context = browser.new_context(
+            user_agent=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
+            ignore_https_errors=True,
+        )
+        page = context.new_page()
+        intercept_pattern = site.get("intercept_url_contains", "")
+        min_results = site.get("intercept_min_results", 1)
+
+        intercept_suffix = site.get("intercept_url_suffix", "")
+
+        def on_response(response):
+            if intercept_pattern and intercept_pattern not in response.url:
+                return
+            if intercept_suffix and not response.url.endswith(intercept_suffix):
+                return
+            ct = response.headers.get("content-type", "")
+            if "json" not in ct:
+                return
+            try:
+                body = response.json()
+                items = _get_nested(body, site.get("items_path", ""))
+                if isinstance(items, list) and len(items) >= min_results:
+                    captured_bodies.append(body)
+            except Exception:
+                pass
+
+        page.on("response", on_response)
+        page.goto(site["url"], timeout=30000, wait_until="domcontentloaded")
+        try:
+            page.wait_for_load_state("networkidle", timeout=15000)
+        except Exception:
+            pass
+        page.wait_for_timeout(3000)
+        context.close()
+
+        if not captured_bodies:
+            return entries, "playwright_api error: no matching API response intercepted"
+
+        data = captured_bodies[-1]
+        items = _get_nested(data, site.get("items_path", ""))
+        if not isinstance(items, list):
+            return entries, "playwright_api error: items_path did not resolve to a list"
+
+        link_field = site.get("link_field", "")
+        base_url = site.get("base_url", "")
+        date_field = site.get("date_field", "")
+
+        for item in items:
+            raw = _get_nested(item, link_field)
+            link = raw[0] if isinstance(raw, list) else str(raw)
+            if base_url and link.startswith("/"):
+                link = base_url + link
+            date_raw = _get_nested(item, date_field) if date_field else ""
+            date_str = date_raw[0] if isinstance(date_raw, list) else str(date_raw)
+            if link:
+                entries.append((link, date_str))
+    except Exception as ex:
+        return entries, f"playwright_api error: {ex}"
     return entries, None
 
 
@@ -224,6 +414,12 @@ def main(config_path, state_path):
 
             if site["type"] == "feed":
                 entries, err = check_feed_site(site)
+            elif site["type"] == "api":
+                entries, err = check_api_site(site)
+            elif site["type"] == "nextjs":
+                entries, err = check_nextjs_site(site)
+            elif site["type"] == "playwright_api":
+                entries, err = check_playwright_api_site(site, browser)
             else:
                 entries, err = check_html_site(site, browser)
 
