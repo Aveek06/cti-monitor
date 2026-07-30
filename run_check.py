@@ -200,6 +200,8 @@ def check_playwright_api_site(site, browser):
       base_url                prepended to relative links
       date_field              dot-path to date inside each post item
       intercept_min_results   minimum result count to accept (skips early/empty responses)
+      intercept_page_size     if set, rewrites resultsPerPage in outgoing POST bodies matching
+                              intercept_url_contains before they are sent
     """
     entries = []
     captured_bodies = []
@@ -211,9 +213,25 @@ def check_playwright_api_site(site, browser):
         )
         page = context.new_page()
         intercept_pattern = site.get("intercept_url_contains", "")
-        min_results = site.get("intercept_min_results", 1)
-
         intercept_suffix = site.get("intercept_url_suffix", "")
+        min_results = site.get("intercept_min_results", 1)
+        page_size = site.get("intercept_page_size")
+
+        if page_size and intercept_pattern:
+            def rewrite_request(route):
+                if route.request.method == "POST" and intercept_pattern in route.request.url:
+                    try:
+                        body = json.loads(route.request.post_data or "{}")
+                        if "requestState" in body:
+                            body["requestState"]["resultsPerPage"] = page_size
+                        if "queryConfig" in body:
+                            body["queryConfig"]["resultsPerPage"] = page_size
+                        route.continue_(post_data=json.dumps(body))
+                        return
+                    except Exception:
+                        pass
+                route.continue_()
+            page.route(f"**{intercept_pattern}**", rewrite_request)
 
         def on_response(response):
             if intercept_pattern and intercept_pattern not in response.url:

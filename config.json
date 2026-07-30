@@ -1131,6 +1131,7 @@
       "url": "https://www.zscaler.com/blogs?type=security-research",
       "intercept_url_contains": "/api/search",
       "intercept_min_results": 5,
+      "intercept_page_size": 20,
       "items_path": "results",
       "link_field": "url.raw",
       "base_url": "https://www.zscaler.com",
