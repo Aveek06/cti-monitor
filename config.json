@@ -1,0 +1,1159 @@
+{
+  "sites": [
+    {
+      "name": "Aquasec",
+      "type": "feed",
+      "url": "https://www.aquasec.com/feed/"
+    },
+    {
+      "name": "BforeAI",
+      "type": "feed",
+      "url": "https://bfore.ai/feed/"
+    },
+    {
+      "name": "Artic Wolf",
+      "type": "feed",
+      "url": "https://arcticwolf.com/feed/"
+    },
+    {
+      "name": "BitSight",
+      "type": "feed",
+      "url": "https://www.bitsight.com/rss.xml"
+    },
+    {
+      "name": "Aikido Security",
+      "type": "feed",
+      "url": "https://www.aikido.dev/blog/rss.xml"
+    },
+    {
+      "name": "Checkmarx",
+      "type": "feed",
+      "url": "https://checkmarx.com/feed/"
+    },
+    {
+      "name": "ANY RUN",
+      "type": "feed",
+      "url": "https://any.run/cybersecurity-blog/feed/"
+    },
+    {
+      "name": "C/Side Blog",
+      "type": "feed",
+      "url": "https://cside.dev/blog/rss.xml"
+    },
+    {
+      "name": "Acronis (TRU)",
+      "type": "feed",
+      "url": "https://www.acronis.com/en-us/tru/feed.xml"
+    },
+    {
+      "name": "Cisco Talos",
+      "type": "feed",
+      "url": "https://blog.talosintelligence.com/feed/"
+    },
+    {
+      "name": "Cofense",
+      "type": "feed",
+      "url": "https://cofense.com/feed/"
+    },
+    {
+      "name": "CN-SEC",
+      "type": "feed",
+      "url": "https://cn-sec.com/feed/"
+    },
+    {
+      "name": "CyberArk",
+      "type": "feed",
+      "url": "https://www.cyberark.com/feed/"
+    },
+    {
+      "name": "CloudSEK",
+      "type": "feed",
+      "url": "https://www.cloudsek.com/blog/rss.xml"
+    },
+    {
+      "name": "Claroty Team82",
+      "type": "feed",
+      "url": "https://claroty.com/team82/disclosure-dashboard/feed/atom"
+    },
+    {
+      "name": "DFIR Report",
+      "type": "feed",
+      "url": "https://thedfirreport.com/feed/"
+    },
+    {
+      "name": "Duo Security",
+      "type": "feed",
+      "url": "https://duo.com/feed/"
+    },
+    {
+      "name": "CrowdStrike",
+      "type": "feed",
+      "url": "https://www.crowdstrike.com/blog/feed/"
+    },
+    {
+      "name": "Eclypsium",
+      "type": "feed",
+      "url": "https://eclypsium.com/feed/"
+    },
+    {
+      "name": "DarkTrace",
+      "type": "feed",
+      "url": "https://www.darktrace.com/blog/rss.xml"
+    },
+    {
+      "name": "Cybereason",
+      "type": "feed",
+      "url": "https://www.cybereason.com/blog/rss.xml"
+    },
+    {
+      "name": "Eclecticiq",
+      "type": "feed",
+      "url": "https://blog.eclecticiq.com/rss.xml"
+    },
+    {
+      "name": "Europol",
+      "type": "feed",
+      "url": "https://www.europol.europa.eu/rss/"
+    },
+    {
+      "name": "Elastic Security",
+      "type": "feed",
+      "url": "https://www.elastic.co/blog/feed/"
+    },
+    {
+      "name": "Flashpoint",
+      "type": "feed",
+      "url": "https://flashpoint.io/feed/"
+    },
+    {
+      "name": "Layerx Security",
+      "type": "feed",
+      "url": "https://layerxsecurity.com/feed/"
+    },
+    {
+      "name": "FBI",
+      "type": "feed",
+      "url": "https://www.fbi.gov/rss.xml"
+    },
+    {
+      "name": "Cyfirma",
+      "type": "feed",
+      "url": "https://www.cyfirma.com/feed/"
+    },
+    {
+      "name": "Moonlock",
+      "type": "feed",
+      "url": "https://moonlock.com/feed/"
+    },
+    {
+      "name": "Elliptic",
+      "type": "feed",
+      "url": "https://www.elliptic.co/blog/rss.xml"
+    },
+    {
+      "name": "Nextron Systems",
+      "type": "feed",
+      "url": "https://www.nextron-systems.com/feed/"
+    },
+    {
+      "name": "Dr. WEB",
+      "type": "feed",
+      "url": "https://news.drweb.com/rss/get/?c=5&lng=en"
+    },
+    {
+      "name": "NSFocus",
+      "type": "feed",
+      "url": "https://nsfocusglobal.com/feed/"
+    },
+    {
+      "name": "SafeBreach",
+      "type": "feed",
+      "url": "https://www.safebreach.com/feed/"
+    },
+    {
+      "name": "PolySworm",
+      "type": "feed",
+      "url": "https://blog.polyswarm.io/rss.xml"
+    },
+    {
+      "name": "ReliaQuest",
+      "type": "feed",
+      "url": "https://reliaquest.com/rss.xml"
+    },
+    {
+      "name": "WatchTowr",
+      "type": "feed",
+      "url": "https://labs.watchtowr.com/feed/"
+    },
+    {
+      "name": "Field Effect",
+      "type": "feed",
+      "url": "https://fieldeffect.com/blog/rss.xml"
+    },
+    {
+      "name": "Expel",
+      "type": "feed",
+      "url": "https://expel.com/blog/rss.xml"
+    },
+    {
+      "name": "Anwangxia",
+      "type": "feed",
+      "url": "https://www.anwangxia.com/feed/"
+    },
+    {
+      "name": "Citizen Lab",
+      "type": "feed",
+      "url": "https://citizenlab.ca/feed/"
+    },
+    {
+      "name": "Digital Security Lab Ukraine",
+      "type": "feed",
+      "url": "https://dslua.org/feed/"
+    },
+    {
+      "name": "Fox-IT International ",
+      "type": "feed",
+      "url": "https://blog.fox-it.com/feed/"
+    },
+    {
+      "name": "Picus Security",
+      "type": "feed",
+      "url": "https://www.picussecurity.com/resource/rss.xml"
+    },
+    {
+      "name": "g0njxa Medium Blog",
+      "type": "feed",
+      "url": "https://g0njxa.medium.com/feed/"
+    },
+    {
+      "name": "ASEC",
+      "type": "feed",
+      "url": "https://asec.ahnlab.com/en/feed/"
+    },
+    {
+      "name": "Google - Threat Analysis Group",
+      "type": "feed",
+      "url": "https://blog.google/rss/"
+    },
+    {
+      "name": "Guidepoint Security",
+      "type": "feed",
+      "url": "https://www.guidepointsecurity.com/feed/"
+    },
+    {
+      "name": "GreyNoise",
+      "type": "feed",
+      "url": "https://www.greynoise.io/rss/"
+    },
+    {
+      "name": "haxrob (security researchers)",
+      "type": "feed",
+      "url": "https://haxrob.net/feed/"
+    },
+    {
+      "name": "Horizon3",
+      "type": "feed",
+      "url": "https://www.horizon3.ai/feed/"
+    },
+    {
+      "name": "Halcyon",
+      "type": "feed",
+      "url": "https://www.halcyon.ai/blog/rss.xml"
+    },
+    {
+      "name": "Group-IB",
+      "type": "feed",
+      "url": "https://www.group-ib.com/blog/rss.xml"
+    },
+    {
+      "name": "Infostealers (HudsonRock)",
+      "type": "feed",
+      "url": "https://www.infostealers.com/feed/"
+    },
+    {
+      "name": "Infoblox",
+      "type": "feed",
+      "url": "https://blogs.infoblox.com/feed/"
+    },
+    {
+      "name": "ic3 gov - FBI",
+      "type": "feed",
+      "url": "https://www.ic3.gov/rss.xml"
+    },
+    {
+      "name": "Intel471",
+      "type": "feed",
+      "url": "https://intel471.com/feed/"
+    },
+    {
+      "name": "GData CyberDefense",
+      "type": "feed",
+      "url": "https://www.gdatasoftware.com/blog/rss.xml"
+    },
+    {
+      "name": "Intrinsec",
+      "type": "feed",
+      "url": "https://www.intrinsec.com/feed/"
+    },
+    {
+      "name": "Huntress",
+      "type": "feed",
+      "url": "https://www.huntress.com/blog/rss.xml"
+    },
+    {
+      "name": "JPCERT Coordination Center",
+      "type": "feed",
+      "url": "https://blogs.jpcert.or.jp/atom.xml"
+    },
+    {
+      "name": "Kaspersky",
+      "type": "feed",
+      "url": "https://ics-cert.kaspersky.com/feed/"
+    },
+    {
+      "name": "INKY",
+      "type": "feed",
+      "url": "https://www.inky.com/blog/rss.xml"
+    },
+    {
+      "name": "Malwarebytes",
+      "type": "feed",
+      "url": "https://www.malwarebytes.com/feed/"
+    },
+    {
+      "name": "jscrambler",
+      "type": "feed",
+      "url": "https://jscrambler.com/blog/rss.xml"
+    },
+    {
+      "name": "K7 Security Labs",
+      "type": "feed",
+      "url": "https://labs.k7computing.com/index.php/feed/"
+    },
+    {
+      "name": "Menlo Security",
+      "type": "feed",
+      "url": "https://www.menlosecurity.com/blog/rss.xml"
+    },
+    {
+      "name": "Lookout",
+      "type": "feed",
+      "url": "https://www.lookout.com/blog/rss.xml"
+    },
+    {
+      "name": "Knownsec 404 Team",
+      "type": "feed",
+      "url": "https://medium.com/feed/@knownsec404team"
+    },
+    {
+      "name": "Netskope",
+      "type": "feed",
+      "url": "https://www.netskope.com/feed/"
+    },
+    {
+      "name": "Kandji",
+      "type": "feed",
+      "url": "https://www.kandji.io/blog/feed/"
+    },
+    {
+      "name": "Praetorian",
+      "type": "feed",
+      "url": "https://www.praetorian.com/feed/"
+    },
+    {
+      "name": "Red Canary",
+      "type": "feed",
+      "url": "https://redcanary.com/feed/"
+    },
+    {
+      "name": "Netlify",
+      "type": "feed",
+      "url": "https://www.netlify.com/rss.xml"
+    },
+    {
+      "name": "Microsoft",
+      "type": "feed",
+      "url": "https://www.microsoft.com/en-us/security/blog/feed/"
+    },
+    {
+      "name": "Cloudflare",
+      "type": "feed",
+      "url": "https://blog.cloudflare.com/rss/"
+    },
+    {
+      "name": "Sansec",
+      "type": "feed",
+      "url": "https://sansec.io/atom.xml"
+    },
+    {
+      "name": "DMPDUMP",
+      "type": "feed",
+      "url": "https://dmpdump.github.io/feed"
+    },
+    {
+      "name": "Sweet Security",
+      "type": "feed",
+      "url": "https://www.sweet.security/blog/rss.xml"
+    },
+    {
+      "name": "Level Blue",
+      "type": "feed",
+      "url": "https://www.levelblue.com/blogs/spiderlabs-blog/rss.xml"
+    },
+    {
+      "name": "QiAnXin XLab",
+      "type": "feed",
+      "url": "https://blog.xlab.qianxin.com/feed/"
+    },
+    {
+      "name": "Proofpoint",
+      "type": "feed",
+      "url": "https://www.proofpoint.com/rss.xml"
+    },
+    {
+      "name": "Qualys",
+      "type": "feed",
+      "url": "https://blog.qualys.com/feed/"
+    },
+    {
+      "name": "QuickHeal",
+      "type": "feed",
+      "url": "https://blogs.quickheal.com/feed/"
+    },
+    {
+      "name": "Genians",
+      "type": "feed",
+      "url": "https://www.genians.co.kr/blog/rss.xml"
+    },
+    {
+      "name": "Recorded Future",
+      "type": "feed",
+      "url": "https://www.recordedfuture.com/feed/"
+    },
+    {
+      "name": "Resecurity",
+      "type": "feed",
+      "url": "https://www.resecurity.com/feed/"
+    },
+    {
+      "name": "Rhino Security",
+      "type": "feed",
+      "url": "https://rhinosecuritylabs.com/feed/"
+    },
+    {
+      "name": "Morphisec",
+      "type": "feed",
+      "url": "https://www.morphisec.com/feed/"
+    },
+    {
+      "name": "SecureList - Kaspersky",
+      "type": "feed",
+      "url": "https://securelist.com/feed/"
+    },
+    {
+      "name": "Security Scorecard",
+      "type": "feed",
+      "url": "https://securityscorecard.com/feed/"
+    },
+    {
+      "name": "Securonix",
+      "type": "feed",
+      "url": "https://www.securonix.com/feed/"
+    },
+    {
+      "name": "Rapid7",
+      "type": "feed",
+      "url": "https://www.rapid7.com/rss.xml"
+    },
+    {
+      "name": "SentinelOne",
+      "type": "feed",
+      "url": "https://www.sentinelone.com/feed/"
+    },
+    {
+      "name": "Seqrite",
+      "type": "feed",
+      "url": "https://www.seqrite.com/feed/"
+    },
+    {
+      "name": "Silent Push",
+      "type": "feed",
+      "url": "https://www.silentpush.com/feed/"
+    },
+    {
+      "name": "SAM CERT",
+      "type": "feed",
+      "url": "https://www.samcert.gov.ws/rss.xml"
+    },
+    {
+      "name": "Sonar Source",
+      "type": "feed",
+      "url": "https://www.sonarsource.com/rss.xml"
+    },
+    {
+      "name": "Salt Security",
+      "type": "feed",
+      "url": "https://salt.security/blog/rss.xml"
+    },
+    {
+      "name": "Reversing Labs",
+      "type": "feed",
+      "url": "https://www.reversinglabs.com/blog/rss.xml"
+    },
+    {
+      "name": "SourceCode Red",
+      "type": "feed",
+      "url": "https://sourcecodered.com/feed/"
+    },
+    {
+      "name": "Sucuri",
+      "type": "feed",
+      "url": "https://blog.sucuri.net/feed/"
+    },
+    {
+      "name": "Sysdig",
+      "type": "feed",
+      "url": "https://sysdig.com/feed/"
+    },
+    {
+      "name": "Sonatype",
+      "type": "feed",
+      "url": "https://www.sonatype.com/blog/rss.xml"
+    },
+    {
+      "name": "ThreatDown - Malwarebytes",
+      "type": "feed",
+      "url": "https://www.threatdown.com/feed"
+    },
+    {
+      "name": "Socket",
+      "type": "feed",
+      "url": "https://socket.dev/api/blog/feed.atom"
+    },
+    {
+      "name": "Tenable",
+      "type": "feed",
+      "url": "https://www.tenable.com/blog/feed/"
+    },
+    {
+      "name": "Symantec - Broadcom",
+      "type": "feed",
+      "url": "https://www.security.com/rss/v1/blogs/rss.xml"
+    },
+    {
+      "name": "Unit 42- Palo Alto Networks",
+      "type": "feed",
+      "url": "https://unit42.paloaltonetworks.com/feed/"
+    },
+    {
+      "name": "US Treasury",
+      "type": "feed",
+      "url": "https://home.treasury.gov/rss.xml"
+    },
+    {
+      "name": "US Department of Justice",
+      "type": "feed",
+      "url": "https://www.justice.gov/rss.xml"
+    },
+    {
+      "name": "Vmware",
+      "type": "feed",
+      "url": "https://blogs.vmware.com/feed/"
+    },
+    {
+      "name": "Volexity",
+      "type": "feed",
+      "url": "https://www.volexity.com/feed/"
+    },
+    {
+      "name": "WeLiveSecurity - ESET",
+      "type": "feed",
+      "url": "https://www.welivesecurity.com/feed/"
+    },
+    {
+      "name": "Uptycs",
+      "type": "feed",
+      "url": "https://www.uptycs.com/blog/rss.xml"
+    },
+    {
+      "name": "Validin",
+      "type": "feed",
+      "url": "https://www.validin.com/index.xml"
+    },
+    {
+      "name": "Virus Total",
+      "type": "feed",
+      "url": "https://blog.virustotal.com/rss.xml"
+    },
+    {
+      "name": "Varonis",
+      "type": "feed",
+      "url": "https://www.varonis.com/blog/feed/"
+    },
+    {
+      "name": "Wiz",
+      "type": "feed",
+      "url": "https://www.wiz.io/blog/rss.xml"
+    },
+    {
+      "name": "Trustwave",
+      "type": "feed",
+      "url": "https://www.levelblue.com/blogs/spiderlabs-blog/rss.xml"
+    },
+    {
+      "name": "Jamf",
+      "type": "feed",
+      "url": "https://www.jamf.com/rss.xml"
+    },
+    {
+      "name": "Brave",
+      "type": "feed",
+      "url": "https://brave.com/feed/"
+    },
+    {
+      "name": "Aryaka",
+      "type": "feed",
+      "url": "https://www.aryaka.com/feed/"
+    },
+    {
+      "name": "Sygnia",
+      "type": "feed",
+      "url": "https://www.sygnia.co/feed/"
+    },
+    {
+      "name": "Zimperium",
+      "type": "feed",
+      "url": "https://www.zimperium.com/blog/rss.xml"
+    },
+    {
+      "name": "CERT-UA",
+      "type": "feed",
+      "url": "https://cert.gov.ua/api/articles/rss"
+    },
+    {
+      "name": "Bitdefender Labs",
+      "type": "feed",
+      "url": "https://www.bitdefender.com/nuxt/api/en-us/rss/labs/"
+    },
+    {
+      "name": "AFINE",
+      "type": "html",
+      "url": "https://afine.com/blog/",
+      "post_container": "div.blog-post2-related_item.w-dyn-item",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "Webflow dyn-item, sampleHref=real article slug"
+    },
+    {
+      "name": "Datadog Security Labs",
+      "type": "html",
+      "url": "https://securitylabs.datadoghq.com/articles/",
+      "post_container": "article.hit-flex",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "AlgoliaSearch hit article element, sampleHref=real article"
+    },
+    {
+      "name": "Cyberint",
+      "type": "feed",
+      "url": "https://cyberint.com/news-feed/"
+    },
+    {
+      "name": "Netcraft",
+      "type": "html",
+      "url": "https://www.netcraft.com/blog/",
+      "post_container": "div.framer-1wk7xcp-container",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "Framer container, 10 items, sampleHref=real blog post"
+    },
+    {
+      "name": "DomainTools",
+      "type": "feed",
+      "url": "https://rss.app/feeds/_6EavJGnrhVEC22vA.xml"
+    },
+    {
+      "name": "Fortinet",
+      "type": "feed",
+      "url": "https://www.fortinet.com/rss-feeds.html"
+    },
+    {
+      "name": "HarfangLab",
+      "type": "feed",
+      "url": "https://harfanglab.io/insidethelab/feed/"
+    },
+    {
+      "name": "Google Cloud",
+      "type": "feed",
+      "url": "https://feeds.feedburner.com/threatintelligence/pvexyqv7v0v"
+    },
+    {
+      "name": "GetSafety",
+      "type": "skip",
+      "url": "https://www.getsafety.com/research",
+      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+    },
+    {
+      "name": "Lumen",
+      "type": "skip",
+      "url": "https://blog.lumen.com/",
+      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+    },
+    {
+      "name": "txOne",
+      "type": "skip",
+      "url": "https://www.txone.com/blog/",
+      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+    },
+    {
+      "name": "CISA News",
+      "type": "html",
+      "url": "https://www.cisa.gov/news-events/news",
+      "post_container": "article.is-promoted.c-teaser.c-teaser--horizontal",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "CISA teaser card, 10 items, sampleHref=real news article"
+    },
+    {
+      "name": "CISA Alerts",
+      "type": "html",
+      "url": "https://www.cisa.gov/news-events/cybersecurity-advisories?f%5B0%5D=advisory_type%3A93",
+      "post_container": "article.is-promoted.c-teaser.c-teaser--horizontal",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "CISA teaser card, 10 items, sampleHref=real alert URL"
+    },
+    {
+      "name": "CISA Cybersecurity Advisories",
+      "type": "html",
+      "url": "https://www.cisa.gov/news-events/cybersecurity-advisories",
+      "post_container": "article.is-promoted.c-teaser.c-teaser--horizontal",
+      "link_selector": "a",
+      "link_path_prefix": "/news-events/",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "CISA teaser card; unfiltered page mixes /resources-tools/ links with advisories; link_path_prefix keeps only /news-events/ paths"
+    },
+    {
+      "name": "Akamai",
+      "type": "skip",
+      "url": "https://www.akamai.com/blog/security-research",
+      "notes": "Bot-walled or dead domain as of last check - manual monitoring only"
+    },
+    {
+      "name": "Blackberry",
+      "type": "skip",
+      "url": "https://blogs.blackberry.com/en/home",
+      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+    },
+    {
+      "name": "Bitdefender HotForSecurity",
+      "type": "html",
+      "url": "https://www.bitdefender.com/en-us/blog/",
+      "post_container": "div.tw-mb-12.tw-flex-wrap.tw-items-center",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "Tailwind flex card, 4 items, sampleHref=real blog post. link[0]=thumbnail (article URL), link[1+]=category tags (/tag/...). link_selector='a' confirmed correct."
+    },
+    {
+      "name": "Cleafy",
+      "type": "html",
+      "url": "https://www.cleafy.com/labs",
+      "post_container": "div.card-newsroom.lab.w-dyn-item",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "Webflow dyn-item, 9 items, sampleHref=real lab article"
+    },
+    {
+      "name": "Driftnet",
+      "type": "html",
+      "url": "https://driftnet.io/blog",
+      "post_container": "div.MuiPaper-root.MuiPaper-elevation.MuiPaper-rounded",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "MUI Paper card, 3 items, sampleHref=real blog post — low count but correct"
+    },
+    {
+      "name": "Cado Security",
+      "type": "skip",
+      "url": "https://www.darktrace.com/blog",
+      "notes": "Acquired by Darktrace 2024; content fully absorbed into darktrace.com/blog with no distinct Cado section. DarkTrace already monitored via feed entry."
+    },
+    {
+      "name": "eSentire",
+      "type": "skip",
+      "url": "https://www.esentire.com/resources/blog",
+      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+    },
+    {
+      "name": "Binarly",
+      "type": "skip",
+      "url": "https://www.binarly.io/learn",
+      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+    },
+    {
+      "name": "Splunk - Security Blog",
+      "type": "html",
+      "url": "https://www.splunk.com/en_us/blog/security.html",
+      "post_container": "div.article-list-card",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "Splunk article card, 9 items, sampleHref=real security blog post"
+    },
+    {
+      "name": "Cyjax",
+      "type": "html",
+      "url": "https://www.cyjax.com/resources/",
+      "post_container": "div.resources_list.w-dyn-items div.w-dyn-item",
+      "link_selector": "a",
+      "link_path_prefix": "/resources/blog/",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "All card types share identical CSS classes; only URL path distinguishes blog vs white-paper vs case-study. link_path_prefix keeps /resources/blog/ only."
+    },
+    {
+      "name": "Threatray",
+      "type": "html",
+      "url": "https://www.threatray.com/blog/",
+      "post_container": "div.blog_item.w-dyn-item",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "Webflow dyn-item, 6 items, sampleHref=real blog post"
+    },
+    {
+      "name": "Human Security",
+      "type": "skip",
+      "url": "https://www.humansecurity.com/learn/blog/",
+      "notes": "Bot-walled or dead domain as of last check - manual monitoring only"
+    },
+    {
+      "name": "Hunt.io",
+      "type": "html",
+      "url": "https://hunt.io/blog",
+      "post_container": "div.framer-1409ko9",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "Framer post container, 6 items; trailing slash removed from URL (dot-relative hrefs + trailing-slash base caused doubled /blog/blog/ paths)"
+    },
+    {
+      "name": "IBM X-Force",
+      "type": "html",
+      "url": "https://securityintelligence.com/x-force/",
+      "post_container": "div.horizontal-media-group__item",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "IBM media group item, 15 items, sampleHref=ibm.com/think/x-force article"
+    },
+    {
+      "name": "Imperva",
+      "type": "html",
+      "url": "https://www.imperva.com/blog/",
+      "post_container": "div.tile-holder.card-div",
+      "link_selector": "a.subtitle-card",
+      "link_path_prefix": "/blog/",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "35 cards total; resource cards share the same container class so link_path_prefix filters them out, keeping only /blog/ articles"
+    },
+    {
+      "name": "Forcepoint",
+      "type": "html",
+      "url": "https://www.forcepoint.com/blog/x-labs",
+      "post_container": "div.px-5.pt-5",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "X-Labs card, 10 items, sampleHref=real x-labs blog post"
+    },
+    {
+      "name": "iZoologic",
+      "type": "skip",
+      "url": "https://izoologic.com/blogs/",
+      "notes": "Bot-walled or dead domain as of last check - manual monitoring only"
+    },
+    {
+      "name": "Lab52",
+      "type": "skip",
+      "url": "https://lab52.io/blog/",
+      "notes": "Bot-walled or dead domain as of last check - manual monitoring only"
+    },
+    {
+      "name": "F.A.C.C.T.",
+      "type": "skip",
+      "url": "https://www.facct.ru/blog/",
+      "notes": "Bot-walled or dead domain as of last check - manual monitoring only"
+    },
+    {
+      "name": "Intezer",
+      "type": "html",
+      "url": "https://intezer.com/blog/",
+      "post_container": "div.blogbodycard.w-dyn-item",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "Webflow dyn-item, 15 items, sampleHref=real blog post"
+    },
+    {
+      "name": "McAfee",
+      "type": "skip",
+      "url": "https://www.mcafee.com/blogs/other-blogs/",
+      "notes": "HTTP/2 protocol error — headless Chromium cannot load the page; confirmed twice with --disable-http2 flag and extended timeout, issue is structural. Needs manual monitoring."
+    },
+    {
+      "name": "Forescout",
+      "type": "skip",
+      "url": "https://www.forescout.com/blog",
+      "notes": "Bot-walled or dead domain as of last check - manual monitoring only"
+    },
+    {
+      "name": "Australian Signals Directorate's Australian Cyber Security Centre (ASD's ACSC) ",
+      "type": "skip",
+      "url": "https://www.cyber.gov.au/about-us/view-all-content/alerts-and-advisories",
+      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+    },
+    {
+      "name": "Phylum",
+      "type": "skip",
+      "url": "https://blog.phylum.io/",
+      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+    },
+    {
+      "name": "NCC Group",
+      "type": "html",
+      "url": "https://www.nccgroup.com/us/research-blog/?sortOrder=desc&resource=18345#hub",
+      "post_container": "div.glide__slide.c-in__slide",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "Glide carousel slide, 11 items, sampleHref=real research article"
+    },
+    {
+      "name": "Guardio",
+      "type": "html",
+      "url": "https://labs.guard.io/",
+      "post_container": "div.blog_card.w-dyn-item",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "Webflow dyn-item, 33 items, sampleHref=real labs article"
+    },
+    {
+      "name": "Packetstorm",
+      "type": "skip",
+      "url": "https://packetstorm.news/",
+      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+    },
+    {
+      "name": "PT Security",
+      "type": "html",
+      "url": "https://global.ptsecurity.com/analytics/pt-esc-threat-intelligence",
+      "post_container": "article.ArticleList_list-item__8okkz.ArticleList_bordered__BOMAh",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "PT ESC article list item, 10 items, sampleHref=real analytics article"
+    },
+    {
+      "name": "SOCradar",
+      "type": "skip",
+      "url": "https://socradar.io/blog/",
+      "notes": "Bot-walled or dead domain as of last check - manual monitoring only"
+    },
+    {
+      "name": "Oligo Security",
+      "type": "skip",
+      "url": "https://www.oligo.security/blog/",
+      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+    },
+    {
+      "name": "Sectrio",
+      "type": "skip",
+      "url": "https://sectrio.com/",
+      "notes": "Domain 301-redirects to subex.com; all sectrio.com subpaths (blog, threat-intelligence) return 404. OT/IoT CTI content no longer accessible anywhere."
+    },
+    {
+      "name": "Top10VPN",
+      "type": "html",
+      "url": "https://www.top10vpn.com/research/",
+      "post_container": "article.jsx-1132817740.card.card-single",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "React article card, 12 items, sampleHref=real research article"
+    },
+    {
+      "name": "Trend Micro",
+      "type": "html",
+      "url": "https://www.trendmicro.com/en_us/research.html",
+      "post_container": "div.grid-content",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "Research grid card, 10 items, sampleHref=real research article"
+    },
+    {
+      "name": "TRM Labs",
+      "type": "html",
+      "url": "https://www.trmlabs.com/resources/blog",
+      "post_container": "div.post-item.w-dyn-item",
+      "link_selector": "a",
+      "link_path_prefix": "/resources/blog/",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "Webflow dyn-item, 6 items; URL already points at /resources/blog but link_path_prefix guards against other resource types appearing"
+    },
+    {
+      "name": "Truffle Security",
+      "type": "skip",
+      "url": "https://trufflesecurity.com/blog",
+      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+    },
+    {
+      "name": "Sekoia",
+      "type": "html",
+      "url": "https://blog.sekoia.io/",
+      "post_container": "div.blog-list_item.w-dyn-item",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "Webflow dyn-item, 16 items, sampleHref=real blog post"
+    },
+    {
+      "name": "Speartip",
+      "type": "html",
+      "url": "https://us.zurichresilience.com/cybersecurity/articles-and-insights",
+      "post_container": "div.card-content",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "speartip.com redirects to us.zurichresilience.com; us. subdomain required — www. does not render article cards in headless browser. 18 card-content hits, sampleHref=real article."
+    },
+    {
+      "name": "Koi Security",
+      "type": "html",
+      "url": "https://blog.koi.security/",
+      "post_container": "div.posts_item.all.w-dyn-item",
+      "link_selector": "a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "Webflow dyn-item, 55 items, sampleHref=real blog post"
+    },
+    {
+      "name": "LastPass",
+      "type": "skip",
+      "url": "https://blog.lastpass.com/",
+      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+    },
+    {
+      "name": "Veriti AI",
+      "type": "skip",
+      "url": "https://veriti.ai/blog/veriti-research/",
+      "notes": "Acquired by Cyberint (Check Point) 2024; veriti.ai redirects to checkpoint.com/exposure-management. No distinct Veriti section or tag exists on blog.checkpoint.com — content fully absorbed with no filterable URL."
+    },
+    {
+      "name": "F6 Russia",
+      "type": "skip",
+      "url": "https://www.f6.ru/blog",
+      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+    },
+    {
+      "name": "Zscaler",
+      "type": "skip",
+      "url": "https://www.zscaler.com/blogs?type=security-research",
+      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+    },
+    {
+      "name": "Blackpoint",
+      "type": "skip",
+      "url": "https://blackpointcyber.com/blog/",
+      "notes": "Bot-walled or dead domain as of last check - manual monitoring only"
+    },
+    {
+      "name": "StrongestLayer",
+      "type": "skip",
+      "url": "https://www.strongestlayer.com/research",
+      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+    },
+    {
+      "name": "Interlab",
+      "type": "skip",
+      "url": "https://interlab.or.kr/",
+      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+    },
+    {
+      "name": "Kroll",
+      "type": "html",
+      "url": "https://www.kroll.com/en/insights/cyber",
+      "post_container": "div.md\\:col-span-4",
+      "link_selector": "a",
+      "link_path_prefix": "/en/publications/cyber/",
+      "path_exclude": ["/case-studies/"],
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "20 card hits; link_path_prefix keeps only /en/publications/cyber/; path_exclude drops case-study marketing pages"
+    },
+    {
+      "name": "Secureworks",
+      "type": "skip",
+      "url": "https://www.secureworks.com/blog/",
+      "notes": "HTTP/2 protocol error — headless Chromium cannot load the page; confirmed twice with --disable-http2 flag and extended timeout, issue is structural. Needs manual monitoring."
+    },
+    {
+      "name": "Trellix Research Blog",
+      "type": "skip",
+      "url": "https://www.trellix.com/blogs/research/",
+      "notes": "HTTP/2 protocol error — headless Chromium cannot load the page; confirmed twice with --disable-http2 flag and extended timeout, issue is structural. Needs manual monitoring."
+    },
+    {
+      "name": "Trellix Blog",
+      "type": "skip",
+      "url": "https://www.trellix.com/blogs/",
+      "notes": "HTTP/2 protocol error — headless Chromium cannot load the page; confirmed twice with --disable-http2 flag and extended timeout, issue is structural. Needs manual monitoring."
+    },
+    {
+      "name": "Sophos",
+      "type": "skip",
+      "url": "https://news.sophos.com/en-us/",
+      "notes": "HTTP/2 protocol error — headless Chromium cannot load the page; confirmed twice with --disable-http2 flag and extended timeout, issue is structural. Needs manual monitoring."
+    }
+  ]
+}

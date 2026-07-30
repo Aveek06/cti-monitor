@@ -1,0 +1,2 @@
+﻿Run complete: 4 new post(s) found, 0 site(s) failed.
+Email failed to send (state.json already saved): (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials a92af1059eb24-13e72735084sm10311590c88.12 - gsmtp')
