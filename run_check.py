@@ -174,17 +174,19 @@ def send_digest_email(new_items, failures):
     </body></html>
     """
 
+    recipients = [r.strip() for r in EMAIL_TO.split(",") if r.strip()]
+
     msg = MIMEMultipart("alternative")
     msg["Subject"] = f"CTI Monitor: {len(new_items)} new post(s) - {datetime.now().strftime('%Y-%m-%d')}"
     msg["From"] = EMAIL_FROM
-    msg["To"] = EMAIL_TO
+    msg["To"] = ", ".join(recipients)
     msg.attach(MIMEText(html, "html"))
 
     try:
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
             server.starttls()
             server.login(SMTP_USERNAME, SMTP_PASSWORD)
-            server.sendmail(EMAIL_FROM, EMAIL_TO, msg.as_string())
+            server.sendmail(EMAIL_FROM, recipients, msg.as_string())
         print(f"Email sent: {len(new_items)} new post(s), {len(failures)} failure(s).")
     except Exception as e:
         print(f"Email failed to send (state.json already saved): {e}")
