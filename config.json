@@ -114,7 +114,7 @@
       "name": "Europol",
       "type": "feed",
       "url": "https://www.europol.europa.eu/rss/",
-      "title_keywords": ["cyber", "malware", "ransomware", "hacking", "phishing", "darknet", "dark web", "encryption", "botnet", "fraud", "scam", "data breach", "cryptocurrency", "cryptojacking", "ddos", "exploit", "vulnerability", "cybercrime", "online"]
+      "title_keywords": ["cyber", "malware", "ransomware", "hacking", "phishing", "darknet", "dark web", "encryption", "botnet", "fraud", "scam", "data breach", "cryptocurrency", "cryptojacking", "ddos", "exploit", "vulnerability", "cybercrime", "online", "trojan", "spyware", "keylogger", "worm", "virus", "threat actor", "apt", "nation-state", "social engineering", "spoofing", "vishing", "smishing", "stolen data", "identity theft", "credentials", "dark market", "marketplace", "forum", "takedown", "operation", "arrested", "seized", "infostealer", "stealer", "money mule", "money laundering"]
     },
     {
       "name": "Elastic Security",
