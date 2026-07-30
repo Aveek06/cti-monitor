@@ -1,0 +1,41 @@
+name: Sync Sources
+
+on:
+  push:
+    paths:
+      - "CTI_Source_List.xlsx"
+  workflow_dispatch:   # allow manual trigger from Actions tab
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install openpyxl feedparser requests playwright
+          playwright install chromium
+          playwright install-deps chromium
+
+      - name: Run sync
+        run: python sync_sources.py
+
+      - name: Commit updated config.json
+        run: |
+          git config user.name "CTI Monitor Bot"
+          git config user.email "cti-monitor@github-actions"
+          git add config.json
+          git diff --cached --quiet || git commit -m "Auto-sync config.json from CTI_Source_List.xlsx"
+          git push
