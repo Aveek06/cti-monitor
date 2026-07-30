@@ -60,11 +60,17 @@ def check_feed_site(site):
             "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                            "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
         })
+        keywords = [kw.lower() for kw in site.get("title_keywords", [])]
         for e in parsed.entries:
             link = e.get("link", "")
             date_str = e.get("published", e.get("updated", ""))
-            if link:
-                entries.append((link, date_str))
+            if not link:
+                continue
+            if keywords:
+                title = e.get("title", "").lower()
+                if not any(kw in title for kw in keywords):
+                    continue
+            entries.append((link, date_str))
     except Exception as ex:
         return entries, f"feed parse error: {ex}"
     return entries, None

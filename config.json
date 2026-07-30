@@ -113,7 +113,8 @@
     {
       "name": "Europol",
       "type": "feed",
-      "url": "https://www.europol.europa.eu/rss/"
+      "url": "https://www.europol.europa.eu/rss/",
+      "title_keywords": ["cyber", "malware", "ransomware", "hacking", "phishing", "darknet", "dark web", "encryption", "botnet", "fraud", "scam", "data breach", "cryptocurrency", "cryptojacking", "ddos", "exploit", "vulnerability", "cybercrime", "online"]
     },
     {
       "name": "Elastic Security",
