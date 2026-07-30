@@ -145,10 +145,6 @@ def normalize_date(date_str):
 
 
 def send_digest_email(new_items, failures):
-    if not new_items and not failures:
-        print("Nothing new, no failures. No email sent.")
-        return
-
     rows_html = ""
     for item in new_items:
         rows_html += (f"<tr><td>{item['date']}</td><td>{item['date_source']}</td>"
@@ -160,13 +156,20 @@ def send_digest_email(new_items, failures):
         failure_rows = "".join(f"<li>{f}</li>" for f in failures)
         failures_html = f"<h3>Sites that failed this run</h3><ul>{failure_rows}</ul>"
 
+    if not new_items:
+        body_html = "<p>No new blog posts were observed in this run.</p>"
+    else:
+        body_html = f"""
+        <table border="1" cellpadding="6" cellspacing="0">
+          <tr><th>Date</th><th>Date Source</th><th>Link</th><th>Parent Website</th></tr>
+          {rows_html}
+        </table>
+        """
+
     html = f"""
     <html><body>
     <h2>CTI Source Monitor - New Posts ({len(new_items)})</h2>
-    <table border="1" cellpadding="6" cellspacing="0">
-      <tr><th>Date</th><th>Date Source</th><th>Link</th><th>Parent Website</th></tr>
-      {rows_html}
-    </table>
+    {body_html}
     {failures_html}
     </body></html>
     """
