@@ -114,7 +114,53 @@
       "name": "Europol",
       "type": "feed",
       "url": "https://www.europol.europa.eu/rss/",
-      "title_keywords": ["cyber", "malware", "ransomware", "hacking", "phishing", "darknet", "dark web", "encryption", "botnet", "fraud", "scam", "data breach", "cryptocurrency", "cryptojacking", "ddos", "exploit", "vulnerability", "cybercrime", "online", "trojan", "spyware", "keylogger", "worm", "virus", "threat actor", "apt", "nation-state", "social engineering", "spoofing", "vishing", "smishing", "stolen data", "identity theft", "credentials", "dark market", "marketplace", "forum", "takedown", "operation", "arrested", "seized", "infostealer", "stealer", "money mule", "money laundering"]
+      "title_keywords": [
+        "cyber",
+        "malware",
+        "ransomware",
+        "hacking",
+        "phishing",
+        "darknet",
+        "dark web",
+        "encryption",
+        "botnet",
+        "fraud",
+        "scam",
+        "data breach",
+        "cryptocurrency",
+        "cryptojacking",
+        "ddos",
+        "exploit",
+        "vulnerability",
+        "cybercrime",
+        "online",
+        "trojan",
+        "spyware",
+        "keylogger",
+        "worm",
+        "virus",
+        "threat actor",
+        "apt",
+        "nation-state",
+        "social engineering",
+        "spoofing",
+        "vishing",
+        "smishing",
+        "stolen data",
+        "identity theft",
+        "credentials",
+        "dark market",
+        "marketplace",
+        "forum",
+        "takedown",
+        "operation",
+        "arrested",
+        "seized",
+        "infostealer",
+        "stealer",
+        "money mule",
+        "money laundering"
+      ]
     },
     {
       "name": "Elastic Security",
@@ -210,11 +256,6 @@
       "name": "Digital Security Lab Ukraine",
       "type": "feed",
       "url": "https://dslua.org/feed/"
-    },
-    {
-      "name": "Fox-IT International ",
-      "type": "feed",
-      "url": "https://blog.fox-it.com/feed/"
     },
     {
       "name": "Picus Security",
@@ -632,11 +673,6 @@
       "url": "https://cert.gov.ua/api/articles/rss"
     },
     {
-      "name": "Bitdefender Labs",
-      "type": "feed",
-      "url": "https://www.bitdefender.com/nuxt/api/en-us/rss/labs/"
-    },
-    {
       "name": "AFINE",
       "type": "html",
       "url": "https://afine.com/blog/",
@@ -757,17 +793,6 @@
       "type": "skip",
       "url": "https://blogs.blackberry.com/en/home",
       "notes": "manual review only - see selector_log.md for why automated scraping failed."
-    },
-    {
-      "name": "Bitdefender HotForSecurity",
-      "type": "html",
-      "url": "https://www.bitdefender.com/en-us/blog/",
-      "post_container": "div.tw-mb-12.tw-flex-wrap.tw-items-center",
-      "link_selector": "a",
-      "date_selector": null,
-      "date_format": "auto",
-      "needs_js": true,
-      "notes": "Tailwind flex card, 4 items, sampleHref=real blog post. link[0]=thumbnail (article URL), link[1+]=category tags (/tag/...). link_selector='a' confirmed correct."
     },
     {
       "name": "Cleafy",
@@ -934,12 +959,6 @@
       "type": "skip",
       "url": "https://www.forescout.com/blog",
       "notes": "Bot-walled or dead domain as of last check - manual monitoring only"
-    },
-    {
-      "name": "Australian Signals Directorate's Australian Cyber Security Centre (ASD's ACSC) ",
-      "type": "skip",
-      "url": "https://www.cyber.gov.au/about-us/view-all-content/alerts-and-advisories",
-      "notes": "manual review only - see selector_log.md for why automated scraping failed."
     },
     {
       "name": "Phylum",
@@ -1126,7 +1145,9 @@
       "post_container": "div.md\\:col-span-4",
       "link_selector": "a",
       "link_path_prefix": "/en/publications/cyber/",
-      "path_exclude": ["/case-studies/"],
+      "path_exclude": [
+        "/case-studies/"
+      ],
       "date_selector": null,
       "date_format": "auto",
       "needs_js": true,
@@ -1139,22 +1160,33 @@
       "notes": "HTTP/2 protocol error — headless Chromium cannot load the page; confirmed twice with --disable-http2 flag and extended timeout, issue is structural. Needs manual monitoring."
     },
     {
-      "name": "Trellix Research Blog",
-      "type": "skip",
-      "url": "https://www.trellix.com/blogs/research/",
-      "notes": "HTTP/2 protocol error — headless Chromium cannot load the page; confirmed twice with --disable-http2 flag and extended timeout, issue is structural. Needs manual monitoring."
-    },
-    {
-      "name": "Trellix Blog",
-      "type": "skip",
-      "url": "https://www.trellix.com/blogs/",
-      "notes": "HTTP/2 protocol error — headless Chromium cannot load the page; confirmed twice with --disable-http2 flag and extended timeout, issue is structural. Needs manual monitoring."
-    },
-    {
       "name": "Sophos",
       "type": "skip",
       "url": "https://news.sophos.com/en-us/",
       "notes": "HTTP/2 protocol error — headless Chromium cannot load the page; confirmed twice with --disable-http2 flag and extended timeout, issue is structural. Needs manual monitoring."
+    },
+    {
+      "name": "Australian Signals Directorate's Australian Cyber Security Centre (ASD's ACSC)",
+      "type": "html_TODO",
+      "url": "https://www.cyber.gov.au/about-us/view-all-content/alerts-and-advisories",
+      "notes": "auto-detection failed — manual selector inspection needed"
+    },
+    {
+      "name": "Bitdefender",
+      "type": "html_TODO",
+      "url": "https://www.bitdefender.com/en-us/blog/labs/\nhttps://www.bitdefender.com/en-us/blog/",
+      "notes": "auto-detection failed — manual selector inspection needed"
+    },
+    {
+      "name": "Fox-IT International",
+      "type": "feed",
+      "url": "https://blog.fox-it.com/feed"
+    },
+    {
+      "name": "Trellix",
+      "type": "html_TODO",
+      "url": "https://www.trellix.com/blogs/research/\nhttps://www.trellix.com/blogs/",
+      "notes": "auto-detection failed — manual selector inspection needed"
     }
   ]
 }
