@@ -7843,5 +7843,34 @@
     "https://www.zscaler.com/blogs/security-research/supply-chain-attacks-surge-march-2026",
     "https://www.zscaler.com/blogs/security-research/anthropic-claude-code-leak",
     "https://www.zscaler.com/blogs/security-research/latest-xloader-obfuscation-methods-and-network-protocol"
+  ],
+  "Check Point Research": [
+    "https://research.checkpoint.com/2026/27th-july-threat-intelligence-report/",
+    "https://research.checkpoint.com/2026/20th-july-threat-intelligence-report/",
+    "https://research.checkpoint.com/2026/ai-security-report-2026/",
+    "https://research.checkpoint.com/2026/13th-july-threat-intelligence-report/",
+    "https://research.checkpoint.com/2026/cavern-manticore-exposing-iran-linked-modular-c2-framework/",
+    "https://research.checkpoint.com/2026/6th-july-threat-intelligence-report-2/",
+    "https://research.checkpoint.com/2026/22nd-june-threat-intelligence-report/",
+    "https://research.checkpoint.com/2026/browser-only-ransomware-from-llm-hallucinations-to-a-practical-attack-technique/",
+    "https://research.checkpoint.com/2026/29th-june-threat-intelligence-report-2/",
+    "https://research.checkpoint.com/2026/from-stars-to-upvotes-fake-reputation-fueling-a-crypto-clipboard-hijacker/",
+    "https://research.checkpoint.com/2026/15th-june-threat-intelligence-report/",
+    "https://research.checkpoint.com/2026/from-sqli-to-rce-exploiting-langgraphs-checkpointer/",
+    "https://research.checkpoint.com/2026/8th-june-threat-intelligence-report/",
+    "https://research.checkpoint.com/2026/impersonation-click-hijacking-and-tds-inside-a-malware-distribution-ecosystem/",
+    "https://research.checkpoint.com/2026/1st-june-threat-intelligence-report/"
+  ],
+  "Check Point Exposure Management": [
+    "https://blog.checkpoint.com/exposure-management/the-branding-and-attribution-behind-cybercrime/",
+    "https://blog.checkpoint.com/research/which-brands-are-impersonated-most-inside-the-q2-2026-brand-phishing-report/",
+    "https://blog.checkpoint.com/exposure-management/what-the-2026-exposure-gap-report-reveals-about-remediation/",
+    "https://blog.checkpoint.com/exposure-management/under-pressure-insights-from-the-2026-exposure-gap-report/",
+    "https://blog.checkpoint.com/hybrid-mesh/what-successful-exposure-management-deployments-had-in-common-in-2026/",
+    "https://blog.checkpoint.com/exposure-management/the-ncsc-patch-wave-is-coming-do-you-know-where-your-risk-lives/",
+    "https://blog.checkpoint.com/exposure-management/fraud-ransomware-and-fake-apps-are-already-targeting-fifa-2026/",
+    "https://blog.checkpoint.com/exposure-management/the-2026-u-s-midterms-have-a-cyber-problem-but-its-not-at-the-ballot-box/",
+    "https://blog.checkpoint.com/exposure-management/the-autonomous-security-platform-built-for-attacker-speed/",
+    "https://blog.checkpoint.com/exposure-management/hacktivists-ransomware-and-a-124-surge-the-dach-threat-picture/"
   ]
 }

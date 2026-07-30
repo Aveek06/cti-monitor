@@ -31,6 +31,17 @@
       "url": "https://checkmarx.com/feed/"
     },
     {
+      "name": "Check Point Research",
+      "type": "feed",
+      "url": "https://research.checkpoint.com/feed"
+    },
+    {
+      "name": "Check Point Exposure Management",
+      "type": "feed",
+      "url": "https://blog.checkpoint.com/exposure-management/feed/",
+      "notes": "Formerly Veriti AI (acquired by Check Point 2024); exposure management + brand phishing research"
+    },
+    {
       "name": "ANY RUN",
       "type": "feed",
       "url": "https://any.run/cybersecurity-blog/feed/"
