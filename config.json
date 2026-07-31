@@ -1196,15 +1196,22 @@
     },
     {
       "name": "Australian Signals Directorate's Australian Cyber Security Centre (ASD's ACSC)",
-      "type": "html_TODO",
-      "url": "https://www.cyber.gov.au/about-us/view-all-content/alerts-and-advisories",
-      "notes": "auto-detection failed — manual selector inspection needed"
+      "type": "feed",
+      "url": "https://www.cyber.gov.au/about-us/view-all-content/alerts-and-advisories/feed",
+      "notes": "Geo-restricted from local machine (timeout); feed URL unverified — will seed or fail on first GitHub Actions run from US servers."
     },
     {
       "name": "Bitdefender",
-      "type": "html_TODO",
-      "url": "https://www.bitdefender.com/en-us/blog/labs/\nhttps://www.bitdefender.com/en-us/blog/",
-      "notes": "auto-detection failed — manual selector inspection needed"
+      "type": "html",
+      "url": "https://www.bitdefender.com/en-us/blog/labs/",
+      "post_container": "a.tw-block",
+      "link_selector": "self",
+      "link_path_prefix": "/en-us/blog/labs/",
+      "path_exclude": ["/tag/", "/author/"],
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "Tailwind-only classes, no semantic article containers; a.tw-block + path filters yields 15 unique research articles"
     },
     {
       "name": "Fox-IT International",
@@ -1213,9 +1220,9 @@
     },
     {
       "name": "Trellix",
-      "type": "html_TODO",
-      "url": "https://www.trellix.com/blogs/research/\nhttps://www.trellix.com/blogs/",
-      "notes": "auto-detection failed — manual selector inspection needed"
+      "type": "skip",
+      "url": "https://www.trellix.com/blogs/research/",
+      "notes": "WAF-blocked (timeout) locally and confirmed blocked in AAK1786/cti-monitor — both URLs return challenge page. Cannot scrape."
     }
   ]
 }
