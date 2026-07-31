@@ -759,9 +759,17 @@
     },
     {
       "name": "txOne",
-      "type": "skip",
-      "url": "https://www.txone.com/blog/",
-      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+      "type": "html_auto",
+      "url": "https://www.txone.com/resources/blog/",
+      "notes": "html_auto generic link extractor; min_depth=3 excludes the index page; seeded 70 posts",
+      "link_path_prefix": "/resources/blog/",
+      "path_exclude": [
+        "/tag/",
+        "/author/",
+        "/category/",
+        "/page/"
+      ],
+      "min_link_depth": 3
     },
     {
       "name": "CISA News",
@@ -845,9 +853,15 @@
     },
     {
       "name": "Binarly",
-      "type": "skip",
+      "type": "html_auto",
       "url": "https://www.binarly.io/learn",
-      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+      "notes": "html_auto; SPA needs extra wait; captures blog posts + BRLY CVE advisories",
+      "link_path_prefix": [
+        "/blog/",
+        "/advisories/"
+      ],
+      "path_exclude": [],
+      "extra_wait_ms": 5000
     },
     {
       "name": "Splunk - Security Blog",
@@ -1074,9 +1088,11 @@
     },
     {
       "name": "Truffle Security",
-      "type": "skip",
+      "type": "html_auto",
       "url": "https://trufflesecurity.com/blog",
-      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+      "notes": "html_auto generic link extractor; seeded 116 posts",
+      "link_path_prefix": "/blog/",
+      "path_exclude": []
     },
     {
       "name": "Sekoia",
@@ -1157,9 +1173,11 @@
     },
     {
       "name": "StrongestLayer",
-      "type": "skip",
+      "type": "html_auto",
       "url": "https://www.strongestlayer.com/research",
-      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+      "notes": "html_auto; research page links to /white-paper/ paths; seeded 19 papers",
+      "link_path_prefix": "/white-paper/",
+      "path_exclude": []
     },
     {
       "name": "Interlab",
@@ -1207,7 +1225,10 @@
       "post_container": "a.tw-block",
       "link_selector": "self",
       "link_path_prefix": "/en-us/blog/labs/",
-      "path_exclude": ["/tag/", "/author/"],
+      "path_exclude": [
+        "/tag/",
+        "/author/"
+      ],
       "date_selector": null,
       "date_format": "auto",
       "needs_js": true,

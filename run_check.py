@@ -284,6 +284,70 @@ def check_playwright_api_site(site, browser):
     return entries, None
 
 
+def check_html_auto_site(site, browser):
+    """
+    Generic link extractor (no CSS selector needed). Loads the page, collects all
+    same-domain <a> links, filters by link_path_prefix and path_exclude, then
+    returns the deduplicated set. Works by link-set diffing: first run seeds all
+    found links silently; only genuinely new URLs surface in later digests.
+
+    Config fields:
+      link_path_prefix   string or list of strings — only keep links whose path
+                         starts with one of these prefixes
+      path_exclude       list of strings — drop links whose path contains any of these
+      min_link_depth     minimum path-segment depth to accept (default 2)
+      extra_wait_ms      extra wait after networkidle, for JS-heavy SPAs (default 3000)
+    """
+    entries = []
+    try:
+        context = browser.new_context(
+            user_agent=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
+            ignore_https_errors=True,
+        )
+        page = context.new_page()
+        page.goto(site["url"], timeout=30000, wait_until="domcontentloaded")
+        try:
+            page.wait_for_load_state("networkidle", timeout=10000)
+        except Exception:
+            pass
+        page.wait_for_timeout(site.get("extra_wait_ms", 3000))
+
+        domain = urlparse(site["url"]).netloc
+        prefixes = site.get("link_path_prefix", "")
+        if isinstance(prefixes, str):
+            prefixes = [prefixes] if prefixes else []
+        excludes = site.get("path_exclude", [])
+        min_depth = site.get("min_link_depth", 2)
+
+        seen_links = set()
+        for a in page.query_selector_all("a"):
+            href = a.get_attribute("href") or ""
+            if not href or href.startswith(("#", "mailto:", "javascript:")):
+                continue
+            full = urljoin(site["url"], href)
+            p2 = urlparse(full)
+            if p2.netloc != domain:
+                continue
+            path = p2.path
+            if prefixes and not any(path.startswith(pfx) for pfx in prefixes):
+                continue
+            if any(excl in path for excl in excludes):
+                continue
+            parts = [x for x in path.split("/") if x]
+            if len(parts) < min_depth:
+                continue
+            clean = p2.scheme + "://" + p2.netloc + path
+            if clean not in seen_links:
+                seen_links.add(clean)
+                entries.append((clean, ""))
+
+        context.close()
+    except Exception as ex:
+        return entries, f"html_auto error: {ex}"
+    return entries, None
+
+
 def wait_for_stable_post_count(page, selector, max_wait_ms=15000, poll_interval_ms=500):
     """Poll selector count every poll_interval_ms; return once count is stable
     on two consecutive polls or max_wait_ms has elapsed."""
@@ -438,6 +502,8 @@ def main(config_path, state_path):
                 entries, err = check_nextjs_site(site)
             elif site["type"] == "playwright_api":
                 entries, err = check_playwright_api_site(site, browser)
+            elif site["type"] == "html_auto":
+                entries, err = check_html_auto_site(site, browser)
             else:
                 entries, err = check_html_site(site, browser)
 
