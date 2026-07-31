@@ -769,7 +769,8 @@
         "/category/",
         "/page/"
       ],
-      "min_link_depth": 3
+      "min_link_depth": 3,
+      "min_slug_length": 8
     },
     {
       "name": "CISA News",
@@ -861,7 +862,8 @@
         "/advisories/"
       ],
       "path_exclude": [],
-      "extra_wait_ms": 5000
+      "extra_wait_ms": 5000,
+      "min_slug_length": 8
     },
     {
       "name": "Splunk - Security Blog",
@@ -1092,7 +1094,8 @@
       "url": "https://trufflesecurity.com/blog",
       "notes": "html_auto generic link extractor; seeded 116 posts",
       "link_path_prefix": "/blog/",
-      "path_exclude": []
+      "path_exclude": [],
+      "min_slug_length": 8
     },
     {
       "name": "Sekoia",
@@ -1177,7 +1180,8 @@
       "url": "https://www.strongestlayer.com/research",
       "notes": "html_auto; research page links to /white-paper/ paths; seeded 19 papers",
       "link_path_prefix": "/white-paper/",
-      "path_exclude": []
+      "path_exclude": [],
+      "min_slug_length": 8
     },
     {
       "name": "Interlab",

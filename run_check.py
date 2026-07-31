@@ -291,12 +291,17 @@ def check_html_auto_site(site, browser):
     returns the deduplicated set. Works by link-set diffing: first run seeds all
     found links silently; only genuinely new URLs surface in later digests.
 
-    Config fields:
-      link_path_prefix   string or list of strings — only keep links whose path
-                         starts with one of these prefixes
-      path_exclude       list of strings — drop links whose path contains any of these
-      min_link_depth     minimum path-segment depth to accept (default 2)
-      extra_wait_ms      extra wait after networkidle, for JS-heavy SPAs (default 3000)
+    Config fields (all optional):
+      link_path_prefix       string or list — only keep links whose path starts with one
+      path_exclude           list of strings — drop links whose path contains any of these
+      min_link_depth         minimum path-segment count (default 2)
+      extra_wait_ms          extra wait after networkidle for JS-heavy SPAs (default 3000)
+      min_slug_length        last path segment must be >= N chars (drops index/archive pages)
+      require_hyphenated_slug  last segment must contain a hyphen (drops short nav slugs)
+      min_anchor_words       visible link text must have >= N words (drops icon/button links)
+      max_link_occurrences   drop URLs that appear in more than N <a> tags (nav/footer links
+                             are repeated across header+footer+mobile-menu; article links
+                             typically appear once)
     """
     entries = []
     try:
@@ -319,8 +324,14 @@ def check_html_auto_site(site, browser):
             prefixes = [prefixes] if prefixes else []
         excludes = site.get("path_exclude", [])
         min_depth = site.get("min_link_depth", 2)
+        min_slug_len = site.get("min_slug_length")
+        require_hyphen = site.get("require_hyphenated_slug", False)
+        min_anchor_words = site.get("min_anchor_words")
+        max_occurrences = site.get("max_link_occurrences")
 
-        seen_links = set()
+        # First pass: collect candidates and count occurrences per URL
+        candidates = []
+        url_occurrence = {}
         for a in page.query_selector_all("a"):
             href = a.get_attribute("href") or ""
             if not href or href.startswith(("#", "mailto:", "javascript:")):
@@ -338,9 +349,26 @@ def check_html_auto_site(site, browser):
             if len(parts) < min_depth:
                 continue
             clean = p2.scheme + "://" + p2.netloc + path
-            if clean not in seen_links:
-                seen_links.add(clean)
-                entries.append((clean, ""))
+            text = (a.inner_text() or "").strip()
+            url_occurrence[clean] = url_occurrence.get(clean, 0) + 1
+            candidates.append((clean, parts, text))
+
+        # Second pass: apply per-link filters and deduplicate
+        seen_links = set()
+        for clean, parts, text in candidates:
+            if clean in seen_links:
+                continue
+            slug = parts[-1] if parts else ""
+            if min_slug_len and len(slug) < min_slug_len:
+                continue
+            if require_hyphen and "-" not in slug:
+                continue
+            if min_anchor_words and len(text.split()) < min_anchor_words:
+                continue
+            if max_occurrences and url_occurrence.get(clean, 0) > max_occurrences:
+                continue
+            seen_links.add(clean)
+            entries.append((clean, ""))
 
         context.close()
     except Exception as ex:
