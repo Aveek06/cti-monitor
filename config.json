@@ -971,9 +971,9 @@
     },
     {
       "name": "Forescout",
-      "type": "feed",
-      "url": "https://www.forescout.com/feed",
-      "notes": "403 locally (IP block) but confirmed working in AAK1786/cti-monitor from GitHub Actions servers."
+      "type": "skip",
+      "url": "https://www.forescout.com/blog",
+      "notes": "IP-blocked locally (403 on all paths including feed, HTML, Playwright). Feed returns 0 entries on GitHub Actions. Cannot reliably scrape without DOM inspection from unblocked IP."
     },
     {
       "name": "Phylum",
@@ -1190,15 +1190,15 @@
     },
     {
       "name": "Sophos",
-      "type": "feed",
-      "url": "https://news.sophos.com/en-us/feed/",
-      "notes": "Redirects to www.sophos.com/blog/en-us/feed/; times out locally (IP block) but should work from GitHub Actions servers."
+      "type": "skip",
+      "url": "https://news.sophos.com/en-us/",
+      "notes": "Feed times out locally and fails on GitHub Actions. IP-blocked across all environments tested."
     },
     {
       "name": "Australian Signals Directorate's Australian Cyber Security Centre (ASD's ACSC)",
-      "type": "feed",
-      "url": "https://www.cyber.gov.au/about-us/view-all-content/alerts-and-advisories/feed",
-      "notes": "Geo-restricted from local machine (timeout); feed URL unverified — will seed or fail on first GitHub Actions run from US servers."
+      "type": "skip",
+      "url": "https://www.cyber.gov.au/about-us/view-all-content/alerts-and-advisories",
+      "notes": "Geo-restricted (times out locally). Guessed feed URL failed on GitHub Actions. Needs manual investigation from AU-based IP."
     },
     {
       "name": "Bitdefender",
