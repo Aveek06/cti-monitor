@@ -19,6 +19,7 @@ Usage:
 
 import os
 import sys
+import re
 import json
 import smtplib
 import asyncio
@@ -546,14 +547,75 @@ def check_html_site(site, browser):
     return entries, None
 
 
+_POST_DATE_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                 "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+
+
+def fetch_post_date(link):
+    """
+    Fetch an individual post page and extract its publish date from structured
+    metadata. Tried in order: JSON-LD datePublished → OG article:published_time
+    → <time datetime>. Returns raw date string or '' if nothing found.
+
+    Called only for new links where the scraper returned no date, so the cost
+    is one extra request per genuinely new post per run (typically 0–5).
+    """
+    try:
+        r = requests.get(link, headers={"User-Agent": _POST_DATE_UA},
+                         timeout=10, allow_redirects=True)
+        soup = BeautifulSoup(r.text, "html.parser")
+
+        # 1. JSON-LD
+        for script in soup.find_all("script", type="application/ld+json"):
+            try:
+                data = json.loads(script.string or "{}")
+                if isinstance(data, list):
+                    data = data[0] if data else {}
+                for key in ("datePublished", "dateCreated"):
+                    val = data.get(key, "")
+                    if val:
+                        return str(val)
+            except Exception:
+                pass
+
+        # 2. OG / article meta tags
+        for prop in ("article:published_time", "og:published_time",
+                     "article:modified_time", "date", "pubdate"):
+            meta = (soup.find("meta", property=prop)
+                    or soup.find("meta", attrs={"name": prop}))
+            if meta and meta.get("content"):
+                return meta["content"]
+
+        # 3. <time datetime="...">
+        t = soup.find("time", attrs={"datetime": True})
+        if t and t.get("datetime"):
+            return t["datetime"]
+
+    except Exception:
+        pass
+    return ""
+
+
 def normalize_date(date_str):
     """Best-effort parse; falls back to 'detected today' if it can't be parsed."""
     if not date_str:
         return datetime.now(timezone.utc).strftime("%Y-%m-%d"), "detected"
-    for fmt in ("%a, %d %b %Y %H:%M:%S %z", "%Y-%m-%dT%H:%M:%S%z", "%B %d, %Y",
-                "%b %d, %Y", "%d %B %Y", "%Y-%m-%d"):
+    s = date_str.strip()
+    # Normalise ISO 8601 Z suffix so fromisoformat() handles it on all Python versions
+    iso = s.replace("Z", "+00:00")
+    # Strip milliseconds if present (e.g. .000 or .380) before trying strptime patterns
+    iso_no_ms = re.sub(r"\.\d+(\+)", r"\1", iso)
+    for candidate in (iso, iso_no_ms, s):
         try:
-            dt = datetime.strptime(date_str.strip(), fmt)
+            dt = datetime.fromisoformat(candidate)
+            return dt.strftime("%Y-%m-%d"), "published"
+        except ValueError:
+            pass
+    for fmt in ("%a, %d %b %Y %H:%M:%S %z", "%Y-%m-%dT%H:%M:%S%z",
+                "%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%dT%H:%M:%SZ",
+                "%B %d, %Y", "%b %d, %Y", "%d %B %Y", "%Y-%m-%d"):
+        try:
+            dt = datetime.strptime(s, fmt)
             return dt.strftime("%Y-%m-%d"), "published"
         except ValueError:
             continue
@@ -665,6 +727,8 @@ def main(config_path, state_path):
                 print(f"  [{site['type'].upper()}] {name} ... seeding {len(new_links)} (not emailed)")
             else:
                 for link, date_str in new_links:
+                    if not date_str:
+                        date_str = fetch_post_date(link)
                     date_norm, date_source = normalize_date(date_str)
                     new_items.append({
                         "site": name, "link": link,
