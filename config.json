@@ -870,19 +870,18 @@
         "/advisories/"
       ],
       "path_exclude": [],
-      "extra_wait_ms": 5000,
+      "extra_wait_ms": 8000,
       "min_slug_length": 8
     },
     {
       "name": "Splunk - Security Blog",
-      "type": "html",
+      "type": "html_auto",
       "url": "https://www.splunk.com/en_us/blog/security.html",
-      "post_container": "div.article-list-card",
-      "link_selector": "a",
-      "date_selector": null,
-      "date_format": "auto",
-      "needs_js": true,
-      "notes": "Splunk article card, 9 items, sampleHref=real security blog post"
+      "link_path_prefix": "/en_us/blog/security/",
+      "path_exclude": ["/tag/", "/author/", "/category/"],
+      "min_slug_length": 8,
+      "extra_wait_ms": 8000,
+      "notes": "html_auto link-extraction; needs 8s wait for AJAX article load; article-list-card CSS class not stable"
     },
     {
       "name": "Cyjax",
@@ -915,14 +914,12 @@
     },
     {
       "name": "Hunt.io",
-      "type": "html",
+      "type": "html_auto",
       "url": "https://hunt.io/blog",
-      "post_container": "div.framer-1409ko9",
-      "link_selector": "a",
-      "date_selector": null,
-      "date_format": "auto",
-      "needs_js": true,
-      "notes": "Framer post container, 6 items; trailing slash removed from URL (dot-relative hrefs + trailing-slash base caused doubled /blog/blog/ paths)"
+      "link_path_prefix": "/blog/",
+      "path_exclude": [],
+      "min_slug_length": 8,
+      "notes": "html_auto link-extraction; Framer class IDs regenerate per build so CSS selector is brittle"
     },
     {
       "name": "IBM X-Force",

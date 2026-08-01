@@ -286,113 +286,194 @@ def check_playwright_api_site(site, browser):
     return entries, None
 
 
-async def _crawl4ai_fetch(site):
-    """Async inner function — called via asyncio.run() from check_crawl4ai_site."""
-    from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
+_C4AI_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
 
-    browser_cfg = BrowserConfig(
-        headless=True,
-        browser_type="chromium",
-        user_agent=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                    "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
-        extra_args=["--disable-http2"],
-    )
-    run_cfg = CrawlerRunConfig(
+
+def _c4ai_run_cfg(site):
+    """Build a per-site CrawlerRunConfig."""
+    from crawl4ai import CrawlerRunConfig, CacheMode
+    default_wait_ms = 5000 if site.get("post_container") else 4000
+    return CrawlerRunConfig(
         cache_mode=CacheMode.BYPASS,
         magic=True,
         simulate_user=True,
         override_navigator=True,
         page_timeout=site.get("page_timeout_ms", 30000),
         wait_until="domcontentloaded",
-        delay_before_return_html=site.get("extra_wait_ms", 4000) / 1000,
+        delay_before_return_html=site.get("extra_wait_ms", default_wait_ms) / 1000,
         scan_full_page=True,
         scroll_delay=0.5,
     )
 
-    async with AsyncWebCrawler(config=browser_cfg) as crawler:
-        result = await crawler.arun(url=site["url"], config=run_cfg)
 
-    if not result.success:
-        raise RuntimeError(result.error_message or "crawl4ai returned no content")
-
-    return result.html or ""
+_C4AI_CONCURRENCY = 6  # max parallel browser tabs; more causes socket exhaustion
 
 
-def check_crawl4ai_site(site):
+async def _crawl4ai_batch_fetch(sites):
     """
-    Uses crawl4AI with magic/stealth mode to fetch bot-protected pages, then
-    applies the same link-extraction logic as html_auto.
+    Fetch all sites with bounded parallelism sharing one crawl4AI browser session.
+    Returns a list of (html_string | Exception) in the same order as `sites`.
+    Semaphore caps concurrent tabs at _C4AI_CONCURRENCY to avoid socket exhaustion;
+    total wall-clock time ≈ ceil(N / concurrency) × avg_site_time.
+    """
+    from crawl4ai import AsyncWebCrawler, BrowserConfig
 
-    Use this type for sites where plain Playwright gets 403/timeout but crawl4AI
-    can get through (typically sites using standard Cloudflare or WAF without
-    residential-proxy-level protection).
+    browser_cfg = BrowserConfig(
+        headless=True,
+        browser_type="chromium",
+        user_agent=_C4AI_UA,
+        extra_args=["--disable-http2"],
+    )
+    sem = asyncio.Semaphore(_C4AI_CONCURRENCY)
 
-    Config fields: same as html_auto — link_path_prefix, path_exclude,
-    min_link_depth, min_slug_length, min_anchor_words, max_link_occurrences,
-    extra_wait_ms, page_timeout_ms.
+    async def fetch_one(site):
+        async with sem:
+            try:
+                result = await crawler.arun(url=site["url"], config=_c4ai_run_cfg(site))
+                if result.success:
+                    return result.html or ""
+                return RuntimeError(result.error_message or "crawl4ai returned no content")
+            except Exception as ex:
+                return ex
+
+    async with AsyncWebCrawler(config=browser_cfg) as crawler:
+        results = await asyncio.gather(*[fetch_one(s) for s in sites])
+
+    return list(results)
+
+
+async def _crawl4ai_fetch(site):
+    """Single-site async fetch (used by check_crawl4ai_site for standalone calls)."""
+    results = await _crawl4ai_batch_fetch([site])
+    result = results[0]
+    if isinstance(result, Exception):
+        raise result
+    return result
+
+
+def _parse_crawl4ai_html(site, html_or_err):
+    """
+    Parse pre-fetched crawl4AI HTML for one site.
+    html_or_err is either an HTML string or an Exception from the fetch step.
+
+    CSS-selector mode (post_container is set) — mirrors check_html_site:
+      post_container    CSS selector for each article card/container
+      link_selector     selector within each container, or "self" if container IS the link
+      link_path_prefix  keep only links whose path starts with this prefix
+      path_exclude      drop links containing any of these substrings
+      date_selector     CSS selector for the date element inside each container
+
+    Link-extraction mode (no post_container) — mirrors check_html_auto_site:
+      link_path_prefix       string or list of path prefixes to keep
+      path_exclude           substrings that disqualify a link
+      min_link_depth         minimum path segment count (default 2)
+      min_slug_length        last segment must be >= N chars
+      require_hyphenated_slug  last segment must contain a hyphen
+      min_anchor_words       anchor text must have >= N words
+      max_link_occurrences   drop URLs repeated in more than N <a> tags
     """
     entries = []
-    try:
-        html = asyncio.run(_crawl4ai_fetch(site))
-    except Exception as ex:
-        return entries, f"crawl4ai error: {ex}"
+    if isinstance(html_or_err, Exception):
+        return entries, f"crawl4ai error: {html_or_err}"
 
+    html = html_or_err or ""
     try:
         soup = BeautifulSoup(html, "html.parser")
-        domain = urlparse(site["url"]).netloc
-        prefixes = site.get("link_path_prefix", "")
-        if isinstance(prefixes, str):
-            prefixes = [prefixes] if prefixes else []
-        excludes = site.get("path_exclude", [])
-        min_depth = site.get("min_link_depth", 2)
-        min_slug_len = site.get("min_slug_length")
-        require_hyphen = site.get("require_hyphenated_slug", False)
-        min_anchor_words = site.get("min_anchor_words")
-        max_occurrences = site.get("max_link_occurrences")
 
-        candidates = []
-        url_occurrence = {}
-        for tag in soup.find_all("a", href=True):
-            href = tag["href"]
-            if href.startswith(("#", "mailto:", "javascript:")):
-                continue
-            full = urljoin(site["url"], href)
-            p2 = urlparse(full)
-            if p2.netloc != domain:
-                continue
-            path = p2.path
-            if prefixes and not any(path.startswith(pfx) for pfx in prefixes):
-                continue
-            if any(excl in path for excl in excludes):
-                continue
-            parts = [x for x in path.split("/") if x]
-            if len(parts) < min_depth:
-                continue
-            clean = p2.scheme + "://" + p2.netloc + path
-            text = tag.get_text(strip=True)
-            url_occurrence[clean] = url_occurrence.get(clean, 0) + 1
-            candidates.append((clean, parts, text))
+        if site.get("post_container"):
+            containers = soup.select(site["post_container"])
+            seen_links = set()
+            for c in containers:
+                if site.get("link_selector") == "self":
+                    link_el = c
+                else:
+                    link_el = c.select_one(site.get("link_selector", "a"))
+                if not link_el:
+                    continue
+                href = link_el.get("href", "")
+                if not href or href.startswith(("#", "mailto:", "javascript:")):
+                    continue
+                full_link = urljoin(site["url"], href)
+                if full_link in seen_links:
+                    continue
+                prefix = site.get("link_path_prefix")
+                if prefix and not urlparse(full_link).path.startswith(prefix):
+                    continue
+                if any(excl in urlparse(full_link).path for excl in site.get("path_exclude", [])):
+                    continue
+                date_str = ""
+                if site.get("date_selector"):
+                    date_el = c.select_one(site["date_selector"])
+                    if date_el:
+                        date_str = (date_el.get("datetime") or date_el.get_text(strip=True) or "").strip()
+                seen_links.add(full_link)
+                entries.append((full_link, date_str))
 
-        seen_links = set()
-        for clean, parts, text in candidates:
-            if clean in seen_links:
-                continue
-            slug = parts[-1] if parts else ""
-            if min_slug_len and len(slug) < min_slug_len:
-                continue
-            if require_hyphen and "-" not in slug:
-                continue
-            if min_anchor_words and len(text.split()) < min_anchor_words:
-                continue
-            if max_occurrences and url_occurrence.get(clean, 0) > max_occurrences:
-                continue
-            seen_links.add(clean)
-            entries.append((clean, ""))
+        else:
+            domain = urlparse(site["url"]).netloc
+            prefixes = site.get("link_path_prefix", "")
+            if isinstance(prefixes, str):
+                prefixes = [prefixes] if prefixes else []
+            excludes = site.get("path_exclude", [])
+            min_depth = site.get("min_link_depth", 2)
+            min_slug_len = site.get("min_slug_length")
+            require_hyphen = site.get("require_hyphenated_slug", False)
+            min_anchor_words = site.get("min_anchor_words")
+            max_occurrences = site.get("max_link_occurrences")
+
+            candidates = []
+            url_occurrence = {}
+            for tag in soup.find_all("a", href=True):
+                href = tag["href"]
+                if href.startswith(("#", "mailto:", "javascript:")):
+                    continue
+                full = urljoin(site["url"], href)
+                p2 = urlparse(full)
+                if p2.netloc != domain:
+                    continue
+                path = p2.path
+                if prefixes and not any(path.startswith(pfx) for pfx in prefixes):
+                    continue
+                if any(excl in path for excl in excludes):
+                    continue
+                parts = [x for x in path.split("/") if x]
+                if len(parts) < min_depth:
+                    continue
+                clean = p2.scheme + "://" + p2.netloc + path
+                text = tag.get_text(strip=True)
+                url_occurrence[clean] = url_occurrence.get(clean, 0) + 1
+                candidates.append((clean, parts, text))
+
+            seen_links = set()
+            for clean, parts, text in candidates:
+                if clean in seen_links:
+                    continue
+                slug = parts[-1] if parts else ""
+                if min_slug_len and len(slug) < min_slug_len:
+                    continue
+                if require_hyphen and "-" not in slug:
+                    continue
+                if min_anchor_words and len(text.split()) < min_anchor_words:
+                    continue
+                if max_occurrences and url_occurrence.get(clean, 0) > max_occurrences:
+                    continue
+                seen_links.add(clean)
+                entries.append((clean, ""))
 
     except Exception as ex:
         return entries, f"crawl4ai parse error: {ex}"
 
     return entries, None
+
+
+def check_crawl4ai_site(site):
+    """Single-site wrapper for standalone/test use. Prefer the batch path in main()."""
+    try:
+        html = asyncio.run(_crawl4ai_fetch(site))
+    except Exception as ex:
+        return [], f"crawl4ai error: {ex}"
+    return _parse_crawl4ai_html(site, html)
 
 
 def check_html_auto_site(site, browser):
