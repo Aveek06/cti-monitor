@@ -989,9 +989,25 @@
     },
     {
       "name": "McAfee",
-      "type": "skip",
-      "url": "https://www.mcafee.com/blogs/other-blogs/",
-      "notes": "HTTP/2 protocol error — headless Chromium cannot load the page; confirmed twice with --disable-http2 flag and extended timeout, issue is structural. Needs manual monitoring."
+      "type": "crawl4ai",
+      "url": "https://www.mcafee.com/blogs/other-blogs/mcafee-labs/",
+      "notes": "crawl4ai stealth; Labs page renders 4 most-recent research posts with 8s wait; depth=4 excludes category index",
+      "link_path_prefix": "/blogs/other-blogs/mcafee-labs/",
+      "path_exclude": [
+        "/pt-br/",
+        "/es-es/",
+        "/fr-fr/",
+        "/de-de/",
+        "/it-it/",
+        "/ja-jp/",
+        "/fr-ca/",
+        "/pt-pt/",
+        "/es-mx/",
+        "/nl/"
+      ],
+      "min_link_depth": 4,
+      "min_slug_length": 8,
+      "extra_wait_ms": 8000
     },
     {
       "name": "Forescout",
