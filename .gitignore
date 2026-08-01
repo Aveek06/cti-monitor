@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+.venv/
+
+# Local state (managed via GitHub Actions cache, not committed)
+state.json
+
+# Local debug/capture artefacts
+capture_network.py
+captures/
+
+# Run output files
+run*.txt
+latest_run.txt
+
+# Scratchpad / temp
+*.tmp
+*.log
