@@ -556,7 +556,6 @@ def check_scrapling_stealthy_site(site):
             block_webrtc=True,
             hide_canvas=True,
             timeout=timeout_ms,
-            network_idle=True,
         )
         return _parse_crawl4ai_html(site, page.html_content or "")
     except Exception as ex:
