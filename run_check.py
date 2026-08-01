@@ -550,47 +550,101 @@ def check_html_site(site, browser):
 _POST_DATE_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                  "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
 
+# Regex patterns for dates visible as rendered text in markdown
+_DATE_REGEXES = [
+    re.compile(r'\b(\d{4}-\d{2}-\d{2})\b'),
+    re.compile(r'\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2},?\s+\d{4}\b', re.I),
+    re.compile(r'\b\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{4}\b', re.I),
+    re.compile(r'\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\b', re.I),
+]
+
+
+def _extract_date_from_soup(soup):
+    """Check JSON-LD, OG meta, and <time> in a BeautifulSoup tree."""
+    for script in soup.find_all("script", type="application/ld+json"):
+        try:
+            data = json.loads(script.string or "{}")
+            if isinstance(data, list):
+                data = data[0] if data else {}
+            for key in ("datePublished", "dateCreated"):
+                if data.get(key):
+                    return str(data[key])
+        except Exception:
+            pass
+    for prop in ("article:published_time", "og:published_time",
+                 "article:modified_time", "date", "pubdate"):
+        meta = (soup.find("meta", property=prop)
+                or soup.find("meta", attrs={"name": prop}))
+        if meta and meta.get("content"):
+            return meta["content"]
+    t = soup.find("time", attrs={"datetime": True})
+    if t and t.get("datetime"):
+        return t["datetime"]
+    return ""
+
+
+def _extract_date_from_markdown(markdown):
+    """Regex-scan crawl4AI markdown for the first date-like string."""
+    for pattern in _DATE_REGEXES:
+        m = pattern.search(markdown)
+        if m:
+            return m.group(0)
+    return ""
+
+
+async def _fetch_date_crawl4ai_async(link):
+    """Fetch a post page with crawl4AI (JS-rendered) and extract its date."""
+    from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
+    browser_cfg = BrowserConfig(
+        headless=True, browser_type="chromium",
+        user_agent=_POST_DATE_UA, extra_args=["--disable-http2"],
+    )
+    run_cfg = CrawlerRunConfig(
+        cache_mode=CacheMode.BYPASS, magic=True, simulate_user=True,
+        override_navigator=True, page_timeout=25000,
+        wait_until="domcontentloaded", delay_before_return_html=4.0,
+    )
+    try:
+        async with AsyncWebCrawler(config=browser_cfg) as crawler:
+            result = await crawler.arun(url=link, config=run_cfg)
+        if not result.success:
+            return ""
+        # Try structured metadata in JS-rendered HTML first
+        date = _extract_date_from_soup(BeautifulSoup(result.html or "", "html.parser"))
+        if date:
+            return date
+        # Fall back to regex scan of the markdown text
+        return _extract_date_from_markdown(result.markdown or "")
+    except Exception:
+        return ""
+
 
 def fetch_post_date(link):
     """
-    Fetch an individual post page and extract its publish date from structured
-    metadata. Tried in order: JSON-LD datePublished → OG article:published_time
-    → <time datetime>. Returns raw date string or '' if nothing found.
+    Extract the publish date of an individual post page. Called only for new
+    links where the scraper returned no date (typically 0-5 per run).
 
-    Called only for new links where the scraper returned no date, so the cost
-    is one extra request per genuinely new post per run (typically 0–5).
+    Two-tier strategy:
+      1. requests (fast, ~1s): checks JSON-LD, OG meta, <time datetime>
+         in static HTML — works when date metadata is server-rendered.
+      2. crawl4AI fallback (~15s): fetches the fully JS-rendered page and
+         checks the same structured sources plus regex-scans the markdown
+         text — catches dates injected by JavaScript (Intezer, Forescout,
+         Akamai, StrongestLayer).
     """
+    # Tier 1: fast static fetch
     try:
         r = requests.get(link, headers={"User-Agent": _POST_DATE_UA},
                          timeout=10, allow_redirects=True)
-        soup = BeautifulSoup(r.text, "html.parser")
+        date = _extract_date_from_soup(BeautifulSoup(r.text, "html.parser"))
+        if date:
+            return date
+    except Exception:
+        pass
 
-        # 1. JSON-LD
-        for script in soup.find_all("script", type="application/ld+json"):
-            try:
-                data = json.loads(script.string or "{}")
-                if isinstance(data, list):
-                    data = data[0] if data else {}
-                for key in ("datePublished", "dateCreated"):
-                    val = data.get(key, "")
-                    if val:
-                        return str(val)
-            except Exception:
-                pass
-
-        # 2. OG / article meta tags
-        for prop in ("article:published_time", "og:published_time",
-                     "article:modified_time", "date", "pubdate"):
-            meta = (soup.find("meta", property=prop)
-                    or soup.find("meta", attrs={"name": prop}))
-            if meta and meta.get("content"):
-                return meta["content"]
-
-        # 3. <time datetime="...">
-        t = soup.find("time", attrs={"datetime": True})
-        if t and t.get("datetime"):
-            return t["datetime"]
-
+    # Tier 2: crawl4AI JS-rendered fallback
+    try:
+        return asyncio.run(_fetch_date_crawl4ai_async(link))
     except Exception:
         pass
     return ""
