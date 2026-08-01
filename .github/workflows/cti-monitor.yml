@@ -20,10 +20,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install feedparser requests playwright beautifulsoup4 crawl4ai
+          pip install feedparser requests playwright beautifulsoup4 crawl4ai "scrapling[fetchers]"
           playwright install chromium
           playwright install-deps chromium
           crawl4ai-setup
+          scrapling install
+          python -c 'import pathlib,sys;[p.write_text(p.read_text().replace("chromium_version = 149","chromium_version = 130").replace("chrome_version = 149","chrome_version = 130")) for p in pathlib.Path(sys.prefix).rglob("scrapling/engines/toolbelt/fingerprints.py")]'
 
       - name: Restore state
         uses: actions/cache@v4
