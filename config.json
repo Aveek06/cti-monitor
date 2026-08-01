@@ -1128,15 +1128,9 @@
     },
     {
       "name": "Sekoia",
-      "type": "html",
-      "url": "https://blog.sekoia.io/",
-      "post_container": "div.blog-list_item.w-dyn-item",
-      "link_selector": "a",
-      "date_selector": null,
-      "date_format": "auto",
-      "needs_js": true,
-      "page_timeout_ms": 60000,
-      "notes": "Webflow dyn-item, 16 items, sampleHref=real blog post"
+      "type": "scrapling_feed",
+      "url": "https://blog.sekoia.io/feed/",
+      "notes": "Webflow blog; Playwright times out from CI IPs; scrapling_feed uses curl_cffi TLS fingerprinting to bypass the block"
     },
     {
       "name": "Speartip",

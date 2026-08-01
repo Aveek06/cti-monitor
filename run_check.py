@@ -545,9 +545,10 @@ def check_scrapling_stealthy_site(site):
     """
     Fetches with patchright stealth browser (Scrapling StealthyFetcher).
     Full browser, ~30-45s. Bypasses WAF JS challenges that block standard Playwright.
-    Parses result with _parse_crawl4ai_html (link-extraction mode).
+    Runs in a worker thread so patchright's sync API doesn't conflict with any
+    asyncio event loop installed by crawl4ai earlier in the same run.
     """
-    try:
+    def _fetch():
         from scrapling.fetchers import StealthyFetcher
         timeout_ms = site.get("page_timeout_ms", 40000)
         page = StealthyFetcher.fetch(
@@ -558,6 +559,9 @@ def check_scrapling_stealthy_site(site):
             timeout=timeout_ms,
         )
         return _parse_crawl4ai_html(site, page.html_content or "")
+    try:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            return pool.submit(_fetch).result()
     except Exception as ex:
         return [], f"scrapling_stealthy error: {ex}"
 
