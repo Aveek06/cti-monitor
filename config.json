@@ -808,9 +808,17 @@
     },
     {
       "name": "Akamai",
-      "type": "skip",
+      "type": "crawl4ai",
       "url": "https://www.akamai.com/blog/security-research",
-      "notes": "Bot-walled or dead domain as of last check - manual monitoring only"
+      "notes": "crawl4ai stealth mode bypasses Akamai WAF (was 403 with plain Playwright); seeded locally",
+      "link_path_prefix": "/blog/security-research/",
+      "path_exclude": [
+        "/tag/",
+        "/author/",
+        "/category/",
+        "/page/"
+      ],
+      "min_slug_length": 8
     },
     {
       "name": "Blackberry",
@@ -987,9 +995,17 @@
     },
     {
       "name": "Forescout",
-      "type": "skip",
-      "url": "https://www.forescout.com/blog",
-      "notes": "IP-blocked locally (403 on all paths including feed, HTML, Playwright). Feed returns 0 entries on GitHub Actions. Cannot reliably scrape without DOM inspection from unblocked IP."
+      "type": "crawl4ai",
+      "url": "https://www.forescout.com/blog/",
+      "notes": "crawl4ai stealth mode bypasses WAF (was 403 with plain Playwright); seeded locally",
+      "link_path_prefix": "/blog/",
+      "path_exclude": [
+        "/tag/",
+        "/author/",
+        "/category/",
+        "/page/"
+      ],
+      "min_slug_length": 8
     },
     {
       "name": "Phylum",

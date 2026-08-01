@@ -8148,5 +8148,34 @@
     "https://www.strongestlayer.com/white-paper/ai-advisor-inbox-native-email-datasheet",
     "https://www.strongestlayer.com/white-paper/the-security-awareness-training-paradox-cyber-risk",
     "https://www.strongestlayer.com/white-paper/the-rise-of-ai-generated-email-security-threats"
+  ],
+  "Akamai": [
+    "https://www.akamai.com/blog/security-research/rails-active-storage-rce-cve-2026-66066",
+    "https://www.akamai.com/blog/security-research/wordpress-unauthenticated-rce-cve-2026-63030-cve-2026-60137",
+    "https://www.akamai.com/blog/security-research/langflow-exploited-build-custom-ddos-gafgyt-botnets",
+    "https://www.akamai.com/blog/security-research/adobe-coldfusion-critical-path-traversal-cve-2026-48282",
+    "https://www.akamai.com/blog/security-research/new-mcp-specification-security-teams-must-prepare",
+    "https://www.akamai.com/blog/security-research/stealthy-p2p-cryptominer-ollama-endpoints",
+    "https://www.akamai.com/blog/security-research/cve-2026-9082-mitigating-critical-sql-injection-drupal",
+    "https://www.akamai.com/blog/security-research/nginx-critical-heap-buffer-overflow-cve-2026-42945",
+    "https://www.akamai.com/blog/security-research/mini-shai-hulud-worm-returns-goes-public",
+    "https://www.akamai.com/blog/security-research/one-fluke-3-pattern-mcp-back-end-vulnerabilities",
+    "https://www.akamai.com/blog/security-research/ouroboros-technique-how-fits-dmsas-security-model",
+    "https://www.akamai.com/blog/security-research/incomplete-patch-apt28s-zero-day-cve-2026-32202"
+  ],
+  "Forescout": [
+    "https://www.forescout.com/blog/the-state-of-state-sponsored-hacktivist-attacks/",
+    "https://www.forescout.com/blog/risk-aware-network-segmentation-for-the-hybrid-enterprise/",
+    "https://www.forescout.com/blog/exploiting-serial-to-ethernet-converters-in-critical-infrastructure/",
+    "https://www.forescout.com/blog/claude-mythos-when-zero-day-vulnerabilities-outpace-defenses/",
+    "https://www.forescout.com/blog/japans-2026-cyber-threat-landscape-risks-threats-and-guidance/",
+    "https://www.forescout.com/blog/beyond-ztna-7-reasons-to-go-universal/",
+    "https://www.forescout.com/blog/2026h1-threat-review-vulnerabilities-up-51-year-over-year/",
+    "https://www.forescout.com/blog/g7s-post%e2%80%91quantum-cryptography-roadmap-in-plain-english/",
+    "https://www.forescout.com/blog/from-visibility-to-risk-reduction-the-missing-layer-in-healthcare-security/",
+    "https://www.forescout.com/blog/seasonalinvite-new-phishing-campaign-abuses-ecards-and-rmm/",
+    "https://www.forescout.com/blog/forescout-joins-anthropics-cyber-verification-program/",
+    "https://www.forescout.com/blog/analyzing-active-exploitation-of-lantronix-and-openwrt-luci/",
+    "https://www.forescout.com/blog/introducing-the-forescout-vistaro-platform/"
   ]
 }

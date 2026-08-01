@@ -20,9 +20,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install feedparser requests playwright beautifulsoup4
+          pip install feedparser requests playwright beautifulsoup4 crawl4ai
           playwright install chromium
           playwright install-deps chromium
+          crawl4ai-setup
 
       - name: Restore state
         uses: actions/cache@v4
