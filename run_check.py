@@ -25,6 +25,7 @@ import smtplib
 import asyncio
 import feedparser
 import requests
+import concurrent.futures
 from bs4 import BeautifulSoup
 from datetime import datetime, timezone
 from email.mime.text import MIMEText
@@ -252,7 +253,7 @@ def check_playwright_api_site(site, browser):
                 pass
 
         page.on("response", on_response)
-        page.goto(site["url"], timeout=30000, wait_until="domcontentloaded")
+        page.goto(site["url"], timeout=site.get("page_timeout_ms", 30000), wait_until="domcontentloaded")
         try:
             page.wait_for_load_state("networkidle", timeout=15000)
         except Exception:
@@ -284,6 +285,14 @@ def check_playwright_api_site(site, browser):
     except Exception as ex:
         return entries, f"playwright_api error: {ex}"
     return entries, None
+
+
+def _run_async(coro):
+    """Run an async coroutine from synchronous code, always in a fresh event loop.
+    Uses a worker thread so it works even when sync_playwright or another library
+    has already installed a loop on the main thread."""
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(asyncio.run, coro).result()
 
 
 _C4AI_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -470,10 +479,88 @@ def _parse_crawl4ai_html(site, html_or_err):
 def check_crawl4ai_site(site):
     """Single-site wrapper for standalone/test use. Prefer the batch path in main()."""
     try:
-        html = asyncio.run(_crawl4ai_fetch(site))
+        html = _run_async(_crawl4ai_fetch(site))
     except Exception as ex:
         return [], f"crawl4ai error: {ex}"
     return _parse_crawl4ai_html(site, html)
+
+
+def check_scrapling_fetcher_site(site):
+    """
+    Fetches with curl_cffi TLS fingerprinting (Scrapling Fetcher).
+    No browser launch — fast (~1s). Bypasses IP blocks and basic WAFs that key on
+    TLS fingerprint. Parses result with _parse_crawl4ai_html (link-extraction mode).
+    """
+    try:
+        from scrapling.fetchers import Fetcher
+        timeout_s = site.get("page_timeout_ms", 20000) // 1000
+        page = Fetcher.get(
+            site["url"],
+            stealthy_headers=True,
+            timeout=timeout_s,
+            impersonate="chrome124",
+            follow_redirects=True,
+        )
+        return _parse_crawl4ai_html(site, page.html_content or "")
+    except Exception as ex:
+        return [], f"scrapling_fetcher error: {ex}"
+
+
+def check_scrapling_feed_site(site):
+    """
+    Fetches an RSS/Atom feed with curl_cffi TLS fingerprinting (Scrapling Fetcher),
+    then parses the returned XML with feedparser. For sites whose feeds are
+    IP-blocked or filter on TLS fingerprint.
+    Supports the same title_keywords filter as check_feed_site.
+    """
+    try:
+        from scrapling.fetchers import Fetcher
+        timeout_s = site.get("page_timeout_ms", 20000) // 1000
+        page = Fetcher.get(
+            site["url"],
+            stealthy_headers=True,
+            timeout=timeout_s,
+            impersonate="chrome124",
+            follow_redirects=True,
+        )
+        parsed = feedparser.parse(page.body or b"")
+        keywords = [kw.lower() for kw in site.get("title_keywords", [])]
+        entries = []
+        for e in parsed.entries:
+            link = e.get("link", "")
+            date_str = e.get("published", e.get("updated", ""))
+            if not link:
+                continue
+            if keywords:
+                title = e.get("title", "").lower()
+                if not any(kw in title for kw in keywords):
+                    continue
+            entries.append((link, date_str))
+        return entries, None
+    except Exception as ex:
+        return [], f"scrapling_feed error: {ex}"
+
+
+def check_scrapling_stealthy_site(site):
+    """
+    Fetches with patchright stealth browser (Scrapling StealthyFetcher).
+    Full browser, ~30-45s. Bypasses WAF JS challenges that block standard Playwright.
+    Parses result with _parse_crawl4ai_html (link-extraction mode).
+    """
+    try:
+        from scrapling.fetchers import StealthyFetcher
+        timeout_ms = site.get("page_timeout_ms", 40000)
+        page = StealthyFetcher.fetch(
+            site["url"],
+            headless=True,
+            block_webrtc=True,
+            hide_canvas=True,
+            timeout=timeout_ms,
+            network_idle=True,
+        )
+        return _parse_crawl4ai_html(site, page.html_content or "")
+    except Exception as ex:
+        return [], f"scrapling_stealthy error: {ex}"
 
 
 def check_html_auto_site(site, browser):
@@ -503,7 +590,7 @@ def check_html_auto_site(site, browser):
             ignore_https_errors=True,
         )
         page = context.new_page()
-        page.goto(site["url"], timeout=30000, wait_until="domcontentloaded")
+        page.goto(site["url"], timeout=site.get("page_timeout_ms", 30000), wait_until="domcontentloaded")
         try:
             page.wait_for_load_state("networkidle", timeout=10000)
         except Exception:
@@ -594,7 +681,7 @@ def check_html_site(site, browser):
             ignore_https_errors=True,
         )
         page = context.new_page()
-        page.goto(site["url"], timeout=30000, wait_until="domcontentloaded")
+        page.goto(site["url"], timeout=site.get("page_timeout_ms", 30000), wait_until="domcontentloaded")
         wait_for_stable_post_count(page, site["post_container"])
 
         containers = page.query_selector_all(site["post_container"])
@@ -725,7 +812,7 @@ def fetch_post_date(link):
 
     # Tier 2: crawl4AI JS-rendered fallback
     try:
-        return asyncio.run(_fetch_date_crawl4ai_async(link))
+        return _run_async(_fetch_date_crawl4ai_async(link))
     except Exception:
         pass
     return ""
@@ -841,6 +928,12 @@ def main(config_path, state_path):
                 entries, err = check_html_auto_site(site, browser)
             elif site["type"] == "crawl4ai":
                 entries, err = check_crawl4ai_site(site)
+            elif site["type"] == "scrapling_fetcher":
+                entries, err = check_scrapling_fetcher_site(site)
+            elif site["type"] == "scrapling_feed":
+                entries, err = check_scrapling_feed_site(site)
+            elif site["type"] == "scrapling_stealthy":
+                entries, err = check_scrapling_stealthy_site(site)
             else:
                 entries, err = check_html_site(site, browser)
 

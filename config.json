@@ -1135,6 +1135,7 @@
       "date_selector": null,
       "date_format": "auto",
       "needs_js": true,
+      "page_timeout_ms": 60000,
       "notes": "Webflow dyn-item, 16 items, sampleHref=real blog post"
     },
     {
@@ -1237,13 +1238,13 @@
       "name": "Secureworks",
       "type": "skip",
       "url": "https://www.secureworks.com/blog/",
-      "notes": "HTTP/2 protocol error — headless Chromium cannot load the page; confirmed twice with --disable-http2 flag and extended timeout, issue is structural. Needs manual monitoring."
+      "notes": "Secureworks was acquired by Sophos in 2024; secureworks.com now redirects to sophos.com. Coverage provided by the Sophos entry below."
     },
     {
       "name": "Sophos",
-      "type": "skip",
-      "url": "https://news.sophos.com/en-us/",
-      "notes": "Feed times out locally and fails on GitHub Actions. IP-blocked across all environments tested."
+      "type": "scrapling_feed",
+      "url": "https://news.sophos.com/feed/",
+      "notes": "news.sophos.com feed redirects to www.sophos.com/en-gb/blog/feed. Plain feedparser is IP-blocked; Scrapling Fetcher (TLS fingerprinting) bypasses it."
     },
     {
       "name": "Australian Signals Directorate's Australian Cyber Security Centre (ASD's ACSC)",
@@ -1274,9 +1275,11 @@
     },
     {
       "name": "Trellix",
-      "type": "skip",
+      "type": "scrapling_stealthy",
       "url": "https://www.trellix.com/blogs/research/",
-      "notes": "WAF-blocked (timeout) locally and confirmed blocked in AAK1786/cti-monitor — both URLs return challenge page. Cannot scrape."
+      "link_path_prefix": "/blogs/research/",
+      "path_exclude": ["/author/", "/category/", "/tag/"],
+      "min_slug_length": 8
     }
   ]
 }
