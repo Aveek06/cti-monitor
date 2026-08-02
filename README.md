@@ -1,6 +1,6 @@
 # CTI Monitor
 
-An automated Cyber Threat Intelligence (CTI) feed aggregator that monitors **173 security research sources** and sends a digest email every 8 hours with newly published blog posts and advisories.
+An automated Cyber Threat Intelligence (CTI) feed aggregator that monitors **169 security research sources** and sends a digest email every 8 hours with newly published blog posts and advisories.
 
 ## What it does
 
@@ -14,17 +14,17 @@ An automated Cyber Threat Intelligence (CTI) feed aggregator that monitors **173
 
 | Type | Count | Method |
 |------|-------|--------|
-| `feed` | 134 | RSS/Atom via feedparser |
-| `html` | 25 | Playwright headless browser + CSS selector |
+| `feed` | 130 | RSS/Atom via feedparser |
+| `html` | 24 | Playwright headless browser + CSS selector |
 | `html_auto` | 6 | Playwright headless browser + link extraction |
 | `crawl4ai` | 3 | crawl4ai with anti-bot fingerprinting |
+| `scrapling_feed` | 2 | curl_cffi TLS fingerprinting + feedparser |
 | `playwright_api` | 2 | Playwright + XHR interception |
 | `scrapling_stealthy` | 1 | Patchright stealth browser (WAF bypass) |
-| `scrapling_feed` | 1 | curl_cffi TLS fingerprinting + feedparser |
 | `api` | 1 | Direct JSON API |
-| **Total active** | **173** | |
+| **Total active** | **169** | |
 
-18 additional sources are currently set to `skip` (managed Cloudflare Turnstile, geo-blocked, or dead domains).
+22 additional sources are currently set to `skip` (managed Cloudflare Turnstile, geo-blocked, dead domains, or 403-blocked feeds).
 
 ## Setup
 
