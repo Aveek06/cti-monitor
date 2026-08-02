@@ -35,25 +35,6 @@ jobs:
           restore-keys: |
             cti-state-
 
-      - name: Apply seed data for new/empty sites
-        run: |
-          python -c '
-          import json, os
-          if not os.path.exists("state_seeds.json"):
-              exit()
-          seeds = json.load(open("state_seeds.json"))
-          state = json.load(open("state.json")) if os.path.exists("state.json") else {}
-          changed = 0
-          for name, links in seeds.items():
-              if not state.get(name) and links:
-                  state[name] = links
-                  changed += 1
-                  print(f"Seeded {name}: {len(links)} links")
-          if changed:
-              json.dump(state, open("state.json", "w"), indent=2)
-              print(f"Patched {changed} sites into state.json")
-          '
-
       - name: Run monitor
         env:
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
