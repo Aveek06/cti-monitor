@@ -195,9 +195,17 @@
     },
     {
       "name": "Cyfirma",
-      "type": "skip",
-      "url": "https://www.cyfirma.com/feed/",
-      "notes": "HTTP 500 server error on feed endpoint \u2014 site may have moved or feed is broken"
+      "type": "scrapling_fetcher",
+      "url": "https://www.cyfirma.com/research/",
+      "notes": "Feed returns HTTP 500; blog HTML works via scrapling_fetcher",
+      "link_path_prefix": "/research/",
+      "path_exclude": [
+        "/category/",
+        "/tag/",
+        "/author/",
+        "/page/"
+      ],
+      "min_slug_length": 8
     },
     {
       "name": "Moonlock",
@@ -226,8 +234,17 @@
     },
     {
       "name": "SafeBreach",
-      "type": "feed",
-      "url": "https://www.safebreach.com/feed/"
+      "type": "scrapling_fetcher",
+      "url": "https://www.safebreach.com/blog/",
+      "link_path_prefix": "/blog/",
+      "path_exclude": [
+        "/category/",
+        "/tag/",
+        "/author/",
+        "/page/"
+      ],
+      "min_slug_length": 8,
+      "notes": "Feed returns 0 entries; blog HTML works via scrapling_fetcher"
     },
     {
       "name": "PolySworm",
@@ -266,9 +283,12 @@
     },
     {
       "name": "Digital Security Lab Ukraine",
-      "type": "skip",
-      "url": "https://dslua.org/feed/",
-      "notes": "Malformed XML (bozo error) \u2014 Ukrainian regional site with encoding issues"
+      "type": "scrapling_fetcher",
+      "url": "https://dslua.org/publications/",
+      "notes": "Feed XML was malformed; publications page works via scrapling_fetcher",
+      "link_path_prefix": "/publications/",
+      "path_exclude": [],
+      "min_slug_length": 8
     },
     {
       "name": "Picus Security",
@@ -497,9 +517,17 @@
     },
     {
       "name": "Morphisec",
-      "type": "skip",
-      "url": "https://www.morphisec.com/feed/",
-      "notes": "403 blocked (Cloudflare) \u2014 all feed fetchers including browser UA are blocked"
+      "type": "scrapling_fetcher",
+      "url": "https://www.morphisec.com/blog/",
+      "notes": "Cloudflare blocks feedparser; scrapling_fetcher curl_cffi bypasses it",
+      "link_path_prefix": "/blog/",
+      "path_exclude": [
+        "/category/",
+        "/tag/",
+        "/author/",
+        "/page/"
+      ],
+      "min_slug_length": 8
     },
     {
       "name": "SecureList - Kaspersky",
@@ -513,9 +541,17 @@
     },
     {
       "name": "Securonix",
-      "type": "skip",
-      "url": "https://www.securonix.com/feed/",
-      "notes": "403 blocked (Cloudflare) \u2014 all feed fetchers including browser UA are blocked"
+      "type": "scrapling_fetcher",
+      "url": "https://www.securonix.com/blog/",
+      "notes": "Cloudflare blocks feedparser; scrapling_fetcher curl_cffi bypasses it",
+      "link_path_prefix": "/blog/",
+      "path_exclude": [
+        "/category/",
+        "/tag/",
+        "/author/",
+        "/page/"
+      ],
+      "min_slug_length": 8
     },
     {
       "name": "Rapid7",
@@ -711,8 +747,17 @@
     },
     {
       "name": "Cyberint",
-      "type": "feed",
-      "url": "https://cyberint.com/news-feed/"
+      "type": "scrapling_fetcher",
+      "url": "https://cyberint.com/blog/",
+      "link_path_prefix": "/blog/",
+      "path_exclude": [
+        "/category/",
+        "/tag/",
+        "/author/",
+        "/page/"
+      ],
+      "min_slug_length": 15,
+      "notes": "Feed blocked; blog HTML works via scrapling_fetcher; min_slug_length=15 filters category pages"
     },
     {
       "name": "Netcraft",
