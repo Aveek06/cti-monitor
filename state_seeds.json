@@ -32,7 +32,84 @@
     "https://blog.qualys.com/qualys-insights/2026/07/20/public-facing-application-attacks-initial-access-vector",
     "https://blog.qualys.com/product-tech/2026/07/27/aws-lambda-vulnerability-scanning-serverless-security"
   ],
+  "Sygnia": [
+    "https://www.sygnia.co/blog/ai-generated-code-security-risks/",
+    "https://www.sygnia.co/press-release/sygnia-penetration-test-claude-vibe-coded-vulnerabilities/",
+    "https://www.sygnia.co/blog/why-most-ot-cyber-incidents-never-reach-the-ot-environment/",
+    "https://www.sygnia.co/webinars/when-ransomware-hides-in-onedrive-inside-safepay-exfiltration-play/",
+    "https://www.sygnia.co/blog/when-technical-controls-work-attackers-change-the-rules/",
+    "https://www.sygnia.co/blog/ransomware-incident-response/",
+    "https://www.sygnia.co/press-release/sygnia-investigation-into-ai-accelerated-attack/",
+    "https://www.sygnia.co/webinars/inside-an-ai-assisted-cloud-attack-familiar-techniques-at-unfamiliar-speed/",
+    "https://www.sygnia.co/blog/inside-an-ai-assisted-cloud-attack/"
+  ],
+  "Datadog Security Labs": [
+    "https://securitylabs.datadoghq.com/articles/detection-primitives-for-ebpf-rootkits/",
+    "https://securitylabs.datadoghq.com/articles/compromised-asyncapi-npm-packages/",
+    "https://securitylabs.datadoghq.com/articles/not-so-anonymous-telemetry-injectivelabs-sdk-ts-backdoor/",
+    "https://securitylabs.datadoghq.com/articles/coordinated-github-api-enumeration/",
+    "https://securitylabs.datadoghq.com/articles/agent-id-protect-detect-respond/",
+    "https://securitylabs.datadoghq.com/articles/backdoors-and-breaches-new-scenarios/",
+    "https://securitylabs.datadoghq.com/articles/guarddog-3-0-release/",
+    "https://securitylabs.datadoghq.com/articles/behind-the-console-aws-aitm-phishing-kit-and-beyond/"
+  ],
+  "Aryaka": [
+    "https://www.aryaka.com/blog/secure-sd-wan-unified-sase-ai-enterprises-leaving-mpls/",
+    "https://www.aryaka.com/blog/how-unified-sase-improves-china-connectivity/",
+    "https://www.aryaka.com/blog/why-china-connectivity-remains-a-major-enterprise-challenge/",
+    "https://www.aryaka.com/blog/g2-summer-2026-sd-wan-sase-leader/",
+    "https://www.aryaka.com/blog/ai-network-performance-not-just-compute-problem/",
+    "https://www.aryaka.com/blog/crpx0-ransomware-multi-stage-attack/",
+    "https://www.aryaka.com/blog/ai-ready-network-wan-sase-enterprise/",
+    "https://www.aryaka.com/blog/ai-is-redefining-cybersecurity-how-cisos-can-stay-ahead/",
+    "https://www.aryaka.com/blog/g2-spring-2026-what-aryakas-leadership-across-sd-wan-and-cloud-security-really-means/",
+    "https://www.aryaka.com/blog/governing-tens-of-thousands-of-ai-agents-policy-chaining/",
+    "https://www.aryaka.com/blog/enterprise-ai-agent-governance-layered-approach/",
+    "https://www.aryaka.com/blog/is-your-outdated-network-holding-your-business-back/"
+  ],
+  "Sucuri": [
+    "https://blog.sucuri.net/2026/07/why-delaying-wordpress-updates-increases-security-risks.html",
+    "https://blog.sucuri.net/2026/07/vulnerability-patch-roundup-june-2026.html",
+    "https://blog.sucuri.net/2026/06/pci-compliance-isnt-a-checkbox-how-to-secure-ecommerce-checkouts-before-attackers-arrive.html",
+    "https://blog.sucuri.net/2026/06/wordpress-pbn-plugin-drops-dual-webshells-via-database-injection.html",
+    "https://blog.sucuri.net/2026/05/vulnerability-patch-roundup-may-2026.html",
+    "https://blog.sucuri.net/2026/05/wordpress-site-down-heres-how-to-get-back-online.html",
+    "https://blog.sucuri.net/2026/05/what-to-do-when-a-third-party-data-breach-puts-your-website-at-risk.html",
+    "https://blog.sucuri.net/2026/05/dnssec-the-extra-security-layer-that-can-break-your-padlock.html",
+    "https://blog.sucuri.net/2026/04/vulnerability-patch-roundup-april-2026.html",
+    "https://blog.sucuri.net/2026/04/what-is-online-gambling-spam-and-what-can-i-do-about-it.html",
+    "https://blog.sucuri.net/2026/04/my-website-is-hosting-a-phishing-page-now-what.html"
+  ],
+  "NSFocus": [
+    "https://nsfocusglobal.com/fastjson-2-x-remote-code-execution-vulnerability-notice/",
+    "https://nsfocusglobal.com/ai-security-incident-case-openai-models-independently-break-through-test-boundaries-and-exploit-vulnerabilities-to-invade-hugging-face/",
+    "https://nsfocusglobal.com/fastjson-1-2-x-remote-code-execution-without-gadget-vulnerability-notice/",
+    "https://nsfocusglobal.com/wordpress-remote-code-execution-vulnerability-cve-2026-63030-cve-2026-60137-notice/",
+    "https://nsfocusglobal.com/nsfocus-releases-2025-apt-group-research-annual-report/",
+    "https://nsfocusglobal.com/microsofts-july-security-update-of-high-risk-vulnerability-notice-for-multiple-products/",
+    "https://nsfocusglobal.com/nsfocus-officially-appoints-sis-technologies-pte-ltd-as-a-new-distributor-in-singapore/",
+    "https://nsfocusglobal.com/ai-security-incident-case-ghostcommit-attack-leveraged-images-to-steal-secrets/",
+    "https://nsfocusglobal.com/ai-security-incident-jadepuffer-ransomware-leverages-ai-agent-to-automate-attacks/",
+    "https://nsfocusglobal.com/nsfocus-recognized-among-notable-providers-for-threat-intelligence-service-by-international-authority/"
+  ],
+  "Moonlock": [
+    "https://moonlock.com/clicklock-stealer-macos-passwords",
+    "https://moonlock.com/crash-stealer-posing-as-crash-reporter",
+    "https://moonlock.com/yahoo-redirect-virus",
+    "https://moonlock.com/factory-reset-remove-virus",
+    "https://moonlock.com/apple-id-scam",
+    "https://moonlock.com/sugar-daddy-scams",
+    "https://moonlock.com/craigslist-scams",
+    "https://moonlock.com/java-based-trojan-quimarat-targeting-macs",
+    "https://moonlock.com/new-campaign-north-korea-targeting-developers"
+  ],
   "_force_replace": [
-    "Qualys"
+    "Qualys",
+    "Sygnia",
+    "Datadog Security Labs",
+    "Aryaka",
+    "Sucuri",
+    "NSFocus",
+    "Moonlock"
   ]
 }
