@@ -968,9 +968,15 @@
     },
     {
       "name": "Human Security",
-      "type": "skip",
+      "type": "scrapling_fetcher",
       "url": "https://www.humansecurity.com/learn/blog/",
-      "notes": "Bot-walled or dead domain as of last check - manual monitoring only"
+      "link_path_prefix": "/learn/blog/",
+      "path_exclude": [
+        "/category/",
+        "/tag/",
+        "/author/"
+      ],
+      "min_slug_length": 8
     },
     {
       "name": "Hunt.io",
@@ -1046,31 +1052,23 @@
     },
     {
       "name": "McAfee",
-      "type": "crawl4ai",
+      "type": "scrapling_fetcher",
       "url": "https://www.mcafee.com/blogs/other-blogs/mcafee-labs/",
-      "notes": "crawl4ai stealth; Labs page renders 4 most-recent research posts with 8s wait; depth=4 excludes category index",
+      "notes": "crawl4ai was too broad; scrapling_fetcher with /blogs/other-blogs/mcafee-labs/ prefix gets real lab posts; min_slug_length=20 filters the base listing URL",
       "link_path_prefix": "/blogs/other-blogs/mcafee-labs/",
       "path_exclude": [
-        "/pt-br/",
-        "/es-es/",
-        "/fr-fr/",
-        "/de-de/",
-        "/it-it/",
-        "/ja-jp/",
-        "/fr-ca/",
-        "/pt-pt/",
-        "/es-mx/",
-        "/nl/"
+        "/tag/",
+        "/author/",
+        "/category/"
       ],
       "min_link_depth": 4,
-      "min_slug_length": 8,
-      "extra_wait_ms": 8000
+      "min_slug_length": 20
     },
     {
       "name": "Forescout",
-      "type": "crawl4ai",
+      "type": "skip",
       "url": "https://www.forescout.com/blog/",
-      "notes": "crawl4ai stealth mode bypasses WAF (was 403 with plain Playwright); seeded locally",
+      "notes": "Was crawl4ai; WAF tightened 2026-08 \u2014 now returns 403 for all scrapers including patchright stealthy",
       "link_path_prefix": "/blog/",
       "path_exclude": [
         "/tag/",

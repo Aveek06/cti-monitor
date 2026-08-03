@@ -1,43 +1,23 @@
 {
-  "JPCERT Coordination Center": [
-    "https://blogs.jpcert.or.jp/en/2026/07/tsubame_overflow_2026-01-03.html",
-    "https://blogs.jpcert.or.jp/en/2026/07/apt-c-60_2026.html",
-    "https://blogs.jpcert.or.jp/en/2026/05/tsubame_overflow_2025-10-12.html",
-    "https://blogs.jpcert.or.jp/en/2026/04/ics-conference2026.html",
-    "https://blogs.jpcert.or.jp/en/2026/03/tsubame_overflow_2025-07-09.html",
-    "https://blogs.jpcert.or.jp/en/2026/03/csirts-around-the-world-azerbaijan.html",
-    "https://blogs.jpcert.or.jp/en/2026/03/rust_research_en.html",
-    "https://blogs.jpcert.or.jp/en/2026/03/jsac2026-ws-lt-pd.html",
-    "https://blogs.jpcert.or.jp/en/2026/02/jsac2026day2.html",
-    "https://blogs.jpcert.or.jp/en/2026/02/jsac2026day1.html",
-    "https://blogs.jpcert.or.jp/en/2026/02/multiple-threat-actors-rapidly-exploit-react2shell-a-case-study-of-active-compromise.html",
-    "https://blogs.jpcert.or.jp/en/2025/11/YAMAGoya.html",
-    "https://blogs.jpcert.or.jp/en/2025/11/APT-C-60_update.html",
-    "https://blogs.jpcert.or.jp/en/2025/10/tsubame_overflow_2025-04-06.html",
-    "https://blogs.jpcert.or.jp/en/2025/08/crossc2.html"
-  ],
-  "Seqrite": [
-    "https://www.seqrite.com/blog/how-digital-risk-management-services-strengthen-enterprise-cybersecurity/",
-    "https://www.seqrite.com/blog/abusing-trusted-business-workflows-a-multi-stage-phantom-stealer-campaign/",
-    "https://www.seqrite.com/blog/edr-vs-epp-endpoint-protection-not-enough/",
-    "https://www.seqrite.com/blog/behind-the-refund-from-gst-phishing-to-remcos-rat-through-a-multi-stage-net-infection-chain/",
-    "https://www.seqrite.com/blog/how-to-evaluate-digital-risk-protection-vendors-and-companies/",
-    "https://www.seqrite.com/blog/operation-shadowrecruit-a-recruitment-themed-malware-campaign-leveraging-controlr-and-google-sheets-to-target-indian-job-seekers/",
-    "https://www.seqrite.com/blog/from-invoice-to-anydesk-uncovering-a-phishing-campaign-targeting-russian-aerospace-organizations/",
-    "https://www.seqrite.com/blog/operation-dragonreturn-china-nexus-cyber-espionage-campaign-targeting-govt-of-india-mof-tax-infrastructure-via-multi-stage-dcrat-deployment/",
-    "https://www.seqrite.com/blog/what-is-digital-risk-protection-service-for-enterprises-a-complete-guide/",
-    "https://www.seqrite.com/blog/threat-actors-weaponizing-rar-archives-to-target-thailands-healthcare-sector/"
-  ],
-  "Fortinet": [
-    "https://feeds.fortinet.com/~/961655441/0/fortinet/blog/threat-research~Inside-a-TrickBot-Variant-Using-DNS-Tunneling-for-C",
-    "https://feeds.fortinet.com/~/960560447/0/fortinet/blog/threat-research~The-TTF-Trap-A-Global-Campaign-of-a-LowDetection-Lua-Loader",
-    "https://feeds.fortinet.com/~/958831322/0/fortinet/blog/threat-research~Analysis-of-Ongoing-Ousaban-Attacks-Targeting-the-Iberian-Peninsula",
-    "https://feeds.fortinet.com/~/958459373/0/fortinet/blog/threat-research~From-CICD-to-Cloud-Data-How-Shai-Hulud-Persistence-Leads-to-Redshift-Breach",
-    "https://feeds.fortinet.com/~/957950855/0/fortinet/blog/threat-research~Threat-Actors-Weaponize-AI-Hype-to-Deliver-AsyncRAT",
-    "https://feeds.fortinet.com/~/957732002/0/fortinet/blog/threat-research~Cybercriminals-Are-Targeting-the-FIFA-World-Cup",
-    "https://feeds.fortinet.com/~/957685901/0/fortinet/blog/threat-research~Inside-the-CrossPlatform-Propagation-of-a-New-Gafgyt-Variant-CXMO",
-    "https://feeds.fortinet.com/~/957300263/0/fortinet/blog/threat-research~Phishing-Campaign-Deploys-JavaScriptDriven-PureLogs-Variant-to-Steal-Sensitive-Data",
-    "https://feeds.fortinet.com/~/956771309/0/fortinet/blog/threat-research~Misconfigured-Enrolled-and-Dormant-Anatomy-of-a-PPinfect-Kubernetes-Compromise",
-    "https://feeds.fortinet.com/~/956103044/0/fortinet/blog/threat-research~PureLogs-Delivery-via-PawsRunner-Steganography"
+  "Human Security": [
+    "https://www.humansecurity.com/learn/blog/supply-and-demand-for-stolen-streaming-accounts-during-the-world-cup/",
+    "https://www.humansecurity.com/learn/blog/funfonefarm-off-the-shelf-scam-economy/",
+    "https://www.humansecurity.com/learn/blog/forrester-wave-bot-agent-trust-management-software/",
+    "https://www.humansecurity.com/learn/blog/state-of-agentic-traffic-june-2026-browser-agent-tooling-for-developers-is-catching-on-fast/",
+    "https://www.humansecurity.com/learn/blog/why-brand-safety-needs-a-cybersecurity-mindset-in-the-age-of-agentic-media/",
+    "https://www.humansecurity.com/learn/blog/ai-agent-signals-traffic-detection/",
+    "https://www.humansecurity.com/learn/blog/trapdoor-borrows-from-an-evolving-family-of-cyber-crime-tactics-to-self-fund-ad-fraud/",
+    "https://www.humansecurity.com/learn/blog/ai-use-for-travel-planning-survey/",
+    "https://www.humansecurity.com/learn/blog/explainable-verification-for-the-next-era-of-advertising-with-humans-ad-integrity-suite/",
+    "https://www.humansecurity.com/learn/blog/when-fraud-becomes-a-subscription-how-ai-is-commoditizing-the-scam-economy/",
+    "https://www.humansecurity.com/learn/blog/pitching-in-the-dark-from-kickoff-to-the-final-whistle/",
+    "https://www.humansecurity.com/learn/blog/what-satori-is-watching-for-while-watching-the-world-cup-this-summer/",
+    "https://www.humansecurity.com/learn/blog/state-of-agentic-traffic-april-26/",
+    "https://www.humansecurity.com/learn/blog/newsjunkie-the-supply-chain-is-the-crime-scene/",
+    "https://www.humansecurity.com/learn/blog/visibility-and-control-to-protect-against-ai-agent-commerce-fraud/",
+    "https://www.humansecurity.com/learn/blog/advertisers-right-understandable-ad-verification/",
+    "https://www.humansecurity.com/learn/blog/the-role-of-comprehensive-click-protection-in-campaigns/",
+    "https://www.humansecurity.com/learn/blog/state-of-agentic-traffic-may-2026-financial-services-agentic-traffic-continues-to-climb-more-than-doubling-this-month/",
+    "https://www.humansecurity.com/learn/blog/mrc-accredited-viewability-measurement/"
   ]
 }

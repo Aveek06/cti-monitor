@@ -16,11 +16,11 @@ An automated Cyber Threat Intelligence (CTI) feed aggregator that monitors **173
 |------|-------|--------|
 | `feed` | 128 | RSS/Atom via feedparser |
 | `html` | 24 | Playwright headless browser + CSS selector |
-| `scrapling_fetcher` | 6 | curl_cffi TLS fingerprinting, no browser (Cloudflare-blocked feeds) |
+| `scrapling_fetcher` | 8 | curl_cffi TLS fingerprinting, no browser (Cloudflare-blocked feeds/pages) |
 | `html_auto` | 6 | Playwright headless browser + link extraction |
-| `crawl4ai` | 3 | crawl4ai with anti-bot fingerprinting |
 | `scrapling_feed` | 2 | curl_cffi TLS fingerprinting + feedparser |
 | `playwright_api` | 2 | Playwright + XHR interception |
+| `crawl4ai` | 1 | crawl4ai with anti-bot fingerprinting |
 | `scrapling_stealthy` | 1 | Patchright stealth browser (WAF bypass) |
 | `api` | 1 | Direct JSON API |
 | **Total active** | **173** | |
