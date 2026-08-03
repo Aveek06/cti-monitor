@@ -1344,7 +1344,7 @@
         "/category/",
         "/tag/"
       ],
-      "min_slug_length": 8
+      "min_slug_length": 15
     }
   ]
 }
