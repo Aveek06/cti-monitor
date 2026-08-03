@@ -65,10 +65,13 @@ def check_feed_site(site):
                            "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
         })
         keywords = [kw.lower() for kw in site.get("title_keywords", [])]
+        excludes = site.get("path_exclude", [])
         for e in parsed.entries:
             link = e.get("link", "")
             date_str = e.get("published", e.get("updated", ""))
             if not link:
+                continue
+            if excludes and any(ex in link for ex in excludes):
                 continue
             if keywords:
                 title = e.get("title", "").lower()

@@ -13,7 +13,11 @@
     {
       "name": "Artic Wolf",
       "type": "feed",
-      "url": "https://arcticwolf.com/feed/"
+      "url": "https://arcticwolf.com/feed/",
+      "path_exclude": [
+        "/resources/datasheet",
+        "/datasheet-de/"
+      ]
     },
     {
       "name": "BitSight",
@@ -308,7 +312,10 @@
     {
       "name": "Google - Threat Analysis Group",
       "type": "feed",
-      "url": "https://blog.google/rss/"
+      "url": "https://blog.google/rss/",
+      "path_exclude": [
+        "/innovation-and-ai/"
+      ]
     },
     {
       "name": "Guidepoint Security",
