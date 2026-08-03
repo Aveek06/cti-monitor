@@ -47,7 +47,7 @@ def load_json(path, default):
     try:
         with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
-    except FileNotFoundError:
+    except (FileNotFoundError, json.JSONDecodeError):
         return default
 
 
@@ -898,7 +898,7 @@ def send_digest_email(new_items, failures):
         print(f"Email failed to send (state.json already saved): {e}")
 
 
-def main(config_path, state_path):
+def main(config_path, state_path, last_active_path="last_active.json"):
     config = load_json(config_path, {"sites": []})
 
     seen_names = set()
@@ -908,8 +908,15 @@ def main(config_path, state_path):
 
     state = load_json(state_path, {})
 
+    last_active = load_json(last_active_path, {})
+    now_iso = datetime.now(timezone.utc).isoformat()
+    for site_name in state:
+        if site_name not in last_active:
+            last_active[site_name] = now_iso
+
     new_items = []
     failures = []
+    failing_names = []
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True, args=["--disable-http2"])
@@ -945,6 +952,7 @@ def main(config_path, state_path):
 
             if err:
                 failures.append(f"{name}: {err}")
+                failing_names.append(name)
                 print(f"  [{site['type'].upper()}] {name} ... FAIL")
                 continue
 
@@ -958,8 +966,11 @@ def main(config_path, state_path):
                 # everything found. Reporting all of it as "new" would flood the
                 # digest (some feeds return hundreds of historical entries).
                 # Only genuinely new posts on later runs get emailed.
+                last_active[name] = now_iso
                 print(f"  [{site['type'].upper()}] {name} ... seeding {len(new_links)} (not emailed)")
             else:
+                if new_links:
+                    last_active[name] = now_iso
                 for link, date_str in new_links:
                     if not date_str:
                         date_str = fetch_post_date(link)
@@ -980,11 +991,15 @@ def main(config_path, state_path):
 
     save_json(state_path, state)
 
+    last_active["_currently_failing"] = failing_names
+    save_json(last_active_path, last_active)
+
     print(f"Run complete: {len(new_items)} new post(s) found, {len(failures)} site(s) failed.")
     send_digest_email(new_items, failures)
 
 
 if __name__ == "__main__":
     cfg = sys.argv[1] if len(sys.argv) > 1 else "config.json"
-    st = sys.argv[2] if len(sys.argv) > 2 else "state.json"
-    main(cfg, st)
+    st  = sys.argv[2] if len(sys.argv) > 2 else "state.json"
+    la  = sys.argv[3] if len(sys.argv) > 3 else "last_active.json"
+    main(cfg, st, la)

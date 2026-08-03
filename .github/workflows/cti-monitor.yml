@@ -30,7 +30,9 @@ jobs:
       - name: Restore state
         uses: actions/cache@v4
         with:
-          path: state.json
+          path: |
+            state.json
+            last_active.json
           key: cti-state-${{ github.run_id }}
           restore-keys: |
             cti-state-
@@ -60,11 +62,27 @@ jobs:
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
-        run: python run_check.py config.json state.json
+        run: python run_check.py config.json state.json last_active.json
+
+      - name: Send weekly stale-sites report
+        if: success()
+        env:
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: |
+          if [ "$(date +%u)" = "5" ]; then
+            echo "Friday detected — running weekly stale-sites report."
+            python weekly_report.py config.json last_active.json
+          else
+            echo "Not Friday (day $(date +%u)) — skipping weekly stale-sites report."
+          fi
 
       - name: Save state
         uses: actions/cache/save@v4
         if: always()
         with:
-          path: state.json
+          path: |
+            state.json
+            last_active.json
           key: cti-state-${{ github.run_id }}
