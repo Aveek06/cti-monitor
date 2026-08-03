@@ -1,0 +1,7 @@
+feedparser
+requests
+playwright
+beautifulsoup4
+crawl4ai
+scrapling[fetchers]
+openpyxl

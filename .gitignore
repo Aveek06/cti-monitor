@@ -17,6 +17,17 @@ captures/
 run*.txt
 latest_run.txt
 
+# Dev/test scripts (not part of the pipeline)
+check_feeds.py
+recheck_failures.py
+recheck_playwright.py
+test_crawl4ai.py
+generate_config.py
+selector_log.md
+
+# One-off feed-check spreadsheets
+CTI_Feed_Check*.xlsx
+
 # Scratchpad / temp
 *.tmp
 *.log
