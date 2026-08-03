@@ -41,30 +41,12 @@ jobs:
           import json, os
           if not os.path.exists("state_seeds.json"):
               exit()
-          seeds = json.load(open("state_seeds.json"))
+          seed_data = json.load(open("state_seeds.json"))
           state = json.load(open("state.json")) if os.path.exists("state.json") else {}
+          force = seed_data.pop("_force_replace", [])
           changed = 0
-          for name, links in seeds.items():
-              if not state.get(name) and links:
-                  state[name] = links
-                  changed += 1
-                  print(f"Seeded {name}: {len(links)} links")
-          if changed:
-              json.dump(state, open("state.json", "w"), indent=2)
-              print(f"Patched {changed} sites into state.json")
-          '
-
-      - name: Apply seed data for new/empty sites
-        run: |
-          python -c '
-          import json, os
-          if not os.path.exists("state_seeds.json"):
-              exit()
-          seeds = json.load(open("state_seeds.json"))
-          state = json.load(open("state.json")) if os.path.exists("state.json") else {}
-          changed = 0
-          for name, links in seeds.items():
-              if not state.get(name) and links:
+          for name, links in seed_data.items():
+              if (not state.get(name) or name in force) and links:
                   state[name] = links
                   changed += 1
                   print(f"Seeded {name}: {len(links)} links")

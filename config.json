@@ -494,8 +494,17 @@
     },
     {
       "name": "Qualys",
-      "type": "feed",
-      "url": "https://blog.qualys.com/feed/"
+      "type": "scrapling_fetcher",
+      "url": "https://blog.qualys.com/",
+      "link_path_prefix": "/",
+      "path_exclude": [
+        "/category/",
+        "/tag/",
+        "/author/",
+        "/page/"
+      ],
+      "min_slug_length": 15,
+      "notes": "Feed links point to category pages (broken); scrapling_fetcher on blog homepage gets real post URLs"
     },
     {
       "name": "QuickHeal",

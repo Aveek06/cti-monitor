@@ -14,9 +14,9 @@ An automated Cyber Threat Intelligence (CTI) feed aggregator that monitors **173
 
 | Type | Count | Method |
 |------|-------|--------|
-| `feed` | 128 | RSS/Atom via feedparser |
+| `feed` | 127 | RSS/Atom via feedparser |
 | `html` | 24 | Playwright headless browser + CSS selector |
-| `scrapling_fetcher` | 8 | curl_cffi TLS fingerprinting, no browser (Cloudflare-blocked feeds/pages) |
+| `scrapling_fetcher` | 9 | curl_cffi TLS fingerprinting, no browser (Cloudflare-blocked feeds/pages) |
 | `html_auto` | 6 | Playwright headless browser + link extraction |
 | `scrapling_feed` | 2 | curl_cffi TLS fingerprinting + feedparser |
 | `playwright_api` | 2 | Playwright + XHR interception |

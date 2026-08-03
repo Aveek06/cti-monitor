@@ -19,5 +19,20 @@
     "https://www.humansecurity.com/learn/blog/the-role-of-comprehensive-click-protection-in-campaigns/",
     "https://www.humansecurity.com/learn/blog/state-of-agentic-traffic-may-2026-financial-services-agentic-traffic-continues-to-climb-more-than-doubling-this-month/",
     "https://www.humansecurity.com/learn/blog/mrc-accredited-viewability-measurement/"
+  ],
+  "Qualys": [
+    "https://blog.qualys.com/product-tech/2026/07/27/the-sub-10-minute-cloud-takeover-how-exposed-iam-keys-misconfiguration-and-ai-are-rewriting-the-rules-of-cloud-breaches",
+    "https://blog.qualys.com/vulnerabilities-threat-research/2026/07/14/microsoft-and-adobe-patch-tuesday-july-2026-security-update-review",
+    "https://blog.qualys.com/vulnerabilities-threat-research/2026/07/22/refluxfs-a-linux-kernel-local-privilege-escalation-to-root-in-xfs-cve-2026-64600",
+    "https://blog.qualys.com/product-tech/2026/07/20/top-compliance-audit-software-tools",
+    "https://blog.qualys.com/vulnerabilities-threat-research/2026/07/22/oracle-critical-patch-update-july-2026-security-update-review",
+    "https://blog.qualys.com/product-tech/2026/07/21/ai-vulnerability-discovery-automated-remediation",
+    "https://blog.qualys.com/vulnerabilities-threat-research/2026/07/21/cve-2026-8933-snap-confine-local-privilege-escalation",
+    "https://blog.qualys.com/product-tech/2026/07/29/ai-governance-evidence-gap-totalai",
+    "https://blog.qualys.com/qualys-insights/2026/07/20/public-facing-application-attacks-initial-access-vector",
+    "https://blog.qualys.com/product-tech/2026/07/27/aws-lambda-vulnerability-scanning-serverless-security"
+  ],
+  "_force_replace": [
+    "Qualys"
   ]
 }
