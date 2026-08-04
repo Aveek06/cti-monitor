@@ -625,6 +625,11 @@
       "url": "https://www.sonatype.com/blog/rss.xml"
     },
     {
+      "name": "The Hacker News",
+      "type": "feed",
+      "url": "https://feeds.feedburner.com/TheHackersNews"
+    },
+    {
       "name": "ThreatDown - Malwarebytes",
       "type": "feed",
       "url": "https://www.threatdown.com/feed"
