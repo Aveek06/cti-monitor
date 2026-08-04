@@ -687,7 +687,13 @@
     {
       "name": "Validin",
       "type": "feed",
-      "url": "https://www.validin.com/index.xml"
+      "url": "https://www.validin.com/index.xml",
+      "link_path_prefix": [
+        "/blog/",
+        "/newsletters/",
+        "/events/"
+      ],
+      "max_feed_entries": 100
     },
     {
       "name": "Virus Total",
@@ -911,7 +917,7 @@
       "date_selector": null,
       "date_format": "auto",
       "needs_js": true,
-      "notes": "MUI Paper card, 3 items, sampleHref=real blog post \u00e2\u20ac\u201d low count but correct"
+      "notes": "MUI Paper card, 3 items, sampleHref=real blog post â€” low count but correct"
     },
     {
       "name": "Cado Security",
@@ -1077,7 +1083,7 @@
       "name": "Forescout",
       "type": "skip",
       "url": "https://www.forescout.com/blog/",
-      "notes": "Was crawl4ai; WAF tightened 2026-08 \u2014 now returns 403 for all scrapers including patchright stealthy",
+      "notes": "Was crawl4ai; WAF tightened 2026-08 — now returns 403 for all scrapers including patchright stealthy",
       "link_path_prefix": "/blog/",
       "path_exclude": [
         "/tag/",
@@ -1208,7 +1214,7 @@
       "date_selector": null,
       "date_format": "auto",
       "needs_js": true,
-      "notes": "speartip.com redirects to us.zurichresilience.com; us. subdomain required \u00e2\u20ac\u201d www. does not render article cards in headless browser. 18 card-content hits, sampleHref=real article."
+      "notes": "speartip.com redirects to us.zurichresilience.com; us. subdomain required â€” www. does not render article cards in headless browser. 18 card-content hits, sampleHref=real article."
     },
     {
       "name": "Koi Security",
@@ -1238,7 +1244,7 @@
       "name": "Veriti AI",
       "type": "skip",
       "url": "https://veriti.ai/blog/veriti-research/",
-      "notes": "Acquired by Cyberint (Check Point) 2024; veriti.ai redirects to checkpoint.com/exposure-management. No distinct Veriti section or tag exists on blog.checkpoint.com \u00e2\u20ac\u201d content fully absorbed with no filterable URL."
+      "notes": "Acquired by Cyberint (Check Point) 2024; veriti.ai redirects to checkpoint.com/exposure-management. No distinct Veriti section or tag exists on blog.checkpoint.com â€” content fully absorbed with no filterable URL."
     },
     {
       "name": "F6 Russia",

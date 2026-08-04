@@ -66,6 +66,9 @@ def check_feed_site(site):
         })
         keywords = [kw.lower() for kw in site.get("title_keywords", [])]
         excludes = site.get("path_exclude", [])
+        prefixes = site.get("link_path_prefix", [])
+        if isinstance(prefixes, str):
+            prefixes = [prefixes]
         max_entries = site.get("max_feed_entries", 25)
         for e in parsed.entries:
             if len(entries) >= max_entries:
@@ -75,6 +78,8 @@ def check_feed_site(site):
             if not link:
                 continue
             if excludes and any(ex in link for ex in excludes):
+                continue
+            if prefixes and not any(p in link for p in prefixes):
                 continue
             if keywords:
                 title = e.get("title", "").lower()
@@ -531,6 +536,10 @@ def check_scrapling_feed_site(site):
         )
         parsed = feedparser.parse(page.body or b"")
         keywords = [kw.lower() for kw in site.get("title_keywords", [])]
+        excludes = site.get("path_exclude", [])
+        prefixes = site.get("link_path_prefix", [])
+        if isinstance(prefixes, str):
+            prefixes = [prefixes]
         max_entries = site.get("max_feed_entries", 25)
         entries = []
         for e in parsed.entries:
@@ -539,6 +548,10 @@ def check_scrapling_feed_site(site):
             link = e.get("link", "")
             date_str = e.get("published", e.get("updated", ""))
             if not link:
+                continue
+            if excludes and any(ex in link for ex in excludes):
+                continue
+            if prefixes and not any(p in link for p in prefixes):
                 continue
             if keywords:
                 title = e.get("title", "").lower()
