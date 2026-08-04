@@ -27,7 +27,7 @@ import feedparser
 import requests
 import concurrent.futures
 from bs4 import BeautifulSoup
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from urllib.parse import urljoin, urlparse
@@ -41,6 +41,7 @@ EMAIL_FROM = SMTP_USERNAME
 EMAIL_TO = os.environ.get("EMAIL_TO", SMTP_USERNAME)
 
 MAX_SEEN_PER_SITE = 2000  # cap stored history so state.json doesn't grow forever
+STALE_ARTICLE_DAYS = 30  # articles older than this are suppressed from the digest email
 
 
 def load_json(path, default):
@@ -1054,8 +1055,23 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
             print(f"  [{d['site']}] {d['link']}")
     save_json(prev_links_path, current_links)
 
-    print(f"Run complete: {len(new_items)} new post(s) found, {len(failures)} site(s) failed.")
-    send_digest_email(new_items, failures, duplicate_links or None)
+    # Filter articles older than STALE_ARTICLE_DAYS from the digest.
+    # "detected" means no date was found and today was assigned — always treat as fresh.
+    # State is already saved above, so stale articles are still deduped going forward.
+    stale_threshold = (datetime.now(timezone.utc) - timedelta(days=STALE_ARTICLE_DAYS)).strftime("%Y-%m-%d")
+    fresh_items, stale_items = [], []
+    for item in new_items:
+        if item["date_source"] != "detected" and item["date"] < stale_threshold:
+            stale_items.append(item)
+        else:
+            fresh_items.append(item)
+    if stale_items:
+        print(f"Suppressed {len(stale_items)} stale article(s) older than {STALE_ARTICLE_DAYS} days (still added to state):")
+        for item in stale_items:
+            print(f"  [{item['site']}] {item['date']} {item['link']}")
+
+    print(f"Run complete: {len(fresh_items)} new post(s) in digest ({len(stale_items)} stale suppressed), {len(failures)} site(s) failed.")
+    send_digest_email(fresh_items, failures, duplicate_links or None)
 
 
 if __name__ == "__main__":
