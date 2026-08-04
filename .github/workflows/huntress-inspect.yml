@@ -55,29 +55,30 @@ jobs:
           for el in date_els[:10]:
               print(f"  tag={el.name} class={el.get('class')} text={el.get_text(strip=True)[:80]}")
 
-          # Find all blog links
-          blog_links = [a for a in soup.find_all("a", href=True) if "/blog/" in a.get("href","")]
-          print(f"\n=== /blog/ links found: {len(blog_links)} ===")
-          for a in blog_links[:20]:
-              print(f"  href={a['href']} text={a.get_text(strip=True)[:60]}")
+          # Find the blog-hero-card-date span and walk up to its link ancestor
+          hero_date = soup.find("span", class_="blog-hero-card-date")
+          if hero_date:
+              print(f"\n=== Hero date text: {hero_date.get_text(strip=True)} ===")
+              # Walk up to find the enclosing <a>
+              node = hero_date.parent
+              for depth in range(8):
+                  if node is None or node.name in ("html", "body"):
+                      break
+                  if node.name == "a":
+                      print(f"  Enclosing <a> at depth {depth}: href={node.get('href')} class={node.get('class')}")
+                      print(f"  Full <a> HTML: {str(node)[:600]}")
+                      break
+                  print(f"  depth {depth}: <{node.name}> class={node.get('class')}")
+                  node = node.parent
 
-          # Also look for any elements with text that looks like a date
-          import re as re2
-          date_texts = [(el.name, el.get('class'), el.get_text(strip=True)[:60])
-                        for el in soup.find_all(True)
-                        if re2.search(r'\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b', el.get_text(strip=True))
-                        and len(el.get_text(strip=True)) < 30]
-          print(f"\n=== Elements with month-name text (max 30 chars): {len(date_texts)} ===")
-          for t in date_texts[:10]:
-              print(f"  {t}")
-
-          # Show parent HTML of first blog link (to find card container)
-          if blog_links:
-              parent = blog_links[0].parent
-              for _ in range(4):
-                  if parent and parent.name not in ("html","body"):
-                      print(f"\n=== Parent level {_+1} of first blog link ===")
-                      print(str(parent)[:800])
-                      parent = parent.parent
+          # Find ALL blog links (including text-less ones)
+          blog_links = [a for a in soup.find_all("a", href=True) if re.search(r'/blog/[^/]+$', a.get("href",""))]
+          print(f"\n=== /blog/SLUG links found: {len(blog_links)} unique ===")
+          seen = set()
+          for a in blog_links:
+              href = a['href']
+              if href not in seen:
+                  seen.add(href)
+                  print(f"  href={href}  class={a.get('class','')}")
 
           EOF
