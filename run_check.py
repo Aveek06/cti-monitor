@@ -688,6 +688,11 @@ def check_html_site(site, browser):
         )
         page = context.new_page()
         page.goto(site["url"], timeout=site.get("page_timeout_ms", 30000), wait_until="domcontentloaded")
+        try:
+            page.wait_for_selector(site["post_container"], timeout=site.get("page_timeout_ms", 30000))
+        except Exception:
+            context.close()
+            return entries, None
         wait_for_stable_post_count(page, site["post_container"])
 
         containers = page.query_selector_all(site["post_container"])

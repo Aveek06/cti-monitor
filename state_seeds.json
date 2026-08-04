@@ -265,7 +265,8 @@
     "Sucuri",
     "NSFocus",
     "Moonlock",
-    "Speartip"
+    "Speartip",
+    "Kroll"
   ],
   "Speartip": [
     "https://www.zurichresilience.com/knowledge-and-insights-hub/articles/2026/05/balancing-progress-and-peril-navigating-ais-role-in-modern-cyber-risks",
@@ -286,5 +287,23 @@
     "https://us.zurichresilience.com/cybersecurity/advisory-services",
     "https://us.zurichresilience.com/cybersecurity/managed-security",
     "https://us.zurichresilience.com/cybersecurity/incident-response"
+  ],
+  "Kroll": [
+    "https://www.kroll.com/en/publications/cyber/kroll-conversations-meet-the-cyber-strategy-and-advisory-experts",
+    "https://www.kroll.com/en/publications/cyber/azure-monitor-agent-metrics-extension-vulnerability",
+    "https://www.kroll.com/en/publications/cyber/deep-dive-kroll-analysis-garuda-c2-malware",
+    "https://www.kroll.com/en/publications/cyber/managing-cyber-exposure-at-ai-speed",
+    "https://www.kroll.com/en/publications/cyber/why-adaptive-behavioral-trust-is-now-essential",
+    "https://www.kroll.com/en/publications/cyber/regulatory-cliff-edge",
+    "https://www.kroll.com/en/publications/cyber/impact-of-cmmc-options-for-dib-contractors",
+    "https://www.kroll.com/en/publications/cyber/kroll-conversations-meet-the-emea-dfir-experts",
+    "https://www.kroll.com/en/publications/cyber/second-line-of-defense-in-a-complex-cyber-risk-landscape",
+    "https://www.kroll.com/en/publications/cyber/protecting-manufacturing-continuity-through-identity-security",
+    "https://www.kroll.com/en/publications/cyber/one-thousand-days-of-rising-cyber-risk",
+    "https://www.kroll.com/en/publications/cyber/uncovering-llm-vulnerabilities-insights-from-ai-security-testing",
+    "https://www.kroll.com/en/publications/cyber/best-practices-for-securing-crypto-assets",
+    "https://www.kroll.com/en/publications/cyber/clio-a-scalable-foundation-for-legal-work",
+    "https://www.kroll.com/en/publications/cyber/today-cyber-risk-industrialization-of-known-weaknesses",
+    "https://www.kroll.com/en/publications/cyber/kroll-conversations-meet-the-digital-identity-experts"
   ]
 }
