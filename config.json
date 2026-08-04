@@ -71,11 +71,6 @@
       "url": "https://cofense.com/feed/"
     },
     {
-      "name": "CN-SEC",
-      "type": "feed",
-      "url": "https://cn-sec.com/feed/"
-    },
-    {
       "name": "CyberArk",
       "type": "feed",
       "url": "https://www.cyberark.com/feed/"
