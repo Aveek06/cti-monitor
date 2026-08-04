@@ -939,6 +939,7 @@ def send_digest_email(new_items, failures, duplicate_links=None):
         print(f"Email sent: {len(new_items)} new post(s), {len(failures)} failure(s).")
     except Exception as e:
         print(f"Email failed to send (state.json already saved): {e}")
+        raise
 
 
 def main(config_path, state_path, last_active_path="last_active.json", prev_links_path="prev_run_links.json"):

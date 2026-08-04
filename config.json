@@ -11,7 +11,7 @@
       "url": "https://bfore.ai/feed/"
     },
     {
-      "name": "Artic Wolf",
+      "name": "Arctic Wolf",
       "type": "feed",
       "url": "https://arcticwolf.com/feed/",
       "path_exclude": [
@@ -251,7 +251,7 @@
       "notes": "Feed returns 0 entries; blog HTML works via scrapling_fetcher"
     },
     {
-      "name": "PolySworm",
+      "name": "PolySwarm",
       "type": "feed",
       "url": "https://blog.polyswarm.io/rss.xml"
     },
@@ -712,7 +712,7 @@
     },
     {
       "name": "Trustwave",
-      "type": "feed",
+      "type": "skip",
       "url": "https://www.levelblue.com/blogs/spiderlabs-blog/rss.xml"
     },
     {
