@@ -266,7 +266,8 @@
     "NSFocus",
     "Moonlock",
     "Speartip",
-    "Kroll"
+    "Kroll",
+    "DarkTrace"
   ],
   "Speartip": [
     "https://www.zurichresilience.com/knowledge-and-insights-hub/articles/2026/05/balancing-progress-and-peril-navigating-ais-role-in-modern-cyber-risks",
@@ -305,5 +306,32 @@
     "https://www.kroll.com/en/publications/cyber/clio-a-scalable-foundation-for-legal-work",
     "https://www.kroll.com/en/publications/cyber/today-cyber-risk-industrialization-of-known-weaknesses",
     "https://www.kroll.com/en/publications/cyber/kroll-conversations-meet-the-digital-identity-experts"
+  ],
+  "DarkTrace": [
+    "https://www.darktrace.com/blog/when-ai-agents-go-off-script-what-the-openai-and-hugging-face-incident-means-for-defenders",
+    "https://www.darktrace.com/blog/when-guardrails-break-why-securing-ai-requires-behavioral-detection-and-autonomous-containment",
+    "https://www.darktrace.com/blog/hiding-in-plain-sight-uncovering-a-multi-stage-ransomware-attack-through-behavioral-detection",
+    "https://www.darktrace.com/blog/when-ai-infrastructure-becomes-part-of-the-attack-surface",
+    "https://www.darktrace.com/blog/cybersecurity-for-the-sports-sector-the-threats-facing-a-digitized-industry-in-2026",
+    "https://www.darktrace.com/blog/protecting-global-stadiums-and-events-with-self-learning-ai",
+    "https://www.darktrace.com/blog/a-new-security-challenge-the-curious-case-of-prompt-language-analysis",
+    "https://www.darktrace.com/blog/shadow-ai-detection-the-first-step-toward-securing-ai",
+    "https://www.darktrace.com/blog/how-to-evaluate-ai-vendors-5-key-categories-for-ai-adoption",
+    "https://www.darktrace.com/blog/how-multi-layered-ai-works-in-darktrace-email",
+    "https://www.darktrace.com/blog/state-of-ai-cybersecurity-2026-77-of-security-stacks-include-ai-but-trust-is-lagging",
+    "https://www.darktrace.com/blog/chinese-apt-campaign-targets-entities-with-updated-fdmtp-backdoor",
+    "https://www.darktrace.com/blog/why-behavioral-ai-is-the-answer-to-mythos",
+    "https://www.darktrace.com/blog/mythos-vs-ethos-defending-in-an-era-of-ai-accelerated-vulnerability-discovery",
+    "https://www.darktrace.com/blog/state-of-ai-cybersecurity-2026-87-of-security-professionals-are-seeing-more-ai-driven-threats-but-few-feel-ready-to-stop-them",
+    "https://www.darktrace.com/blog/how-email-delivered-prompt-injection-attacks-can-target-enterprise-ai-and-why-it-matters",
+    "https://www.darktrace.com/blog/state-of-ai-cybersecurity-2026-92-of-security-professionals-concerned-about-the-impact-of-ai-agents",
+    "https://www.darktrace.com/blog/netsupport-rat-how-legitimate-tools-can-be-as-damaging-as-malware",
+    "https://www.darktrace.com/blog/when-reality-diverges-from-the-playbook-darktrace-identifies-encryption-in-a-world-leaks-ransomware-attack",
+    "https://www.darktrace.com/blog/darktrace-unites-human-behavior-and-threat-detection-across-email-slack-teams-and-zoom",
+    "https://www.darktrace.com/blog/what-the-darktrace-annual-threat-report-2026-means-for-security-leaders",
+    "https://www.darktrace.com/blog/applescript-abuse-unpacking-a-macos-phishing-campaign",
+    "https://www.darktrace.com/blog/cve-2026-1731-how-darktrace-sees-the-beyondtrust-exploitation-wave-unfolding",
+    "https://www.darktrace.com/blog/the-year-ahead-ai-cybersecurity-trends-to-watch-in-2026",
+    "https://www.darktrace.com/blog/darktrace-identifies-campaign-targeting-south-korea-leveraging-vs-code-for-remote-access"
   ]
 }

@@ -66,7 +66,10 @@ def check_feed_site(site):
         })
         keywords = [kw.lower() for kw in site.get("title_keywords", [])]
         excludes = site.get("path_exclude", [])
+        max_entries = site.get("max_feed_entries", 25)
         for e in parsed.entries:
+            if len(entries) >= max_entries:
+                break
             link = e.get("link", "")
             date_str = e.get("published", e.get("updated", ""))
             if not link:
@@ -528,8 +531,11 @@ def check_scrapling_feed_site(site):
         )
         parsed = feedparser.parse(page.body or b"")
         keywords = [kw.lower() for kw in site.get("title_keywords", [])]
+        max_entries = site.get("max_feed_entries", 25)
         entries = []
         for e in parsed.entries:
+            if len(entries) >= max_entries:
+                break
             link = e.get("link", "")
             date_str = e.get("published", e.get("updated", ""))
             if not link:
