@@ -839,6 +839,11 @@ def normalize_date(date_str):
     """Best-effort parse; falls back to 'detected today' if it can't be parsed."""
     if not date_str:
         return datetime.now(timezone.utc).strftime("%Y-%m-%d"), "detected"
+    if isinstance(date_str, (int, float)):
+        try:
+            return datetime.fromtimestamp(date_str, tz=timezone.utc).strftime("%Y-%m-%d"), "parsed"
+        except Exception:
+            return datetime.now(timezone.utc).strftime("%Y-%m-%d"), "detected"
     s = date_str.strip()
     # Normalise ISO 8601 Z suffix so fromisoformat() handles it on all Python versions
     iso = s.replace("Z", "+00:00")
