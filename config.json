@@ -297,7 +297,8 @@
     {
       "name": "Picus Security",
       "type": "feed",
-      "url": "https://www.picussecurity.com/resource/rss.xml"
+      "url": "https://www.picussecurity.com/resource/rss.xml",
+      "path_exclude": ["/resource/case-study/"]
     },
     {
       "name": "g0njxa Medium Blog",
@@ -314,7 +315,8 @@
       "type": "feed",
       "url": "https://blog.google/rss/",
       "path_exclude": [
-        "/innovation-and-ai/"
+        "/innovation-and-ai/",
+        "/company-news/"
       ]
     },
     {
@@ -519,7 +521,8 @@
         "/category/",
         "/tag/",
         "/author/",
-        "/page/"
+        "/page/",
+        "/product-tech/"
       ],
       "min_slug_length": 15,
       "notes": "Feed links point to category pages (broken); scrapling_fetcher on blog homepage gets real post URLs"
@@ -605,7 +608,8 @@
     {
       "name": "Silent Push",
       "type": "feed",
-      "url": "https://www.silentpush.com/feed/"
+      "url": "https://www.silentpush.com/feed/",
+      "path_exclude": ["/press-releases"]
     },
     {
       "name": "SAM CERT",
@@ -710,6 +714,10 @@
         "/blog/",
         "/newsletters/",
         "/events/"
+      ],
+      "path_exclude": [
+        "/platform",
+        "/solutions/"
       ],
       "max_feed_entries": 100
     },
