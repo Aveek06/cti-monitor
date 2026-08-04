@@ -379,8 +379,15 @@
     },
     {
       "name": "Huntress",
-      "type": "feed",
-      "url": "https://www.huntress.com/blog/rss.xml"
+      "type": "scrapling_stealthy",
+      "url": "https://www.huntress.com/all-blog-posts",
+      "link_path_prefix": "/blog/",
+      "path_exclude": [
+        "/blog-categories/",
+        "/all-blog-posts"
+      ],
+      "min_slug_length": 8,
+      "notes": "RSS feed stopped updating after 2026-07-13; all-blog-posts page via StealthyFetcher works"
     },
     {
       "name": "JPCERT Coordination Center",

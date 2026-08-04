@@ -33,6 +33,23 @@
     "https://labs.k7computing.com/index.php/security-advisory-fortibleed-credential-exposure-campaign-targeting-fortinet-firewalls-and-vpn-gateways/",
     "https://labs.k7computing.com/index.php/boss-scam-dont-trust-every-urgent-message-from-your-boss/"
   ],
+  "Huntress": [
+    "https://www.huntress.com/blog/bank-spam-rmm",
+    "https://www.huntress.com/blog/managed-espm-app-control-rmm-protection",
+    "https://www.huntress.com/blog/n-able-vulnerability-exploitation",
+    "https://www.huntress.com/blog/device-code-phishing-evolving-threats",
+    "https://www.huntress.com/blog/huntress-inflection-point-future-momentum",
+    "https://www.huntress.com/blog/business-reflection-250m-arr",
+    "https://www.huntress.com/blog/what-first-timers-need-to-know-before-hacker-summer-camp",
+    "https://www.huntress.com/blog/macsync-stealer-rat-reverse-engineering",
+    "https://www.huntress.com/blog/introducing-huntress-webhooks",
+    "https://www.huntress.com/blog/sonicwall-credential-stuffing-campaign",
+    "https://www.huntress.com/blog/ai-soc-guardrails-what-athena-can-and-cant-do",
+    "https://www.huntress.com/blog/huntress-managed-ispm-cmmc-compliance",
+    "https://www.huntress.com/blog/employee-spotlight-andrew-schlemmer",
+    "https://www.huntress.com/blog/fakeagent-claude-desktop-malvertising-ends-in-dotnet-rat",
+    "https://www.huntress.com/blog/twist-the-nozzle-on-password-spraying-a-tradecraft-tuesday-recap"
+  ],
   "Human Security": [
     "https://www.humansecurity.com/learn/blog/supply-and-demand-for-stolen-streaming-accounts-during-the-world-cup/",
     "https://www.humansecurity.com/learn/blog/funfonefarm-off-the-shelf-scam-economy/",
