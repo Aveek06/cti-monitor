@@ -41,7 +41,7 @@
     },
     {
       "name": "Check Point Exposure Management",
-      "type": "feed",
+      "type": "skip",
       "url": "https://blog.checkpoint.com/exposure-management/feed/",
       "notes": "Formerly Veriti AI (acquired by Check Point 2024); exposure management + brand phishing research"
     },
@@ -712,7 +712,6 @@
       "url": "https://www.validin.com/index.xml",
       "link_path_prefix": [
         "/blog/",
-        "/newsletters/",
         "/events/"
       ],
       "path_exclude": [
