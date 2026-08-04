@@ -1,0 +1,92 @@
+name: URL Exact Check (one-shot, delete after use)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restore newest state (Aug 4)
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            state.json
+            last_active.json
+            prev_run_links.json
+          key: cti-state-30906329833
+          restore-keys: cti-state-30906329833
+
+      - name: Save newest state aside
+        run: cp state.json new_state.json
+
+      - name: Restore pre-Aug-1 state (Jul 31 16:00)
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            state.json
+            last_active.json
+            prev_run_links.json
+          key: cti-state-30645347765
+          restore-keys: cti-state-30645347765
+
+      - name: Diff and report extra links
+        run: |
+          python3 - << 'PYEOF'
+          import json, sys
+
+          # All URLs shared manually by the team (both lists)
+          team_urls = {
+              "https://unit42.paloaltonetworks.com/xcsset-v40-malware-analysis/",
+              "https://www.microsoft.com/en-us/security/blog/2026/07/31/captivecrunch-midnight-blizzard-targets-travelers-worldwide-for-malware-delivery-and-credential-theft/",
+              "https://thehackernews.com/2026/08/hijacked-hotel-wi-fi-pushes-fake.html",
+              "https://blackpointcyber.com/blog/hollowframes-layered-loader-and-matryoshka-backdoors/",
+              "https://thehackernews.com/2026/07/hollowframe-loader-deploys-matryoshka.html",
+              "https://www.huntress.com/blog/n-able-vulnerability-exploitation",
+              "https://socradar.io/blog/snowlight-government-chinese-campaign/",
+              "https://www.resecurity.com/jp/blog/article/from-wsproxy-to-root-inc-ransomware-and-sonicwall-sma-exploit-chain",
+              "https://labs.k7computing.com/index.php/octagon-technical-analysis-of-a-fake-bahrain-civil-defense-application/",
+              "https://censys.com/blog/darkswords-panel-sprawl/",
+              "https://thehackernews.com/2026/08/chinese-threat-actor-uses-leaked.html",
+              "https://www.bitsight.com/blog/fuyao-enterprise-building-ad-fraud-empire-ai-and-kids-coding-blocks",
+              "https://thehackernews.com/2026/07/cheap-android-tv-boxes-pose-as-phones.html",
+              "https://theravenfile.com/2026/08/03/crpx0-scammer-turned-ransomware-operator/",
+              "https://socradar.io/blog/doublecup-clickfix-loader-devicemanager-rats/",
+              "https://thehackernews.com/2026/08/doublecup-uses-clickfix-and-cached-pngs.html",
+              "https://www.netskope.com/blog/developers-in-the-crosshairs-fake-ai-tools-deliver-infostealer",
+              "https://blog.polyswarm.io/clickfix-themed-campaign-deploys-starland-rat-and-wldr-framework",
+              "https://www.cloudsek.com/blog/access-for-sale-inside-a-russian-speaking-access-brokers-dual-operation",
+              "https://www.zscaler.com/blogs/security-research/targeted-attack-government-entities-middle-east-part-2",
+              "https://securelist.com/incidents-at-brazilian-educational-institutions/120803/",
+              "https://securitylabs.datadoghq.com/articles/coding-agent-project-trust-code-execution-before-first-prompt/",
+              "https://asec.ahnlab.com/en/94786/",
+              "https://unit42.paloaltonetworks.com/passwordless-authentication-security-risks/",
+              "https://thehackernews.com/2026/08/google-password-manager-attacks-could.html",
+          }
+
+          old_state = json.load(open("state.json"))
+          new_state = json.load(open("new_state.json"))
+
+          # Build set of all old URLs
+          old_urls = set()
+          for urls in old_state.values():
+              old_urls.update(urls)
+
+          # Find all URLs added from Aug 1 onwards (in new state but not old)
+          extra = []
+          for site, urls in new_state.items():
+              if site.startswith("_"):
+                  continue
+              for url in urls:
+                  if url not in old_urls and url not in team_urls:
+                      extra.append((site, url))
+
+          print(f"=== LINKS FOUND BY MONITOR (Aug 1+) NOT IN TEAM MANUAL LIST ===")
+          print(f"Total: {len(extra)} extra links\n")
+          current_site = None
+          for site, url in sorted(extra, key=lambda x: x[0]):
+              if site != current_site:
+                  print(f"\n[{site}]")
+                  current_site = site
+              print(f"  {url}")
+          PYEOF
