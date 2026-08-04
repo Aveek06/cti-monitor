@@ -15,7 +15,7 @@ jobs:
 
       - name: Install scrapling
         run: |
-          pip install "scrapling[fetchers]"
+          pip install "scrapling[fetchers]" beautifulsoup4
           scrapling install
           python -c 'import pathlib,sys;[p.write_text(p.read_text().replace("chromium_version = 149","chromium_version = 130").replace("chrome_version = 149","chrome_version = 130")) for p in pathlib.Path(sys.prefix).rglob("scrapling/engines/toolbelt/fingerprints.py")]'
 
