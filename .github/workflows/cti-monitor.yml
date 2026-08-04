@@ -33,6 +33,7 @@ jobs:
           path: |
             state.json
             last_active.json
+            prev_run_links.json
           key: cti-state-${{ github.run_id }}
           restore-keys: |
             cti-state-
@@ -62,7 +63,7 @@ jobs:
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
-        run: python run_check.py config.json state.json last_active.json
+        run: python run_check.py config.json state.json last_active.json prev_run_links.json
 
       - name: Send weekly stale-sites report
         if: success()
@@ -85,4 +86,5 @@ jobs:
           path: |
             state.json
             last_active.json
+            prev_run_links.json
           key: cti-state-${{ github.run_id }}

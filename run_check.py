@@ -879,7 +879,7 @@ def normalize_date(date_str):
     return datetime.now(timezone.utc).strftime("%Y-%m-%d"), "detected"
 
 
-def send_digest_email(new_items, failures):
+def send_digest_email(new_items, failures, duplicate_links=None):
     rows_html = ""
     for item in new_items:
         rows_html += (f"<tr><td>{item['date']}</td><td>{item['date_source']}</td>"
@@ -890,6 +890,18 @@ def send_digest_email(new_items, failures):
     if failures:
         failure_rows = "".join(f"<li>{f}</li>" for f in failures)
         failures_html = f"<h3>Sites that failed this run</h3><ul>{failure_rows}</ul>"
+
+    duplicates_html = ""
+    if duplicate_links:
+        dup_rows = "".join(
+            f"<li><a href='{d['link']}'>{d['link']}</a> — {d['site']}</li>"
+            for d in duplicate_links
+        )
+        duplicates_html = (
+            f"<h3 style='color:red'>⚠ Links repeated from previous run ({len(duplicate_links)})</h3>"
+            f"<p>These links appeared as new in both this run and the previous run, "
+            f"which may indicate a state-persistence bug.</p><ul>{dup_rows}</ul>"
+        )
 
     if not new_items:
         body_html = "<p>No new blog posts were observed in this run.</p>"
@@ -906,6 +918,7 @@ def send_digest_email(new_items, failures):
     <h2>CTI Source Monitor - New Posts ({len(new_items)})</h2>
     {body_html}
     {failures_html}
+    {duplicates_html}
     </body></html>
     """
 
@@ -927,7 +940,7 @@ def send_digest_email(new_items, failures):
         print(f"Email failed to send (state.json already saved): {e}")
 
 
-def main(config_path, state_path, last_active_path="last_active.json"):
+def main(config_path, state_path, last_active_path="last_active.json", prev_links_path="prev_run_links.json"):
     config = load_json(config_path, {"sites": []})
 
     seen_names = set()
@@ -936,6 +949,7 @@ def main(config_path, state_path, last_active_path="last_active.json"):
         raise ValueError(f"Duplicate site names in config (fix before running): {dupes}")
 
     state = load_json(state_path, {})
+    prev_run_links = set(load_json(prev_links_path, []))
 
     last_active = load_json(last_active_path, {})
     now_iso = datetime.now(timezone.utc).isoformat()
@@ -1031,12 +1045,22 @@ def main(config_path, state_path, last_active_path="last_active.json"):
     last_active["_currently_failing"] = failing_names
     save_json(last_active_path, last_active)
 
+    # Compare with previous run — any link appearing as new in both runs is a state bug
+    current_links = [item["link"] for item in new_items]
+    duplicate_links = [item for item in new_items if item["link"] in prev_run_links]
+    if duplicate_links:
+        print(f"WARNING: {len(duplicate_links)} link(s) also appeared as new in the previous run:")
+        for d in duplicate_links:
+            print(f"  [{d['site']}] {d['link']}")
+    save_json(prev_links_path, current_links)
+
     print(f"Run complete: {len(new_items)} new post(s) found, {len(failures)} site(s) failed.")
-    send_digest_email(new_items, failures)
+    send_digest_email(new_items, failures, duplicate_links or None)
 
 
 if __name__ == "__main__":
     cfg = sys.argv[1] if len(sys.argv) > 1 else "config.json"
     st  = sys.argv[2] if len(sys.argv) > 2 else "state.json"
     la  = sys.argv[3] if len(sys.argv) > 3 else "last_active.json"
-    main(cfg, st, la)
+    pl  = sys.argv[4] if len(sys.argv) > 4 else "prev_run_links.json"
+    main(cfg, st, la, pl)
