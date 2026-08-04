@@ -1,4 +1,26 @@
 {
+  "Censys": [
+    "https://censys.com/blog/introducing-censys-ioc-investigator/",
+    "https://censys.com/blog/darkswords-panel-sprawl/",
+    "https://censys.com/blog/cl0p-targets-windchill/",
+    "https://censys.com/blog/you-cant-out-patch-ai/",
+    "https://censys.com/blog/triage-investigate-hunt-defend/",
+    "https://censys.com/blog/state-of-the-internet-2026-preview/",
+    "https://censys.com/blog/record-first-half-2026-growth/",
+    "https://censys.com/blog/censys-is-the-omnifeed-crunch-your-own-threat-intelligence/",
+    "https://censys.com/blog/russia-camera-hacking-espionage-campaign/",
+    "https://censys.com/blog/unlimited-enrichment/"
+  ],
+  "K7 Security Labs": [
+    "https://labs.k7computing.com/index.php/interesting-persistence-technique/",
+    "https://labs.k7computing.com/index.php/serving-over-a-billion-cloud-lookups-a-month/",
+    "https://labs.k7computing.com/index.php/httpsicann-deal-with-it-part-1/",
+    "https://labs.k7computing.com/index.php/avar-2012/",
+    "https://labs.k7computing.com/index.php/carniv0re-has-a-0-t0lerance-p0licy-ie-it-pr0tects-r0bustly/",
+    "https://labs.k7computing.com/index.php/octagon-technical-analysis-of-a-fake-bahrain-civil-defense-application/",
+    "https://labs.k7computing.com/index.php/security-advisory-fortibleed-credential-exposure-campaign-targeting-fortinet-firewalls-and-vpn-gateways/",
+    "https://labs.k7computing.com/index.php/boss-scam-dont-trust-every-urgent-message-from-your-boss/"
+  ],
   "Human Security": [
     "https://www.humansecurity.com/learn/blog/supply-and-demand-for-stolen-streaming-accounts-during-the-world-cup/",
     "https://www.humansecurity.com/learn/blog/funfonefarm-off-the-shelf-scam-economy/",

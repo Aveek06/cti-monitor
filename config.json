@@ -61,6 +61,11 @@
       "url": "https://www.acronis.com/en-us/tru/feed.xml"
     },
     {
+      "name": "Censys",
+      "type": "feed",
+      "url": "https://censys.com/feed/"
+    },
+    {
       "name": "Cisco Talos",
       "type": "feed",
       "url": "https://blog.talosintelligence.com/feed/"
@@ -404,8 +409,19 @@
     },
     {
       "name": "K7 Security Labs",
-      "type": "feed",
-      "url": "https://labs.k7computing.com/index.php/feed/"
+      "type": "scrapling_fetcher",
+      "url": "https://labs.k7computing.com/index.php/lab-blog/",
+      "link_path_prefix": "/index.php/",
+      "path_exclude": [
+        "/index.php/lab-blog/",
+        "/index.php/vulnerability-information/",
+        "/index.php/top-threats/",
+        "/index.php/category/",
+        "/index.php/tag/",
+        "/index.php/page/"
+      ],
+      "min_slug_length": 8,
+      "notes": "Feed limited to 1 entry server-side; lab-blog HTML page via scrapling_fetcher"
     },
     {
       "name": "Menlo Security",
