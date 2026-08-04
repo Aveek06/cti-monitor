@@ -41,7 +41,7 @@ EMAIL_FROM = SMTP_USERNAME
 EMAIL_TO = os.environ.get("EMAIL_TO", SMTP_USERNAME)
 
 MAX_SEEN_PER_SITE = 2000  # cap stored history so state.json doesn't grow forever
-STALE_ARTICLE_DAYS = 30  # articles older than this are suppressed from the digest email
+STALE_ARTICLE_DAYS = 7   # articles older than this are suppressed from the digest email
 
 
 def load_json(path, default):
