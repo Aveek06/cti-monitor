@@ -974,6 +974,14 @@ def main(config_path, state_path, last_active_path="last_active.json"):
                 last_active[name] = now_iso
                 print(f"  [{site['type'].upper()}] {name} ... seeding {len(new_links)} (not emailed)")
             else:
+                # Flood guard: if apparent-new links >= current state size (and state
+                # isn't trivially small), it almost certainly means a cache reset or
+                # full-page re-scrape, not real activity. Re-seed silently.
+                if len(new_links) >= len(old_order) >= 5:
+                    last_active[name] = now_iso
+                    state[name] = [link for link, _ in entries][:MAX_SEEN_PER_SITE]
+                    print(f"  [{site['type'].upper()}] {name} ... flood guard: {len(new_links)} apparent-new >= {len(old_order)} in state, re-seeding silently")
+                    continue
                 if new_links:
                     last_active[name] = now_iso
                 for link, date_str in new_links:
