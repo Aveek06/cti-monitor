@@ -1,0 +1,73 @@
+name: Huntress HTML Inspect
+
+on:
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install scrapling
+        run: |
+          pip install "scrapling[fetchers]"
+          scrapling install
+          python -c 'import pathlib,sys;[p.write_text(p.read_text().replace("chromium_version = 149","chromium_version = 130").replace("chrome_version = 149","chrome_version = 130")) for p in pathlib.Path(sys.prefix).rglob("scrapling/engines/toolbelt/fingerprints.py")]'
+
+      - name: Fetch and inspect Huntress page structure
+        run: |
+          python - <<'EOF'
+          from scrapling.fetchers import StealthyFetcher
+          from bs4 import BeautifulSoup
+          import re, concurrent.futures
+
+          def fetch():
+              return StealthyFetcher.fetch(
+                  "https://www.huntress.com/all-blog-posts",
+                  headless=True,
+                  block_webrtc=True,
+                  hide_canvas=True,
+                  timeout=60000,
+              )
+
+          with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+              page = pool.submit(fetch).result()
+
+          html = page.html_content or ""
+          soup = BeautifulSoup(html, "html.parser")
+
+          print(f"=== Total HTML length: {len(html)} chars ===\n")
+
+          # Find all <time> elements
+          times = soup.find_all("time")
+          print(f"=== <time> elements found: {len(times)} ===")
+          for t in times[:10]:
+              print(f"  {t}")
+
+          # Find elements with 'date' in class
+          date_els = soup.find_all(class_=re.compile(r'date', re.I))
+          print(f"\n=== Elements with 'date' in class: {len(date_els)} ===")
+          for el in date_els[:10]:
+              print(f"  tag={el.name} class={el.get('class')} text={el.get_text(strip=True)[:80]}")
+
+          # Find all blog links
+          blog_links = [a for a in soup.find_all("a", href=True) if "/blog/" in a.get("href","")]
+          print(f"\n=== /blog/ links found: {len(blog_links)} ===")
+          for a in blog_links[:5]:
+              print(f"  href={a['href']} text={a.get_text(strip=True)[:60]}")
+
+          # Show parent HTML of first blog link (to find card container)
+          if blog_links:
+              parent = blog_links[0].parent
+              for _ in range(4):
+                  if parent and parent.name not in ("html","body"):
+                      print(f"\n=== Parent level {_+1} of first blog link ===")
+                      print(str(parent)[:800])
+                      parent = parent.parent
+
+          EOF

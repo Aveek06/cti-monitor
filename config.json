@@ -609,6 +609,7 @@
       "name": "Silent Push",
       "type": "feed",
       "url": "https://www.silentpush.com/feed/",
+      "link_path_prefix": "silentpush.com",
       "path_exclude": ["/press-releases"]
     },
     {
