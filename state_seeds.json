@@ -1,4 +1,16 @@
 {
+  "BitSight": [
+    "https://www.bitsight.com/blog/ai-guardrails-wont-protect-your-supply-chain-alone",
+    "https://www.bitsight.com/blog/fuyao-enterprise-building-ad-fraud-empire-ai-and-kids-coding-blocks",
+    "https://www.bitsight.com/blog/how-banks-can-meet-the-october-2026-ecb-ai-cybersecurity-plan",
+    "https://www.bitsight.com/blog/bitsights-ratings-algorithm-update-2026-makes-risk-vectors-more-impactful",
+    "https://www.bitsight.com/blog/why-tprm-must-evolve-for-vulnerability-operations-and-ai-driven-threats",
+    "https://www.bitsight.com/blog/threat-actor-profile-teampcp",
+    "https://www.bitsight.com/blog/ai-man-in-the-middle",
+    "https://www.bitsight.com/blog/what-is-token-torching-guide-to-new-cyber-threat",
+    "https://www.bitsight.com/blog/how-frontier-ai-is-reshaping-cyber-insurance-risk",
+    "https://www.bitsight.com/blog/how-state-governments-can-navigate-resource-crunch-and-achieve-resiliency"
+  ],
   "Censys": [
     "https://censys.com/blog/introducing-censys-ioc-investigator/",
     "https://censys.com/blog/darkswords-panel-sprawl/",
@@ -279,7 +291,7 @@
     "https://moonlock.com/is-tiktok-shop-safe",
     "https://moonlock.com/clicklock-stealer-macos-passwords"
   ],
-  "_force_replace": [],
+  "_force_replace": ["BitSight"],
   "Speartip": [
     "https://www.zurichresilience.com/knowledge-and-insights-hub/articles/2026/05/balancing-progress-and-peril-navigating-ais-role-in-modern-cyber-risks",
     "https://www.zurichresilience.com/knowledge-and-insights-hub/articles/2026/06/deepfakes-and-identity-deception-in-the-age-of-ai",
