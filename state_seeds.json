@@ -264,6 +264,27 @@
     "Aryaka",
     "Sucuri",
     "NSFocus",
-    "Moonlock"
+    "Moonlock",
+    "Speartip"
+  ],
+  "Speartip": [
+    "https://www.zurichresilience.com/knowledge-and-insights-hub/articles/2026/05/balancing-progress-and-peril-navigating-ais-role-in-modern-cyber-risks",
+    "https://www.zurichresilience.com/knowledge-and-insights-hub/articles/2026/06/deepfakes-and-identity-deception-in-the-age-of-ai",
+    "https://www.zurichresilience.com/knowledge-and-insights-hub/articles/2026/02/Cybersecurity-in-Education-Safeguarding-Students-Staff-and-Infrastructure",
+    "https://www.zurichresilience.com/knowledge-and-insights-hub/articles/2025/12/penetration-testing-uncovering-the-unknown",
+    "https://www.zurichresilience.com/knowledge-and-insights-hub/articles/2025/08/how-speartip-helped-manufacturer-haydon-bolts-strengthen-its-cyber-defense-program",
+    "https://www.zurichresilience.com/knowledge-and-insights-hub/articles/2026/01/Building-Cyber-Resilience-Within-the-Evolving-Global-Supply-Chain",
+    "https://us.zurichresilience.com/cybersecurity/articles-and-insights/insights/inside-the-soc/business-email-compromise/when-trusted-access-is-used-for-malicious-activity",
+    "https://us.zurichresilience.com/cybersecurity/articles-and-insights/insights/inside-the-soc/ransomware/preventing-ransomware-reinfection",
+    "https://us.zurichresilience.com/cybersecurity/articles-and-insights/insights/security-event-bulletins/instructure-canvas-incident",
+    "https://us.zurichresilience.com/cybersecurity/articles-and-insights/insights/security-event-bulletins/goto-resolve-threat-campaign-disrupted-by-speartip-managed-soc",
+    "https://us.zurichresilience.com/cybersecurity/articles-and-insights/insights/security-event-bulletins/sonicwall-vpn-infrastructure-targeted",
+    "https://us.zurichresilience.com/cybersecurity/articles-and-insights/insights/security-event-bulletins/third-party-supply-chain-attack-affecting-auto-dealerships",
+    "https://us.zurichresilience.com/cybersecurity/articles-and-insights/insights/security-event-bulletins/powerschool-breach-and-cybersecurity-checklist",
+    "https://us.zurichresilience.com/cybersecurity/articles-and-insights/insights/security-event-bulletins/fasthttp-used-in-new-bruteforce-campaign",
+    "https://us.zurichresilience.com/cybersecurity/articles-and-insights/insights/security-event-bulletins/cdk-global-cyberattack-ftc-safeguards-and-how-speartip-can-help",
+    "https://us.zurichresilience.com/cybersecurity/advisory-services",
+    "https://us.zurichresilience.com/cybersecurity/managed-security",
+    "https://us.zurichresilience.com/cybersecurity/incident-response"
   ]
 }
