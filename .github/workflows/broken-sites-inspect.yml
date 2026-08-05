@@ -1,0 +1,130 @@
+name: Broken Sites Inspect
+
+on:
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: |
+          pip install feedparser requests beautifulsoup4 "scrapling[fetchers]"
+          scrapling install
+          python -c 'import pathlib,sys;[p.write_text(p.read_text().replace("chromium_version = 149","chromium_version = 130").replace("chrome_version = 149","chrome_version = 130")) for p in pathlib.Path(sys.prefix).rglob("scrapling/engines/toolbelt/fingerprints.py")]'
+      - name: Test all 7 broken sites
+        run: |
+          python - <<'EOF'
+          import feedparser, requests
+          from scrapling.fetchers import StealthyFetcher, Fetcher
+          from bs4 import BeautifulSoup
+
+          def scrape(label, url, link_contains):
+              """Try plain requests, Fetcher (curl_cffi), StealthyFetcher on a blog URL."""
+              print(f"\n  [plain requests]", end=" ")
+              try:
+                  r = requests.get(url, timeout=12, headers={"User-Agent": "Mozilla/5.0"})
+                  soup = BeautifulSoup(r.text, "html.parser")
+                  links = list(dict.fromkeys(a["href"] for a in soup.find_all("a", href=True) if link_contains in a.get("href","")))
+                  print(f"HTTP {r.status_code} — {len(links)} links")
+                  for l in links[:3]: print(f"    {l}")
+              except Exception as e: print(f"ERROR: {e}")
+
+              print(f"  [Fetcher curl_cffi]", end=" ")
+              try:
+                  page = Fetcher().get(url)
+                  if page and page.status == 200:
+                      soup = BeautifulSoup(page.html_content, "html.parser")
+                      links = list(dict.fromkeys(a["href"] for a in soup.find_all("a", href=True) if link_contains in a.get("href","")))
+                      print(f"HTTP {page.status} — {len(links)} links")
+                      for l in links[:3]: print(f"    {l}")
+                  else:
+                      print(f"HTTP {page.status if page else 'None'}")
+              except Exception as e: print(f"ERROR: {e}")
+
+              print(f"  [StealthyFetcher]", end=" ")
+              try:
+                  page = StealthyFetcher().fetch(url)
+                  if page and page.status == 200:
+                      soup = BeautifulSoup(page.html_content, "html.parser")
+                      links = list(dict.fromkeys(a["href"] for a in soup.find_all("a", href=True) if link_contains in a.get("href","")))
+                      print(f"HTTP {page.status} — {len(links)} links")
+                      for l in links[:3]: print(f"    {l}")
+                  else:
+                      print(f"HTTP {page.status if page else 'None'}")
+              except Exception as e: print(f"ERROR: {e}")
+
+          def test_feed(feed_url):
+              print(f"  [feedparser] {feed_url}", end=" ")
+              try:
+                  d = feedparser.parse(feed_url)
+                  print(f"status={d.get('status','?')} entries={len(d.entries)}")
+                  for e in d.entries[:3]: print(f"    {e.get('link','?')}")
+              except Exception as e: print(f"ERROR: {e}")
+
+              print(f"  [Fetcher feed]", end=" ")
+              try:
+                  page = Fetcher().get(feed_url)
+                  if page and page.status == 200:
+                      d = feedparser.parse(page.html_content)
+                      print(f"HTTP {page.status} — {len(d.entries)} entries")
+                      for e in d.entries[:3]: print(f"    {e.get('link','?')}")
+                  else:
+                      print(f"HTTP {page.status if page else 'None'}")
+              except Exception as e: print(f"ERROR: {e}")
+
+          # ── 1. CyberArk ──────────────────────────────────────────────────
+          print("\n===== CyberArk =====")
+          test_feed("https://www.cyberark.com/feed/")
+          scrape("CyberArk blog", "https://www.cyberark.com/resources/threat-research-blog", "cyberark.com")
+
+          # ── 2. Elliptic ──────────────────────────────────────────────────
+          print("\n===== Elliptic =====")
+          test_feed("https://www.elliptic.co/blog/rss.xml")
+          scrape("Elliptic blog", "https://www.elliptic.co/blog", "elliptic.co/blog/")
+
+          # ── 3. jscrambler ────────────────────────────────────────────────
+          print("\n===== jscrambler =====")
+          test_feed("https://jscrambler.com/blog/rss.xml")
+          scrape("jscrambler blog", "https://jscrambler.com/blog", "jscrambler.com/blog/")
+
+          # ── 4. Fortinet ──────────────────────────────────────────────────
+          print("\n===== Fortinet =====")
+          test_feed("https://feeds.fortinet.com/fortinet/blog/threat-research")
+          scrape("Fortinet blog", "https://www.fortinet.com/blog/threat-research", "fortinet.com/blog/")
+
+          # ── 5. HarfangLab ────────────────────────────────────────────────
+          print("\n===== HarfangLab =====")
+          test_feed("https://harfanglab.io/insidethelab/feed/")
+          scrape("HarfangLab blog", "https://harfanglab.io/insidethelab/", "harfanglab.io/insidethelab/")
+
+          # ── 6. Sekoia ────────────────────────────────────────────────────
+          print("\n===== Sekoia =====")
+          test_feed("https://blog.sekoia.io/feed/")
+          scrape("Sekoia blog", "https://blog.sekoia.io/", "sekoia.io/")
+
+          # ── 7. Bitdefender ───────────────────────────────────────────────
+          print("\n===== Bitdefender =====")
+          scrape("Bitdefender labs", "https://www.bitdefender.com/en-us/blog/labs/", "bitdefender.com/en-us/blog/labs/")
+          print("  [StealthyFetcher CSS check]", end=" ")
+          try:
+              page = StealthyFetcher().fetch("https://www.bitdefender.com/en-us/blog/labs/")
+              if page and page.status == 200:
+                  soup = BeautifulSoup(page.html_content, "html.parser")
+                  # Check for the old a.tw-block selector and alternatives
+                  old = soup.select("a.tw-block")
+                  art = soup.select("article a")
+                  card = soup.select("a[href*='/en-us/blog/labs/']")
+                  print(f"HTTP {page.status} — a.tw-block={len(old)}, article a={len(art)}, href-labs={len(card)}")
+                  for l in list(dict.fromkeys(a["href"] for a in card if "/en-us/blog/labs/" in a.get("href","") and a["href"] != "https://www.bitdefender.com/en-us/blog/labs/"))[:5]:
+                      print(f"    {l}")
+              else:
+                  print(f"HTTP {page.status if page else 'None'}")
+          except Exception as e: print(f"ERROR: {e}")
+
+          EOF
+        timeout-minutes: 5
