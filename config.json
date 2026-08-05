@@ -1268,18 +1268,6 @@
       "notes": "Next.js blog; 403 on direct requests so uses Playwright; intercepts _next/data en.json which has pageProps.posts with url+date"
     },
     {
-      "name": "Veriti AI",
-      "type": "skip",
-      "url": "https://veriti.ai/blog/veriti-research/",
-      "notes": "Acquired by Cyberint (Check Point) 2024; veriti.ai redirects to checkpoint.com/exposure-management. No distinct Veriti section or tag exists on blog.checkpoint.com â€” content fully absorbed with no filterable URL."
-    },
-    {
-      "name": "F6 Russia",
-      "type": "skip",
-      "url": "https://www.f6.ru/blog",
-      "notes": "manual review only - see selector_log.md for why automated scraping failed."
-    },
-    {
       "name": "Zscaler",
       "type": "playwright_api",
       "url": "https://www.zscaler.com/blogs?type=security-research",
@@ -1327,12 +1315,6 @@
       "date_format": "auto",
       "needs_js": true,
       "notes": "20 card hits; link_path_prefix keeps only /en/publications/cyber/; path_exclude drops case-study marketing pages"
-    },
-    {
-      "name": "Secureworks",
-      "type": "skip",
-      "url": "https://www.secureworks.com/blog/",
-      "notes": "Secureworks was acquired by Sophos in 2024; secureworks.com now redirects to sophos.com. Coverage provided by the Sophos entry below."
     },
     {
       "name": "Sophos",
