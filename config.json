@@ -1115,10 +1115,11 @@
       "min_slug_length": 8
     },
     {
-      "name": "Phylum",
-      "type": "skip",
-      "url": "https://blog.phylum.io/",
-      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+      "name": "Veracode",
+      "type": "scrapling_fetcher",
+      "url": "https://www.veracode.com/blog/",
+      "link_path_prefix": "/blog/",
+      "notes": "Phylum acquired by Veracode; blog moved to veracode.com/blog. No RSS feed. scrapling_fetcher works (no bot-wall)."
     },
     {
       "name": "NCC Group",
