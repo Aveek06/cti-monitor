@@ -66,7 +66,7 @@ jobs:
                       if "/blog/" in a["href"]
                   ))
                   print(f"Status: {page.status}, Blog links: {len(links)}")
-                  for l in links[:10]:
+                  for l in links:
                       print(f"  {l}")
                   title = soup.find("title")
                   print(f"Page title: {title.text.strip() if title else 'N/A'}")
