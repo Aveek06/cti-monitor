@@ -13,7 +13,7 @@ jobs:
           python-version: "3.11"
       - name: Install deps
         run: |
-          pip install beautifulsoup4 "scrapling[fetchers]"
+          pip install requests beautifulsoup4 "scrapling[fetchers]"
           scrapling install
           python -c 'import pathlib,sys;[p.write_text(p.read_text().replace("chromium_version = 149","chromium_version = 130").replace("chrome_version = 149","chrome_version = 130")) for p in pathlib.Path(sys.prefix).rglob("scrapling/engines/toolbelt/fingerprints.py")]'
       - name: Test Blackpoint Cyber scraping
