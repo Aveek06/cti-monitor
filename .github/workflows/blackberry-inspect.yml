@@ -32,47 +32,32 @@ jobs:
           except Exception as ex:
               print(f"requests error: {ex}")
 
-          print("\n=== Fetcher (curl_cffi TLS) ===")
+          print("\n=== Fetcher (curl_cffi TLS) — all blackberry.com hrefs ===")
           try:
               fetcher = Fetcher()
               page = fetcher.get(url)
               if page and page.status == 200:
                   soup = BeautifulSoup(page.html_content, "html.parser")
-                  links = list(dict.fromkeys(
+                  # Show ALL unique blackberry.com hrefs (absolute) to find the right pattern
+                  all_links = list(dict.fromkeys(
                       a["href"] for a in soup.find_all("a", href=True)
                       if "blackberry.com" in a.get("href", "")
-                      and any(p in a.get("href", "") for p in ["/blog/", "/insights/"])
-                      and "insights/blog" not in a["href"].rstrip("/").endswith("blog") and
-                      a["href"] not in (url, url + "/")
                   ))
-                  print(f"Status: {page.status}, Blog links: {len(links)}")
-                  for l in links[:10]:
+                  print(f"Status: {page.status}, All BB links: {len(all_links)}")
+                  for l in all_links[:20]:
+                      print(f"  {l}")
+                  # Also check relative hrefs
+                  rel_links = list(dict.fromkeys(
+                      a["href"] for a in soup.find_all("a", href=True)
+                      if a.get("href", "").startswith("/") and "secure-comm" in a.get("href", "")
+                  ))
+                  print(f"Relative secure-comm links: {len(rel_links)}")
+                  for l in rel_links[:10]:
                       print(f"  {l}")
               else:
                   print(f"Status: {page.status if page else 'None'}")
           except Exception as ex:
               print(f"Fetcher error: {ex}")
-
-          print("\n=== StealthyFetcher (full browser) ===")
-          try:
-              fetcher = StealthyFetcher()
-              page = fetcher.fetch(url)
-              if page and page.status == 200:
-                  soup = BeautifulSoup(page.html_content, "html.parser")
-                  links = list(dict.fromkeys(
-                      a["href"] for a in soup.find_all("a", href=True)
-                      if "blackberry.com" in a.get("href", "")
-                      and "/insights/blog/" in a.get("href", "")
-                  ))
-                  print(f"Status: {page.status}, Blog links: {len(links)}")
-                  for l in links[:10]:
-                      print(f"  {l}")
-                  title = soup.find("title")
-                  print(f"Page title: {title.text.strip() if title else 'N/A'}")
-              else:
-                  print(f"Status: {page.status if page else 'None'}")
-          except Exception as ex:
-              print(f"StealthyFetcher error: {ex}")
 
           EOF
         timeout-minutes: 3

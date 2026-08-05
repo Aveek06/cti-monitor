@@ -954,9 +954,10 @@
     },
     {
       "name": "eSentire",
-      "type": "skip",
-      "url": "https://www.esentire.com/resources/blog",
-      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+      "type": "scrapling_fetcher",
+      "url": "https://www.esentire.com/resources/blog?blogType%5B%5D=Threat%20Intelligence",
+      "link_path_prefix": "/blog/",
+      "notes": "TI-filtered URL (blogType=Threat Intelligence). Blog links are at /blog/... not /resources/blog/. scrapling_fetcher works (no bot-wall)."
     },
     {
       "name": "Binarly",
