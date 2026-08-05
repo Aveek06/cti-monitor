@@ -80,9 +80,11 @@
     },
     {
       "name": "CyberArk",
-      "type": "skip",
-      "url": "https://www.cyberark.com/resources/threat-research-blog/",
-      "notes": "/resources/threat-research-blog/ 301-redirects to paloaltonetworks.com/idira — blog has moved (possible acquisition post-2025). Both Fetcher and StealthyFetcher confirm redirect."
+      "type": "scrapling_fetcher",
+      "url": "https://www.paloaltonetworks.com/blog/identity-security/",
+      "link_path_prefix": "/blog/identity-security/",
+      "path_exclude": ["/tag/", "/author/", "/category/", "/page/"],
+      "notes": "CyberArk content moved to Palo Alto Networks identity-security blog. scrapling_fetcher used."
     },
     {
       "name": "CloudSEK",
@@ -840,9 +842,10 @@
     },
     {
       "name": "HarfangLab",
-      "type": "skip",
-      "url": "https://harfanglab.io/insidethelab/",
-      "notes": "403 on all methods (feedparser, plain requests, curl_cffi, StealthyFetcher) — IP-blocked at Cloudflare level."
+      "type": "scrapling_fetcher",
+      "url": "https://harfanglab.io/blog/",
+      "link_path_prefix": "/blog/",
+      "notes": "Old /insidethelab/ URL was IP-blocked on all methods. Trying new /blog/ URL with scrapling_fetcher."
     },
     {
       "name": "Google Cloud",
