@@ -1143,12 +1143,6 @@
       "notes": "Webflow dyn-item, 33 items, sampleHref=real labs article"
     },
     {
-      "name": "Packetstorm",
-      "type": "skip",
-      "url": "https://packetstorm.news/",
-      "notes": "manual review only - see selector_log.md for why automated scraping failed."
-    },
-    {
       "name": "PT Security",
       "type": "html",
       "url": "https://global.ptsecurity.com/analytics/pt-esc-threat-intelligence",
