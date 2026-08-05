@@ -23,26 +23,24 @@ jobs:
           from bs4 import BeautifulSoup
           from urllib.parse import urljoin
 
-          def dump_links(label, url, filter_kw):
-              for fetcher_name, fetch_fn in [("Fetcher", lambda: Fetcher().get(url)),
-                                             ("StealthyFetcher", lambda: StealthyFetcher().fetch(url))]:
-                  print(f"\n=== {label} — {fetcher_name} ===")
-                  try:
-                      page = fetch_fn()
-                      if page and page.status == 200:
-                          soup = BeautifulSoup(page.html_content, "html.parser")
-                          links = list(dict.fromkeys(
-                              urljoin(url, a["href"]) for a in soup.find_all("a", href=True)
-                              if filter_kw in a.get("href", "") or filter_kw in urljoin(url, a.get("href", ""))
-                          ))
-                          print(f"HTTP {page.status} — {len(links)} links")
-                          for l in links[:10]: print(f"  {l}")
-                      else:
-                          print(f"HTTP {page.status if page else 'None'}")
-                  except Exception as e:
-                      print(f"ERROR: {e}")
+          def dump_articles(label, url, filter_kw, exclude=("/category/", "/tag/", "/author/", "/page/")):
+              print(f"\n=== {label} — Fetcher (articles only) ===")
+              try:
+                  page = Fetcher().get(url)
+                  if page and page.status == 200:
+                      soup = BeautifulSoup(page.html_content, "html.parser")
+                      all_links = list(dict.fromkeys(
+                          urljoin(url, a["href"]) for a in soup.find_all("a", href=True)
+                          if filter_kw in a.get("href", "") or filter_kw in urljoin(url, a.get("href", ""))
+                      ))
+                      articles = [l for l in all_links if not any(x in l for x in exclude) and l != url]
+                      print(f"HTTP {page.status} — {len(all_links)} total, {len(articles)} articles")
+                      for l in articles: print(f"  {l}")
+                  else:
+                      print(f"HTTP {page.status if page else 'None'}")
+              except Exception as e:
+                  print(f"ERROR: {e}")
 
-          dump_links("CyberArk/PaloAlto identity-security", "https://www.paloaltonetworks.com/blog/identity-security/", "/blog/identity-security/")
-          dump_links("HarfangLab /blog/", "https://harfanglab.io/blog/", "/blog/")
+          dump_articles("CyberArk/PaloAlto identity-security", "https://www.paloaltonetworks.com/blog/identity-security/", "/blog/identity-security/")
           EOF
         timeout-minutes: 3
