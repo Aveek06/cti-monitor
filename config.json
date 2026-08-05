@@ -53,7 +53,10 @@
     {
       "name": "C/Side Blog",
       "type": "feed",
-      "url": "https://cside.dev/blog/rss.xml"
+      "url": "https://cside.dev/blog/rss.xml",
+      "link_path_prefix": "attack",
+      "max_feed_entries": 100,
+      "notes": "303-entry marketing-heavy feed; link_path_prefix filters to attack-category posts only (all confirmed attack posts have 'attack' in URL)"
     },
     {
       "name": "Acronis (TRU)",
