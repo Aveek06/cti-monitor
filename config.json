@@ -1104,9 +1104,9 @@
     },
     {
       "name": "Forescout",
-      "type": "skip",
+      "type": "scrapling_fetcher",
       "url": "https://www.forescout.com/blog/",
-      "notes": "Was crawl4ai; WAF tightened 2026-08 — now returns 403 for all scrapers including patchright stealthy",
+      "notes": "curl_cffi TLS bypasses WAF (plain requests + StealthyFetcher both 403; Fetcher gets 200). ~3 links per run.",
       "link_path_prefix": "/blog/",
       "path_exclude": [
         "/tag/",
