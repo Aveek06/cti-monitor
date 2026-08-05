@@ -1,0 +1,78 @@
+name: New Sites Inspect
+
+on:
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: |
+          pip install feedparser requests beautifulsoup4 "scrapling[fetchers]"
+          scrapling install
+          python -c 'import pathlib,sys;[p.write_text(p.read_text().replace("chromium_version = 149","chromium_version = 130").replace("chrome_version = 149","chrome_version = 130")) for p in pathlib.Path(sys.prefix).rglob("scrapling/engines/toolbelt/fingerprints.py")]'
+      - name: Inspect zerobec, aisi, manifold
+        run: |
+          python3 - <<'EOF'
+          import feedparser, requests
+          from scrapling.fetchers import Fetcher
+          from bs4 import BeautifulSoup
+          from urllib.parse import urljoin
+
+          RSS_CANDIDATES = ["/feed/", "/rss/", "/rss.xml", "/feed.xml", "/blog/feed/", "/blog/rss/", "/blog/rss.xml"]
+
+          def check_rss(base):
+              print(f"  [RSS candidates]")
+              for path in RSS_CANDIDATES:
+                  url = base.rstrip("/") + path
+                  try:
+                      d = feedparser.parse(url)
+                      status = d.get("status", "?")
+                      entries = len(d.entries)
+                      if entries > 0:
+                          print(f"    FOUND {url} — status={status} entries={entries}")
+                          for e in d.entries[:3]:
+                              print(f"      {e.get('link','?')}")
+                          return True
+                      else:
+                          print(f"    {status} 0-entries {url}")
+                  except Exception as e:
+                      print(f"    ERROR {url}: {e}")
+              return False
+
+          def check_scrapling(blog_url, filter_kw):
+              print(f"  [scrapling_fetcher] {blog_url}")
+              try:
+                  page = Fetcher().get(blog_url)
+                  if page and page.status == 200:
+                      soup = BeautifulSoup(page.html_content, "html.parser")
+                      links = list(dict.fromkeys(
+                          urljoin(blog_url, a["href"]) for a in soup.find_all("a", href=True)
+                          if filter_kw in urljoin(blog_url, a.get("href", ""))
+                      ))
+                      print(f"    HTTP {page.status} — {len(links)} links")
+                      for l in links[:5]: print(f"      {l}")
+                  else:
+                      print(f"    HTTP {page.status if page else 'None'}")
+              except Exception as e:
+                  print(f"    ERROR: {e}")
+
+          sites = [
+              ("zerobec.com",       "https://zerobec.com",       "https://zerobec.com/blog/",       "zerobec.com/blog"),
+              ("aisi.gov.uk",       "https://www.aisi.gov.uk",   "https://www.aisi.gov.uk/blog/",   "aisi.gov.uk/blog"),
+              ("manifold.security", "https://www.manifold.security", "https://www.manifold.security/blog/", "manifold.security/blog"),
+          ]
+
+          for name, base, blog_url, filter_kw in sites:
+              print(f"\n{'='*10} {name} {'='*10}")
+              found = check_rss(base)
+              if not found:
+                  print(f"  No RSS found — trying scrapling_fetcher on blog page")
+              check_scrapling(blog_url, filter_kw)
+          EOF
+        timeout-minutes: 4
