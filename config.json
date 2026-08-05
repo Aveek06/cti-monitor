@@ -920,9 +920,10 @@
     },
     {
       "name": "Blackberry",
-      "type": "skip",
-      "url": "https://blogs.blackberry.com/en/home",
-      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+      "type": "scrapling_fetcher",
+      "url": "https://www.blackberry.com/en/secure-communications/insights/blog",
+      "link_path_prefix": "/en/secure-communications/insights/blog/",
+      "notes": "Moved from blogs.blackberry.com to secure-communications insights blog. scrapling_fetcher works; links are relative paths."
     },
     {
       "name": "Cleafy",
