@@ -1270,9 +1270,11 @@
     },
     {
       "name": "Blackpoint",
-      "type": "skip",
+      "type": "scrapling_fetcher",
       "url": "https://blackpointcyber.com/blog/",
-      "notes": "Bot-walled or dead domain as of last check - manual monitoring only"
+      "link_path_prefix": "/blog/",
+      "path_exclude": ["/blog/soc-2", "/blog/see-the-", "/blog/compassone"],
+      "notes": "curl_cffi TLS bypasses Cloudflare bot-wall (plain requests = 403). Shows ~7 recent posts per run."
     },
     {
       "name": "StrongestLayer",
