@@ -1161,9 +1161,10 @@
     },
     {
       "name": "Oligo Security",
-      "type": "skip",
-      "url": "https://www.oligo.security/blog/",
-      "notes": "manual review only - see selector_log.md for why automated scraping failed."
+      "type": "scrapling_fetcher",
+      "url": "https://www.oligo.security/resources/blog",
+      "link_path_prefix": "/blog/",
+      "notes": "New URL (resources/blog). scrapling_fetcher bypasses any bot-wall; plain requests also works but scrapling is more reliable."
     },
     {
       "name": "Sectrio",
