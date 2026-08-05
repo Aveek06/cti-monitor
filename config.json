@@ -1076,12 +1076,6 @@
       "notes": "Bot-walled or dead domain as of last check - manual monitoring only"
     },
     {
-      "name": "F.A.C.C.T.",
-      "type": "skip",
-      "url": "https://www.facct.ru/blog/",
-      "notes": "Bot-walled or dead domain as of last check - manual monitoring only"
-    },
-    {
       "name": "Intezer",
       "type": "html",
       "url": "https://intezer.com/blog/",
