@@ -424,7 +424,8 @@
       "url": "https://jscrambler.com/blog/",
       "link_path_prefix": "/blog/",
       "path_exclude": ["#", "?category=", "?tag=", "?author="],
-      "notes": "RSS 404 dead. scrapling_fetcher (curl_cffi) bypasses 403 and gets 27 links."
+      "min_slug_length": 8,
+      "notes": "RSS 404 dead. scrapling_fetcher bypasses 403. path_exclude blocks category/pagination (all contain #). min_slug_length=8 filters out the /blog/ base URL (slug='blog', len=4)."
     },
     {
       "name": "K7 Security Labs",
