@@ -1,0 +1,32 @@
+name: Feed Seed Inspect
+
+on:
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: pip install feedparser
+      - name: Fetch feed entries
+        run: |
+          python3 - <<'EOF'
+          import feedparser
+
+          feeds = {
+              "BleepingComputer": "https://www.bleepingcomputer.com/feed/",
+              "The Hacker News": "https://feeds.feedburner.com/TheHackersNews",
+          }
+
+          for name, url in feeds.items():
+              d = feedparser.parse(url)
+              print(f"\n=== {name} — {len(d.entries)} entries ===")
+              for e in d.entries:
+                  print(f"  {e.get('link','?')}")
+          EOF
+        timeout-minutes: 2
