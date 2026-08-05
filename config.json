@@ -842,10 +842,9 @@
     },
     {
       "name": "HarfangLab",
-      "type": "scrapling_fetcher",
+      "type": "skip",
       "url": "https://harfanglab.io/blog/",
-      "link_path_prefix": "/blog/",
-      "notes": "Old /insidethelab/ URL was IP-blocked on all methods. Trying new /blog/ URL with scrapling_fetcher."
+      "notes": "403 on all methods (Fetcher + StealthyFetcher) on both /insidethelab/ and /blog/ — entire domain IP-blocked at Cloudflare level from GH Actions runners."
     },
     {
       "name": "Google Cloud",
