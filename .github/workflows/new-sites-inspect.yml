@@ -68,11 +68,40 @@ jobs:
               ("manifold.security", "https://www.manifold.security", "https://www.manifold.security/blog/", "manifold.security/blog"),
           ]
 
-          for name, base, blog_url, filter_kw in sites:
-              print(f"\n{'='*10} {name} {'='*10}")
-              found = check_rss(base)
-              if not found:
-                  print(f"  No RSS found — trying scrapling_fetcher on blog page")
-              check_scrapling(blog_url, filter_kw)
+          # zerobec: print ALL feed entries
+          print("\n========== zerobec.com feed entries ==========")
+          d = feedparser.parse("https://zerobec.com/feed.xml")
+          print(f"  {len(d.entries)} entries")
+          for e in d.entries:
+              print(f"  {e.get('link','?')}")
+
+          # aisi: print all article links (exclude base /blog and /blog/)
+          print("\n========== aisi.gov.uk blog articles ==========")
+          page = Fetcher().get("https://www.aisi.gov.uk/blog/")
+          soup = BeautifulSoup(page.html_content, "html.parser")
+          links = list(dict.fromkeys(
+              urljoin("https://www.aisi.gov.uk/blog/", a["href"])
+              for a in soup.find_all("a", href=True)
+              if "/blog/" in urljoin("https://www.aisi.gov.uk/blog/", a.get("href",""))
+          ))
+          articles = [l for l in links if l not in ("https://www.aisi.gov.uk/blog", "https://www.aisi.gov.uk/blog/")
+                      and not any(x in l for x in ["/tag/", "/author/", "/category/", "/page/", "?"])]
+          print(f"  {len(articles)} article links")
+          for l in articles:
+              print(f"  {l}")
+
+          # manifold: print all /blog/blog/ article links
+          print("\n========== manifold.security blog articles ==========")
+          page = Fetcher().get("https://www.manifold.security/blog/")
+          soup = BeautifulSoup(page.html_content, "html.parser")
+          links = list(dict.fromkeys(
+              urljoin("https://www.manifold.security/blog/", a["href"])
+              for a in soup.find_all("a", href=True)
+              if "/blog/blog/" in urljoin("https://www.manifold.security/blog/", a.get("href",""))
+          ))
+          articles = [l for l in links if not any(x in l for x in ["/author/", "/tag/", "/page/"])]
+          print(f"  {len(articles)} article links")
+          for l in articles:
+              print(f"  {l}")
           EOF
         timeout-minutes: 4
