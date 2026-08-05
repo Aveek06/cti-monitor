@@ -1365,6 +1365,16 @@
         "/tag/"
       ],
       "min_slug_length": 15
+    },
+    {
+      "name": "BleepingComputer",
+      "type": "feed",
+      "url": "https://www.bleepingcomputer.com/feed/"
+    },
+    {
+      "name": "The Hacker News",
+      "type": "feed",
+      "url": "https://feeds.feedburner.com/TheHackersNews"
     }
   ]
 }
