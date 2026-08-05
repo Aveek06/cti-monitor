@@ -20,7 +20,7 @@ jobs:
         run: |
           python - <<'EOF'
           import feedparser, requests
-          from scrapling.fetchers import StealthyFetcher, PlayWrightFetcher
+          from scrapling.fetchers import StealthyFetcher
           from bs4 import BeautifulSoup
 
           target_url = "https://www.cyber.gov.au/about-us/view-all-content/alerts-and-advisories"
