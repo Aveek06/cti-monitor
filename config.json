@@ -80,8 +80,9 @@
     },
     {
       "name": "CyberArk",
-      "type": "feed",
-      "url": "https://www.cyberark.com/feed/"
+      "type": "skip",
+      "url": "https://www.cyberark.com/resources/threat-research-blog/",
+      "notes": "/resources/threat-research-blog/ 301-redirects to paloaltonetworks.com/idira — blog has moved (possible acquisition post-2025). Both Fetcher and StealthyFetcher confirm redirect."
     },
     {
       "name": "CloudSEK",
@@ -221,8 +222,11 @@
     },
     {
       "name": "Elliptic",
-      "type": "feed",
-      "url": "https://www.elliptic.co/blog/rss.xml"
+      "type": "scrapling_fetcher",
+      "url": "https://www.elliptic.co/insights/",
+      "link_path_prefix": "/insights/",
+      "path_exclude": ["/page/"],
+      "notes": "Blog moved from /blog/ to /insights/. RSS dead. scrapling_fetcher gets 9 article links. path_exclude /page/ removes pagination."
     },
     {
       "name": "Nextron Systems",
