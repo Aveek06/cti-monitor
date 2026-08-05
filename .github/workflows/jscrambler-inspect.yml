@@ -1,0 +1,51 @@
+name: jscrambler Inspect
+
+on:
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: |
+          pip install beautifulsoup4 "scrapling[fetchers]"
+          scrapling install
+          python -c 'import pathlib,sys;[p.write_text(p.read_text().replace("chromium_version = 149","chromium_version = 130").replace("chrome_version = 149","chrome_version = 130")) for p in pathlib.Path(sys.prefix).rglob("scrapling/engines/toolbelt/fingerprints.py")]'
+      - name: Inspect jscrambler links
+        run: |
+          python - <<'EOF'
+          from scrapling.fetchers import Fetcher
+          from bs4 import BeautifulSoup
+          from urllib.parse import urljoin, urlparse
+
+          url = "https://jscrambler.com/blog/"
+          page = Fetcher().get(url)
+          soup = BeautifulSoup(page.html_content, "html.parser")
+
+          all_links = list(dict.fromkeys(
+              urljoin(url, a["href"]) for a in soup.find_all("a", href=True)
+              if "/blog/" in urljoin(url, a.get("href", ""))
+          ))
+          print(f"HTTP {page.status} — {len(all_links)} total /blog/ links\n")
+
+          path_exclude = ["#", "?category=", "?tag=", "?author="]
+          filtered = [l for l in all_links if not any(x in l for x in path_exclude)]
+          print(f"After current path_exclude: {len(filtered)} links\n")
+
+          print("=== ALL filtered links (slug / path inspection) ===")
+          for l in filtered:
+              path = urlparse(l).path
+              slug = path.rstrip("/").split("/")[-1]
+              print(f"  slug_len={len(slug):3d}  {l}")
+
+          print("\n=== Links excluded by current path_exclude ===")
+          excluded = [l for l in all_links if any(x in l for x in path_exclude)]
+          for l in excluded:
+              print(f"  {l}")
+          EOF
+        timeout-minutes: 3
