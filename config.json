@@ -1375,6 +1375,28 @@
       "name": "The Hacker News",
       "type": "feed",
       "url": "https://feeds.feedburner.com/TheHackersNews"
+    },
+    {
+      "name": "Zerobec",
+      "type": "feed",
+      "url": "https://zerobec.com/feed.xml"
+    },
+    {
+      "name": "AISI",
+      "type": "scrapling_fetcher",
+      "url": "https://www.aisi.gov.uk/blog/",
+      "link_path_prefix": "/blog/",
+      "path_exclude": ["/tag/", "/author/", "/category/", "/page/"],
+      "min_slug_length": 8,
+      "notes": "UK AI Safety Institute. No RSS. scrapling_fetcher 200, 97 links. Articles at /blog/slug. min_slug_length=8 filters base /blog/ URL."
+    },
+    {
+      "name": "Manifold Security",
+      "type": "scrapling_fetcher",
+      "url": "https://www.manifold.security/blog/",
+      "link_path_prefix": "/blog/blog/",
+      "path_exclude": ["/author/", "/tag/"],
+      "notes": "No RSS. scrapling_fetcher 200. Articles at /blog/blog/slug (double path). 9 current articles."
     }
   ]
 }
