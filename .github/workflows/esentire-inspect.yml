@@ -1,0 +1,81 @@
+name: eSentire Inspect
+
+on:
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: |
+          pip install requests beautifulsoup4 "scrapling[fetchers]"
+          scrapling install
+          python -c 'import pathlib,sys;[p.write_text(p.read_text().replace("chromium_version = 149","chromium_version = 130").replace("chrome_version = 149","chrome_version = 130")) for p in pathlib.Path(sys.prefix).rglob("scrapling/engines/toolbelt/fingerprints.py")]'
+      - name: Test eSentire TI blog
+        run: |
+          python - <<'EOF'
+          import requests
+          from scrapling.fetchers import StealthyFetcher, Fetcher
+          from bs4 import BeautifulSoup
+
+          url = "https://www.esentire.com/resources/blog?blogType%5B%5D=Threat%20Intelligence"
+
+          print("=== Plain requests ===")
+          try:
+              r = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
+              print(f"Status: {r.status_code}, Length: {len(r.content)}")
+          except Exception as ex:
+              print(f"requests error: {ex}")
+
+          print("\n=== Fetcher (curl_cffi TLS) ===")
+          try:
+              fetcher = Fetcher()
+              page = fetcher.get(url)
+              if page and page.status == 200:
+                  soup = BeautifulSoup(page.html_content, "html.parser")
+                  links = list(dict.fromkeys(
+                      a["href"] for a in soup.find_all("a", href=True)
+                      if "esentire.com/blog/" in a.get("href", "") or
+                         ("esentire.com/resources/blog/" in a.get("href", "") and
+                          a["href"] not in ("https://www.esentire.com/resources/blog/",))
+                  ))
+                  print(f"Status: {page.status}, Blog links: {len(links)}")
+                  for l in links[:10]:
+                      print(f"  {l}")
+              else:
+                  print(f"Status: {page.status if page else 'None'}")
+          except Exception as ex:
+              print(f"Fetcher error: {ex}")
+
+          print("\n=== StealthyFetcher (full browser) ===")
+          try:
+              fetcher = StealthyFetcher()
+              page = fetcher.fetch(url)
+              if page and page.status == 200:
+                  soup = BeautifulSoup(page.html_content, "html.parser")
+                  links = list(dict.fromkeys(
+                      a["href"] for a in soup.find_all("a", href=True)
+                      if ("esentire.com/blog/" in a.get("href", "") or
+                          "esentire.com/resources/blog/" in a.get("href", ""))
+                      and a["href"] not in (
+                          "https://www.esentire.com/resources/blog/",
+                          "https://www.esentire.com/blog/",
+                      )
+                  ))
+                  print(f"Status: {page.status}, Blog links: {len(links)}")
+                  for l in links[:10]:
+                      print(f"  {l}")
+                  title = soup.find("title")
+                  print(f"Page title: {title.text.strip() if title else 'N/A'}")
+              else:
+                  print(f"Status: {page.status if page else 'None'}")
+          except Exception as ex:
+              print(f"StealthyFetcher error: {ex}")
+
+          EOF
+        timeout-minutes: 3
