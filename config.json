@@ -414,8 +414,11 @@
     },
     {
       "name": "jscrambler",
-      "type": "feed",
-      "url": "https://jscrambler.com/blog/rss.xml"
+      "type": "scrapling_fetcher",
+      "url": "https://jscrambler.com/blog/",
+      "link_path_prefix": "/blog/",
+      "path_exclude": ["#", "?category=", "?tag=", "?author="],
+      "notes": "RSS 404 dead. scrapling_fetcher (curl_cffi) bypasses 403 and gets 27 links."
     },
     {
       "name": "K7 Security Labs",
@@ -826,13 +829,16 @@
     },
     {
       "name": "Fortinet",
-      "type": "feed",
-      "url": "https://feeds.fortinet.com/fortinet/blog/threat-research"
+      "type": "scrapling_fetcher",
+      "url": "https://www.fortinet.com/blog/threat-research",
+      "link_path_prefix": "/blog/threat-research/",
+      "notes": "Feed returned feedburner redirect URLs (not actual fortinet.com paths). scrapling_fetcher on blog page returns proper article links."
     },
     {
       "name": "HarfangLab",
-      "type": "feed",
-      "url": "https://harfanglab.io/insidethelab/feed/"
+      "type": "skip",
+      "url": "https://harfanglab.io/insidethelab/",
+      "notes": "403 on all methods (feedparser, plain requests, curl_cffi, StealthyFetcher) — IP-blocked at Cloudflare level."
     },
     {
       "name": "Google Cloud",
@@ -1220,9 +1226,10 @@
     },
     {
       "name": "Sekoia",
-      "type": "scrapling_feed",
-      "url": "https://blog.sekoia.io/feed/",
-      "notes": "Webflow blog; Playwright times out from CI IPs; scrapling_feed uses curl_cffi TLS fingerprinting to bypass the block"
+      "type": "scrapling_fetcher",
+      "url": "https://www.sekoia.com/blog",
+      "link_path_prefix": "/blog/",
+      "notes": "Blog moved from blog.sekoia.io to www.sekoia.com/blog (301 redirect). Feed dead. scrapling_fetcher on new URL."
     },
     {
       "name": "Speartip",
@@ -1324,7 +1331,7 @@
     },
     {
       "name": "Bitdefender",
-      "type": "html",
+      "type": "scrapling_stealthy",
       "url": "https://www.bitdefender.com/en-us/blog/labs/",
       "post_container": "a.tw-block",
       "link_selector": "self",
@@ -1333,10 +1340,7 @@
         "/tag/",
         "/author/"
       ],
-      "date_selector": null,
-      "date_format": "auto",
-      "needs_js": true,
-      "notes": "Tailwind-only classes, no semantic article containers; a.tw-block + path filters yields 15 unique research articles"
+      "notes": "Switched from html/Playwright (blocked) to scrapling_stealthy — a.tw-block=35 confirmed working with StealthyFetcher."
     },
     {
       "name": "Fox-IT International",
