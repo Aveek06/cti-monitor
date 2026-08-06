@@ -79,6 +79,17 @@ jobs:
             echo "Not Friday (day $(date +%u)) — skipping weekly stale-sites report."
           fi
 
+      - name: Upload state as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cti-state-${{ github.run_id }}
+          path: |
+            state.json
+            last_active.json
+            prev_run_links.json
+          retention-days: 7
+
       - name: Save state
         uses: actions/cache/save@v4
         if: always()
