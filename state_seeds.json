@@ -493,6 +493,20 @@
     "https://blackpointcyber.com/blog/blackpoint-soc-threat-pulse-week-of-july-20-2026/",
     "https://blackpointcyber.com/blog/blackpoint-cyber-threat-notice-july-2026-patch-tuesday-updates/"
   ],
+  "Fortinet": [
+    "https://www.fortinet.com/blog/threat-research/quickfox-supply-chain-attack-used-to-deploy-fdmtp-implant",
+    "https://www.fortinet.com/blog/threat-research/stealit-campaign-abuses-nodejs-single-executable-application",
+    "https://www.fortinet.com/blog/threat-research/rolandskimmer-silent-credit-card-thief-uncovered",
+    "https://www.fortinet.com/blog/threat-research/misconfigured-enrolled-and-dormant-anatomy-of-a-p2pinfect-kubernetes-compromise",
+    "https://www.fortinet.com/blog/threat-research/phishing-campaign-deploys-javascript-driven-purelogs-variant-to-steal-sensitive-data",
+    "https://www.fortinet.com/blog/threat-research/inside-cross-platform-propagation-of-new-gafgyt-variant-c0xmo",
+    "https://www.fortinet.com/blog/threat-research/cybercriminals-are-targeting-the-fifa-world-cup-2026",
+    "https://www.fortinet.com/blog/threat-research/threat-actors-weaponize-ai-hype-to-deliver-asyncrat",
+    "https://www.fortinet.com/blog/threat-research/from-ci-cd-to-cloud-data-how-shai-hulud-persistence-leads-to-redshift-breach",
+    "https://www.fortinet.com/blog/threat-research/analysis-of-ongoing-ousaban-attacks-targeting-the-iberian-peninsula",
+    "https://www.fortinet.com/blog/threat-research/the-ttf-trap-a-global-campaign-of-a-low-detection-lua-loader",
+    "https://www.fortinet.com/blog/threat-research/inside-a-trickbot-variant-using-dns-tunneling-for-c2"
+  ],
   "_force_replace": [],
   "Speartip": [
     "https://www.zurichresilience.com/knowledge-and-insights-hub/articles/2026/05/balancing-progress-and-peril-navigating-ais-role-in-modern-cyber-risks",

@@ -416,6 +416,8 @@ def _parse_crawl4ai_html(site, html_or_err):
                 if not href or href.startswith(("#", "mailto:", "javascript:")):
                     continue
                 full_link = urljoin(site["url"], href)
+                if site["url"].startswith("https://") and full_link.startswith("http://"):
+                    full_link = "https://" + full_link[7:]
                 if full_link in seen_links:
                     continue
                 prefix = site.get("link_path_prefix")
@@ -450,6 +452,8 @@ def _parse_crawl4ai_html(site, html_or_err):
                 if href.startswith(("#", "mailto:", "javascript:")):
                     continue
                 full = urljoin(site["url"], href)
+                if site["url"].startswith("https://") and full.startswith("http://"):
+                    full = "https://" + full[7:]
                 p2 = urlparse(full)
                 if p2.netloc != domain:
                     continue
