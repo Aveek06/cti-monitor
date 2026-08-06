@@ -1076,7 +1076,10 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
             print(f"  [{item['site']}] {item['date']} {item['link']}")
 
     print(f"Run complete: {len(fresh_items)} new post(s) in digest ({len(stale_items)} stale suppressed), {len(failures)} site(s) failed.")
-    send_digest_email(fresh_items, failures, duplicate_links or None)
+    if fresh_items or failures:
+        send_digest_email(fresh_items, failures, duplicate_links or None)
+    else:
+        print("No new posts and no failures — skipping email.")
 
 
 if __name__ == "__main__":

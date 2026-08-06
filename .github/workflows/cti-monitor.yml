@@ -1,7 +1,9 @@
 name: CTI Monitor
 
 on:
-  workflow_dispatch:   # triggered externally by cron-job.org every 8 hours
+  workflow_dispatch:   # triggered externally by cron-job.org every 8 hours (00:00, 08:00, 16:00 UTC)
+  schedule:
+    - cron: "0 4,12,20 * * *"   # fallback: fires 4h after cron-job.org slots if they were missed
 
 jobs:
   run-check:
