@@ -1116,9 +1116,13 @@
     },
     {
       "name": "Forescout",
-      "type": "skip",
+      "type": "crawl4ai",
       "url": "https://www.forescout.com/blog/",
-      "notes": "Datacenter IP block: scrapling_fetcher and StealthyFetcher both 403; no RSS feed available."
+      "post_container": "ul.posts-list-container > li.post-type-post",
+      "link_selector": "a.post-list-item",
+      "link_path_prefix": "/blog/",
+      "extra_wait_ms": 7000,
+      "notes": "Cloudflare (cf_bm) blocks scrapling/requests; crawl4ai magic mode bypasses. Filtered category-540 URL also blocked — unfiltered /blog/ shows 10 posts. No date metadata in cards."
     },
     {
       "name": "Veracode",
