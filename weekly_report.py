@@ -118,7 +118,7 @@ def main(config_path, last_active_path):
 
     report_date = now.strftime("%Y-%m-%d")
 
-    if False and not stale_sites:
+    if not stale_sites:
         print(
             f"Weekly stale-sites check ({report_date}): "
             f"all {total_active} active sites are current. No email sent."
