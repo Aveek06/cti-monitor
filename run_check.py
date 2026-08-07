@@ -1054,6 +1054,17 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
 
     save_json(state_path, state)
 
+    # Update rolling 7-day link counts per site (stored in last_active for weekly report)
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    cutoff_str = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d")
+    seven_day = last_active.setdefault("_seven_day_counts", {})
+    for item in new_items:
+        site_day = seven_day.setdefault(item["site"], {})
+        site_day[today_str] = site_day.get(today_str, 0) + 1
+    for site_day in seven_day.values():
+        for old_date in [d for d in list(site_day) if d < cutoff_str]:
+            del site_day[old_date]
+
     last_active["_currently_failing"] = failing_names
     save_json(last_active_path, last_active)
 

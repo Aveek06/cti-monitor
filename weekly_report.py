@@ -35,30 +35,46 @@ def load_json(path, default):
         return default
 
 
-def send_stale_email(stale_sites, total_active, report_date):
-    rows_html = "".join(
+def send_stale_email(stale_sites, active_sites, total_active, report_date):
+    stale_rows = "".join(
         f"<tr><td>{s['name']}</td><td>{s['last_active']}</td>"
         f"<td style='text-align:center'>{s['days_since']}</td></tr>"
         for s in stale_sites
     )
 
+    if active_sites:
+        activity_rows = "".join(
+            f"<tr><td>{s['name']}</td><td style='text-align:center'>{s['count']}</td></tr>"
+            for s in active_sites
+        )
+        activity_section = f"""
+<h3>Source Activity — Past 7 Days</h3>
+<table border="1" cellpadding="6" cellspacing="0">
+  <tr><th>Site</th><th>Unique Links</th></tr>
+  {activity_rows}
+</table>"""
+    else:
+        activity_section = "<p><em>No 7-day activity data yet (accumulates after first week of tracking).</em></p>"
+
     html = f"""<html><body>
-<h2>CTI Source Monitor — Weekly Stale Sites Report ({report_date})</h2>
+<h2>CTI Source Monitor — Weekly Report ({report_date})</h2>
+<h3>Stale Sites — No Posts in {STALE_DAYS}+ Days</h3>
 <p>{len(stale_sites)} of {total_active} active sites have not published any new
 content in the past {STALE_DAYS} days.</p>
 <p><em>Note: sites currently returning scraper errors are excluded from this
-list — those failures appear in the regular 8-hourly digest.</em></p>
+list — those failures appear in the regular digest.</em></p>
 <table border="1" cellpadding="6" cellspacing="0">
   <tr><th>Site</th><th>Last Active</th><th>Days Since Last Post</th></tr>
-  {rows_html}
+  {stale_rows}
 </table>
+{activity_section}
 </body></html>"""
 
     recipients = [r.strip() for r in EMAIL_TO.split(",") if r.strip()]
     msg = MIMEMultipart("alternative")
     msg["Subject"] = (
-        f"CTI Monitor: Weekly Stale Sites — {len(stale_sites)} site(s) quiet "
-        f"({report_date})"
+        f"CTI Monitor: Weekly Report — {len(stale_sites)} site(s) quiet, "
+        f"{len(active_sites)} active ({report_date})"
     )
     msg["From"] = EMAIL_FROM
     msg["To"]   = ", ".join(recipients)
@@ -116,6 +132,20 @@ def main(config_path, last_active_path):
 
     stale_sites.sort(key=lambda x: x["days_since"], reverse=True)
 
+    # Compute 7-day link counts per site from _seven_day_counts in last_active
+    cutoff_str = threshold.strftime("%Y-%m-%d")
+    seven_day = last_active.get("_seven_day_counts", {})
+    active_sites = []
+    for site in config["sites"]:
+        name = site["name"]
+        if site["type"] in EXCLUDED_TYPES:
+            continue
+        counts = seven_day.get(name, {})
+        total_links = sum(v for k, v in counts.items() if k >= cutoff_str)
+        if total_links > 0:
+            active_sites.append({"name": name, "count": total_links})
+    active_sites.sort(key=lambda x: x["count"], reverse=True)
+
     report_date = now.strftime("%Y-%m-%d")
 
     if not stale_sites:
@@ -127,9 +157,10 @@ def main(config_path, last_active_path):
 
     print(
         f"Weekly stale-sites check ({report_date}): "
-        f"{len(stale_sites)} of {total_active} site(s) stale."
+        f"{len(stale_sites)} of {total_active} site(s) stale. "
+        f"{len(active_sites)} site(s) with 7-day activity data."
     )
-    send_stale_email(stale_sites, total_active, report_date)
+    send_stale_email(stale_sites, active_sites, total_active, report_date)
 
 
 if __name__ == "__main__":
