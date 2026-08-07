@@ -391,11 +391,11 @@
     {
       "name": "Huntress",
       "type": "scrapling_stealthy",
-      "url": "https://www.huntress.com/blog",
+      "url": "https://www.huntress.com/all-blog-posts",
+      "wait_selector": "a.blog-index-card-link",
       "link_path_prefix": "/blog/",
-      "path_exclude": ["/blog/tag/", "/blog/author/", "/blog/category/"],
       "min_slug_length": 10,
-      "notes": "RSS stopped 2026-07-13; link-extraction mode captures hero card + main grid + filter-box (all card types)"
+      "notes": "RSS stopped 2026-07-13; all-blog-posts renders 15 cards client-side; wait_selector ensures React mounts before parse"
     },
     {
       "name": "JPCERT Coordination Center",

@@ -578,12 +578,18 @@ def check_scrapling_stealthy_site(site):
     def _fetch():
         from scrapling.fetchers import StealthyFetcher
         timeout_ms = site.get("page_timeout_ms", 40000)
+        extra = {}
+        if site.get("wait_selector"):
+            extra["wait_selector"] = site["wait_selector"]
+        if site.get("network_idle"):
+            extra["network_idle"] = True
         page = StealthyFetcher.fetch(
             site["url"],
             headless=True,
             block_webrtc=True,
             hide_canvas=True,
             timeout=timeout_ms,
+            **extra,
         )
         return _parse_crawl4ai_html(site, page.html_content or "")
     try:
