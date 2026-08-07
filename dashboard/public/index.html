@@ -611,7 +611,7 @@
       </div>
 
       <footer class="page-footer">
-        <span>CTI Source Monitor &middot; Runs daily 21:30 IST</span>
+        <span>CTI Source Monitor &middot; Runs daily 21:30 IST &middot; Auto-refreshes every 8 hours</span>
         <span id="footer-date"></span>
       </footer>
 
@@ -652,8 +652,10 @@
 
 <script>
 /* ── Constants ─────────────────────────────────────────────────────────────── */
-const STALE_DAYS = 7;
-const SKIP_TYPES = new Set(["skip", "html_TODO"]);
+const STALE_DAYS      = 7;
+const SKIP_TYPES      = new Set(["skip", "html_TODO"]);
+const REFRESH_MS      = 8 * 60 * 60 * 1000; // 8 hours — matches workflow cadence
+let   lastUpdatedAt   = null;
 
 /* ── Utilities ─────────────────────────────────────────────────────────────── */
 function daysSince(iso) {
@@ -864,21 +866,60 @@ function closeDrawer() {
   );
 }
 
+/* ── Update dashboard (called on init and on background refresh) ────────────── */
+function updateDashboard({ sites, activeSites, quietSites, weekTotal, state, updatedAt }) {
+  document.getElementById("hdr-total").textContent   = sites.length;
+  document.getElementById("num-active").textContent  = activeSites.length;
+  document.getElementById("num-quiet").textContent   = quietSites.length;
+  document.getElementById("num-links").textContent   = weekTotal.toLocaleString();
+  document.getElementById("hdr-updated").textContent = updatedAt ? `Updated ${relTime(updatedAt)}` : "";
+  document.getElementById("footer-date").textContent = updatedAt ? fmtDate(updatedAt) : "";
+  renderActive(activeSites, state);
+  renderQuiet(quietSites, state);
+}
+
+/* Brief "↺ Refreshed" flash on the timestamp label */
+function flashUpdated(updatedAt) {
+  const el   = document.getElementById("hdr-updated");
+  const next = updatedAt ? `Updated ${relTime(updatedAt)}` : "";
+  el.textContent = "↺ Refreshed";
+  el.style.color = "var(--text)";
+  setTimeout(() => { el.textContent = next; el.style.color = ""; }, 2200);
+}
+
+/* Silently collapse panels and close drawer before re-rendering */
+function resetUI() {
+  closeDrawer();
+  ["panel-active", "panel-quiet"].forEach(id => {
+    const p = document.getElementById(id);
+    p.classList.remove("open");
+    p.querySelectorAll(".bar-fill").forEach(b => b.style.width = "0%");
+  });
+  ["card-active", "card-quiet"].forEach(id =>
+    document.getElementById(id).setAttribute("aria-expanded", "false")
+  );
+}
+
+/* ── Background refresh ────────────────────────────────────────────────────── */
+async function refreshData() {
+  try {
+    const raw = await loadData();
+    if (raw.updatedAt === lastUpdatedAt) return; // no change — skip re-render
+    lastUpdatedAt = raw.updatedAt;
+    resetUI();
+    updateDashboard(derive(raw));
+    flashUpdated(raw.updatedAt);
+  } catch (err) {
+    console.warn("Background refresh failed:", err.message);
+  }
+}
+
 /* ── Init ──────────────────────────────────────────────────────────────────── */
 async function init() {
   try {
     const raw = await loadData();
-    const { sites, activeSites, quietSites, weekTotal, state, updatedAt } = derive(raw);
-
-    document.getElementById("hdr-total").textContent   = sites.length;
-    document.getElementById("num-active").textContent  = activeSites.length;
-    document.getElementById("num-quiet").textContent   = quietSites.length;
-    document.getElementById("num-links").textContent   = weekTotal.toLocaleString();
-    document.getElementById("hdr-updated").textContent = updatedAt ? `Updated ${relTime(updatedAt)}` : "";
-    document.getElementById("footer-date").textContent = updatedAt ? fmtDate(updatedAt) : "";
-
-    renderActive(activeSites, state);
-    renderQuiet(quietSites, state);
+    lastUpdatedAt = raw.updatedAt;
+    updateDashboard(derive(raw));
 
     document.getElementById("card-active")
       .addEventListener("click", () => togglePanel("card-active", "panel-active"));
@@ -891,6 +932,9 @@ async function init() {
 
     document.getElementById("view-loading").style.display = "none";
     document.getElementById("view-dashboard").style.display = "block";
+
+    // Re-fetch every 8 hours; re-renders only when updatedAt changes
+    setInterval(refreshData, REFRESH_MS);
 
   } catch (err) {
     document.getElementById("view-loading").style.display = "none";
