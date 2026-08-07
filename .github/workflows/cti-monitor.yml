@@ -6,7 +6,43 @@ on:
     - cron: "0 4,12,20 * * *"   # fallback: fires 4h after cron-job.org slots if they were missed
 
 jobs:
+  guard:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+    steps:
+      - name: Check whether schedule fallback should proceed
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "Triggered by workflow_dispatch (cron-job.org) — proceeding."
+          else
+            LAST=$(gh api "repos/${{ github.repository }}/actions/runs?event=workflow_dispatch&status=success&per_page=1" \
+              --jq '.workflow_runs[0].created_at // empty')
+            if [ -z "$LAST" ]; then
+              echo "should_run=true" >> $GITHUB_OUTPUT
+              echo "No prior workflow_dispatch found — schedule fallback proceeding."
+            else
+              LAST_TS=$(date -d "$LAST" +%s)
+              NOW=$(date +%s)
+              AGO=$(( (NOW - LAST_TS) / 3600 ))
+              echo "Last workflow_dispatch was ${AGO}h ago."
+              if [ "$AGO" -lt 6 ]; then
+                echo "should_run=false" >> $GITHUB_OUTPUT
+                echo "cron-job.org ran ${AGO}h ago — schedule fallback skipping."
+              else
+                echo "should_run=true" >> $GITHUB_OUTPUT
+                echo "No recent workflow_dispatch (${AGO}h ago) — schedule fallback proceeding."
+              fi
+            fi
+          fi
+
   run-check:
+    needs: guard
+    if: needs.guard.outputs.should_run == 'true'
     runs-on: ubuntu-latest
 
     steps:
