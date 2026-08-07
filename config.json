@@ -392,11 +392,10 @@
       "name": "Huntress",
       "type": "scrapling_stealthy",
       "url": "https://www.huntress.com/blog",
-      "post_container": "div.blog-hero-card",
-      "link_selector": "a.blog-hero-card-link",
-      "date_selector": "span.blog-hero-card-date",
       "link_path_prefix": "/blog/",
-      "notes": "RSS stopped 2026-07-13; scrapes hero card on /blog — 1 post per run with date for stale filtering"
+      "path_exclude": ["/blog/tag/", "/blog/author/", "/blog/category/"],
+      "min_slug_length": 10,
+      "notes": "RSS stopped 2026-07-13; link-extraction mode captures hero card + main grid + filter-box (all card types)"
     },
     {
       "name": "JPCERT Coordination Center",
@@ -1117,17 +1116,9 @@
     },
     {
       "name": "Forescout",
-      "type": "scrapling_fetcher",
+      "type": "skip",
       "url": "https://www.forescout.com/blog/",
-      "notes": "curl_cffi TLS bypasses WAF (plain requests + StealthyFetcher both 403; Fetcher gets 200). ~3 links per run.",
-      "link_path_prefix": "/blog/",
-      "path_exclude": [
-        "/tag/",
-        "/author/",
-        "/category/",
-        "/page/"
-      ],
-      "min_slug_length": 8
+      "notes": "Datacenter IP block: scrapling_fetcher and StealthyFetcher both 403; no RSS feed available."
     },
     {
       "name": "Veracode",
