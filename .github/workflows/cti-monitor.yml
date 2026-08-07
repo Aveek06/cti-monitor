@@ -110,12 +110,11 @@ jobs:
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
         run: |
-          HOUR=$(date +%H)
-          if [ "$(date +%u)" = "5" ] && [ "$HOUR" -ge 16 ] && [ "$HOUR" -lt 20 ]; then
-            echo "Friday 16:00–20:00 UTC (21:30 IST) — running weekly stale-sites report."
+          if [ "$(date +%u)" = "5" ]; then
+            echo "Friday (test: hour check temporarily removed) — running weekly stale-sites report."
             python weekly_report.py config.json last_active.json
           else
-            echo "Outside weekly report window (day $(date +%u), hour ${HOUR}) — skipping."
+            echo "Not Friday (day $(date +%u)) — skipping weekly stale-sites report."
           fi
 
       - name: Upload state as artifact
