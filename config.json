@@ -16,7 +16,9 @@
       "url": "https://arcticwolf.com/feed/",
       "path_exclude": [
         "/resources/datasheet",
-        "/datasheet-de/"
+        "/datasheet-de/",
+        "/resources/upcoming-events-and-webinars-uk/",
+        "/resources/guide/"
       ]
     },
     {
@@ -181,6 +183,9 @@
         "stealer",
         "money mule",
         "money laundering"
+      ],
+      "path_exclude": [
+        "/media-press/newsroom/news/"
       ]
     },
     {
@@ -325,7 +330,9 @@
       "url": "https://blog.google/rss/",
       "path_exclude": [
         "/innovation-and-ai/",
-        "/company-news/"
+        "/company-news/",
+        "/products-and-platforms/",
+        "/products-and-platforms/products/"
       ]
     },
     {
@@ -366,7 +373,10 @@
     {
       "name": "Infoblox",
       "type": "feed",
-      "url": "https://blogs.infoblox.com/feed/"
+      "url": "https://blogs.infoblox.com/feed/",
+      "path_exclude": [
+        "/blog/company/"
+      ]
     },
     {
       "name": "ic3 gov - FBI",
@@ -700,7 +710,11 @@
     {
       "name": "Vmware",
       "type": "feed",
-      "url": "https://blogs.vmware.com/feed/"
+      "url": "https://blogs.vmware.com/feed/",
+      "path_exclude": [
+        "/cloud-foundation/",
+        "/load-balancing/"
+      ]
     },
     {
       "name": "Volexity",
