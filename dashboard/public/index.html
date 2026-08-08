@@ -6,60 +6,82 @@
   <title>CTI Source Monitor</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     /* ── Reset ──────────────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     button { font: inherit; border: none; background: none; cursor: pointer; }
+    a { color: inherit; }
 
     /* ── Design tokens ──────────────────────────────────────────────────── */
     :root {
-      --canvas:       #F9FAFB;   /* warm off-white background */
-      --white:        #FFFFFF;   /* card surfaces */
-      --text:         #18181B;   /* zinc-900 primary text */
-      --dim:          #71717A;   /* zinc-500 secondary */
-      --muted:        #94A3B8;   /* slate-400 tertiary */
-      --border:       rgba(226,232,240,0.85);
-      --hover:        #F4F4F5;
-      --amber:        #D97706;   /* amber-600 warning */
-      --amber-lt:     #FDE68A;   /* amber-200 for inverted bg */
-      --amber-bg:     #FFFBEB;
-      --amber-bd:     rgba(253,230,138,0.9);
-      --shadow:       0 20px 40px -15px rgba(0,0,0,0.05);
-      --shadow-hover: 0 8px 24px -4px rgba(0,0,0,0.09), 0 2px 6px -2px rgba(0,0,0,0.04);
-      --ease:         cubic-bezier(0.23, 1, 0.32, 1);
-      --ease-drawer:  cubic-bezier(0.32, 0.72, 0, 1);
-      --r:            12px;
-      --r-sm:         6px;
+      --bg:          #080808;
+      --surface:     #0D0D0D;
+      --surface2:    #151515;
+      --surface3:    #1C1C1C;
+      --border:      #202020;
+      --border-hi:   #383838;
+      --text:        #C8C8C8;
+      --text-hi:     #E8E8E8;
+      --text-dim:    #555555;
+      --text-muted:  #333333;
+      --green:       #4AF626;   /* taste-skill terminal green — ONE accent */
+      --green-dim:   rgba(74,246,38,0.08);
+      --green-glow:  rgba(74,246,38,0.18);
+      --green-ring:  rgba(74,246,38,0.35);
+      --amber:       #FF9500;
+      --amber-dim:   rgba(255,149,0,0.08);
+      --amber-glow:  rgba(255,149,0,0.18);
+      --amber-ring:  rgba(255,149,0,0.35);
+      --red:         #FF3B30;
+      --ease:        cubic-bezier(0.23, 1, 0.32, 1);
+      --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
     }
 
     /* ── Base ───────────────────────────────────────────────────────────── */
     body {
-      background: var(--canvas);
+      background: var(--bg);
       color: var(--text);
-      font-family: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
-      font-size: 14px;
+      font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', Menlo, monospace;
+      font-size: 13px;
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
       min-height: 100dvh;
+      overflow-x: hidden;
     }
 
-    /* Subtle ambient gradient — security-green tint at top */
+    /* Subtle green radial at top */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
       pointer-events: none;
       z-index: 0;
-      background: radial-gradient(ellipse 70% 40% at 50% -5%, rgba(16,185,129,0.05), transparent 65%);
+      background: radial-gradient(ellipse 60% 35% at 50% -5%, rgba(74,246,38,0.04), transparent 65%);
+    }
+
+    /* Scanline texture — CRT feel */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 3px,
+        rgba(0,0,0,0.05) 3px,
+        rgba(0,0,0,0.05) 4px
+      );
     }
 
     #app { position: relative; z-index: 1; }
 
     .container {
-      max-width: 880px;
+      max-width: 900px;
       margin: 0 auto;
-      padding: 0 24px;
+      padding: 0 28px;
     }
 
     /* ── Loading ────────────────────────────────────────────────────────── */
@@ -68,18 +90,22 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 14px;
+      gap: 16px;
       min-height: 100dvh;
-      color: var(--dim);
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+      font-size: 11px;
+      text-transform: uppercase;
     }
 
     .spinner {
-      width: 18px;
-      height: 18px;
-      border: 2px solid var(--border);
-      border-top-color: var(--dim);
+      width: 16px;
+      height: 16px;
+      border: 1px solid var(--border-hi);
+      border-top-color: var(--green);
       border-radius: 50%;
-      animation: spin 0.55s linear infinite;
+      animation: spin 0.6s linear infinite;
+      box-shadow: 0 0 6px var(--green-glow);
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -92,136 +118,197 @@
       justify-content: center;
       min-height: 100dvh;
       gap: 10px;
-      padding: 40px 24px;
+      padding: 40px 28px;
       text-align: center;
     }
 
-    .err-title { font-size: 15px; font-weight: 500; }
-    .err-body  { font-size: 13px; color: var(--dim); max-width: 400px; line-height: 1.65; }
+    .err-title {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--red);
+    }
+
+    .err-body {
+      font-size: 11px;
+      color: var(--text-dim);
+      max-width: 420px;
+      line-height: 1.8;
+      letter-spacing: 0.04em;
+    }
 
     /* ── Dashboard ──────────────────────────────────────────────────────── */
     #view-dashboard { display: none; }
 
-    /* Header */
+    /* ── Header ─────────────────────────────────────────────────────────── */
     .header {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      gap: 16px;
-      padding: 64px 0 36px;
+      gap: 24px;
+      padding: 60px 0 40px;
+      border-bottom: 1px solid var(--border);
     }
 
     .header h1 {
-      font-size: 20px;
-      font-weight: 600;
-      letter-spacing: -0.025em;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-hi);
       line-height: 1.2;
     }
 
-    .header-sub {
-      font-size: 13px;
-      color: var(--dim);
-      margin-top: 5px;
+    .cursor {
+      color: var(--green);
+      animation: blink 1.1s step-end infinite;
     }
 
-    .header-updated {
-      font-family: 'Geist Mono', ui-monospace, monospace;
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+    .header-sub {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
       font-size: 11px;
-      color: var(--muted);
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      flex-shrink: 0;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 4px var(--green); opacity: 1; }
+      50%      { box-shadow: 0 0 10px var(--green); opacity: 0.7; }
+    }
+
+    .header-right {
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
       text-align: right;
       flex-shrink: 0;
-      padding-top: 3px;
-      white-space: nowrap;
+      padding-top: 4px;
+      line-height: 1.8;
     }
 
-    /* Stat cards */
+    .header-right span { display: block; }
+
+    /* ── Stat cards ─────────────────────────────────────────────────────── */
     .stats {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      padding-bottom: 10px;
+      gap: 8px;
+      padding: 24px 0 8px;
     }
 
     .stat-card {
-      background: var(--white);
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 20px 20px 18px;
+      padding: 20px 18px 16px;
       text-align: left;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
       position: relative;
-      box-shadow: var(--shadow);
       transition:
-        background   0.18s var(--ease),
-        border-color 0.18s var(--ease),
-        transform    0.22s var(--ease),
-        box-shadow   0.22s var(--ease),
-        color        0.18s var(--ease);
+        background  0.15s var(--ease),
+        border-color 0.15s var(--ease),
+        box-shadow  0.2s var(--ease),
+        transform   0.2s var(--ease);
     }
 
     button.stat-card:hover {
-      background: var(--hover);
-      border-color: rgba(212,212,216,0.9);
+      background: var(--surface2);
+      border-color: var(--border-hi);
       transform: translateY(-2px);
-      box-shadow: var(--shadow-hover);
+      box-shadow: 0 0 0 1px var(--border-hi), 0 8px 24px rgba(0,0,0,0.4);
     }
 
-    button.stat-card:active { transform: translateY(-1px) scale(0.99); }
+    button.stat-card:active {
+      transform: translateY(-1px) scale(0.99);
+    }
 
-    /* Inverted (selected) state */
-    button.stat-card[aria-expanded="true"] {
-      background: var(--text);
-      border-color: var(--text);
-      color: rgba(255,255,255,0.9);
+    /* Selected — green ring + glow (active card) */
+    #card-active[aria-expanded="true"] {
+      background: var(--green-dim);
+      border-color: var(--green);
+      box-shadow: 0 0 0 1px var(--green-ring), 0 0 24px var(--green-glow);
       transform: none;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.18);
     }
+
+    #card-active[aria-expanded="true"] .stat-num     { color: var(--green); }
+    #card-active[aria-expanded="true"] .stat-label   { color: var(--green); opacity: 0.6; }
+    #card-active[aria-expanded="true"] .stat-arrow   { color: var(--green); opacity: 0.7; }
+
+    /* Selected — amber ring (quiet card) */
+    #card-quiet[aria-expanded="true"] {
+      background: var(--amber-dim);
+      border-color: var(--amber);
+      box-shadow: 0 0 0 1px var(--amber-ring), 0 0 24px var(--amber-glow);
+      transform: none;
+    }
+
+    #card-quiet[aria-expanded="true"] .stat-num     { color: var(--amber); }
+    #card-quiet[aria-expanded="true"] .stat-label   { color: var(--amber); opacity: 0.6; }
+    #card-quiet[aria-expanded="true"] .stat-arrow   { color: var(--amber); opacity: 0.7; }
 
     .stat-num {
-      font-family: 'Geist Mono', ui-monospace, monospace;
-      font-size: 32px;
-      font-weight: 600;
+      font-size: 34px;
+      font-weight: 700;
       line-height: 1;
       letter-spacing: -0.02em;
       font-variant-numeric: tabular-nums;
-      color: var(--text);
-      transition: color 0.18s var(--ease);
+      color: var(--text-hi);
+      transition: color 0.15s var(--ease);
     }
-
-    button.stat-card[aria-expanded="true"] .stat-num { color: rgba(255,255,255,0.95); }
 
     .stat-num.amber { color: var(--amber); }
-    button.stat-card[aria-expanded="true"] .stat-num.amber { color: var(--amber-lt); }
 
     .stat-label {
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 500;
-      color: var(--dim);
-      letter-spacing: 0.01em;
-      transition: color 0.18s var(--ease);
+      color: var(--text-dim);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: color 0.15s var(--ease);
     }
-
-    button.stat-card[aria-expanded="true"] .stat-label { color: rgba(255,255,255,0.5); }
 
     .stat-arrow {
       position: absolute;
-      top: 18px;
-      right: 16px;
-      font-size: 16px;
-      color: var(--muted);
-      line-height: 1;
+      top: 16px;
+      right: 14px;
+      font-size: 12px;
+      color: var(--text-muted);
       pointer-events: none;
-      transition: transform 0.3s var(--ease), color 0.18s var(--ease);
+      transition: transform 0.3s var(--ease), color 0.15s var(--ease);
     }
 
-    button.stat-card[aria-expanded="true"] .stat-arrow {
-      transform: rotate(180deg);
-      color: rgba(255,255,255,0.35);
+    #card-active[aria-expanded="true"] .stat-arrow,
+    #card-quiet[aria-expanded="true"]  .stat-arrow  { transform: rotate(180deg); }
+
+    /* ── Section label (above panels) ───────────────────────────────────── */
+    .section-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 12px 0 4px;
     }
 
-    /* Panels — CSS grid accordion */
+    /* ── Panels — CSS grid accordion ────────────────────────────────────── */
     .panel {
       display: grid;
       grid-template-rows: 0fr;
@@ -233,60 +320,75 @@
     .panel-inner { overflow: hidden; }
 
     .panel-content {
-      margin-top: 8px;
-      background: var(--white);
+      margin-top: 6px;
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--r);
-      overflow: hidden;
-      max-height: 520px;
+      max-height: 540px;
       overflow-y: auto;
-      box-shadow: var(--shadow);
       scrollbar-width: thin;
-      scrollbar-color: rgba(0,0,0,0.1) transparent;
+      scrollbar-color: var(--border-hi) transparent;
     }
 
-    .panel-content::-webkit-scrollbar { width: 4px; }
-    .panel-content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+    .panel-content::-webkit-scrollbar { width: 3px; }
+    .panel-content::-webkit-scrollbar-thumb { background: var(--border-hi); }
 
-    /* Site rows */
+    /* ── Site rows ──────────────────────────────────────────────────────── */
     .site-row {
       display: flex;
       align-items: center;
-      padding: 12px 18px;
+      padding: 11px 16px;
       border-bottom: 1px solid var(--border);
       cursor: pointer;
       gap: 12px;
       transition: background 0.1s ease;
-      opacity: 0; /* rows start invisible; animation brings them in */
+      border-left: 2px solid transparent;
+      opacity: 0;
     }
 
     .site-row:last-of-type { border-bottom: none; }
-    .site-row:hover { background: var(--canvas); }
 
-    /* Stagger entrance when panel opens */
+    .site-row:hover {
+      background: var(--surface2);
+      border-left-color: var(--green);
+    }
+
+    #panel-quiet .site-row:hover { border-left-color: var(--amber); }
+
     .panel-entering .site-row {
-      animation: rowIn 0.35s var(--ease) calc(var(--i, 0) * 55ms) both;
+      animation: rowIn 0.32s var(--ease) calc(var(--i, 0) * 50ms) both;
     }
 
     @keyframes rowIn {
-      from { opacity: 0; transform: translateY(5px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateX(-4px); }
+      to   { opacity: 1; transform: translateX(0); }
     }
+
+    .site-prefix {
+      color: var(--text-muted);
+      font-size: 11px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .site-row:hover .site-prefix { color: var(--green); }
+    #panel-quiet .site-row:hover .site-prefix { color: var(--amber); }
 
     .site-name {
       flex: 1;
       min-width: 0;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 500;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      color: var(--text);
+      letter-spacing: 0.02em;
     }
 
     .site-meta {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       flex-shrink: 0;
     }
 
@@ -294,112 +396,120 @@
     .bar-wrap { display: flex; align-items: center; gap: 8px; }
 
     .bar-track {
-      width: 72px;
-      height: 3px;
-      background: #E4E4E7;
-      border-radius: 2px;
-      overflow: hidden;
+      width: 70px;
+      height: 2px;
+      background: var(--surface3);
     }
 
     .bar-fill {
       height: 100%;
       width: 0%;
-      background: var(--text);
-      border-radius: 2px;
-      transition: width 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+      background: var(--green);
+      box-shadow: 0 0 4px rgba(74,246,38,0.5);
+      transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .count-val {
-      font-family: 'Geist Mono', ui-monospace, monospace;
-      font-size: 12px;
+      font-size: 11px;
       font-variant-numeric: tabular-nums;
-      color: var(--dim);
+      color: var(--text-dim);
       min-width: 20px;
       text-align: right;
     }
 
     /* Badges */
     .badge {
-      font-family: 'Geist Mono', ui-monospace, monospace;
-      font-size: 11px;
-      font-weight: 500;
+      font-size: 10px;
+      font-weight: 600;
       padding: 2px 8px;
-      border-radius: 9999px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
       white-space: nowrap;
     }
 
     .badge-amber {
       color: var(--amber);
-      background: var(--amber-bg);
-      border: 1px solid var(--amber-bd);
+      background: var(--amber-dim);
+      border: 1px solid rgba(255,149,0,0.3);
+    }
+
+    .badge-red {
+      color: var(--red);
+      background: rgba(255,59,48,0.08);
+      border: 1px solid rgba(255,59,48,0.25);
     }
 
     .last-date {
-      font-family: 'Geist Mono', ui-monospace, monospace;
-      font-size: 11px;
-      color: var(--muted);
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
     }
 
     .chevron {
-      color: var(--muted);
-      font-size: 14px;
+      color: var(--text-muted);
+      font-size: 12px;
       transition: transform 0.15s var(--ease), color 0.1s ease;
     }
 
-    .site-row:hover .chevron { transform: translateX(2px); color: var(--dim); }
+    .site-row:hover .chevron              { transform: translateX(2px); color: var(--green); }
+    #panel-quiet .site-row:hover .chevron { transform: translateX(2px); color: var(--amber); }
 
-    /* Panel footer label (total count when list is long) */
+    /* Panel footer count */
     .panel-footer {
-      padding: 10px 18px;
-      font-size: 11px;
-      color: var(--muted);
+      padding: 9px 16px;
+      font-size: 10px;
+      color: var(--text-muted);
       border-top: 1px solid var(--border);
-      background: var(--canvas);
+      background: var(--surface);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
       text-align: center;
     }
 
-    /* Page footer */
+    /* ── Page footer ────────────────────────────────────────────────────── */
     .page-footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 16px;
-      padding: 28px 0 56px;
-      margin-top: 28px;
+      padding: 24px 0 52px;
+      margin-top: 32px;
       border-top: 1px solid var(--border);
-      font-size: 11px;
-      color: var(--muted);
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
-    /* ── Drawer ─────────────────────────────────────────────────────────── */
+    /* ── Backdrop ───────────────────────────────────────────────────────── */
     .backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(24,24,27,0.22);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.25s ease;
+      transition: opacity 0.22s ease;
       z-index: 40;
     }
 
     .backdrop.visible { opacity: 1; pointer-events: auto; }
 
+    /* ── Drawer ─────────────────────────────────────────────────────────── */
     .drawer {
       position: fixed;
       top: 0;
       right: 0;
-      width: min(460px, 92vw);
+      width: min(480px, 94vw);
       height: 100%;
-      background: var(--white);
+      background: var(--surface);
       border-left: 1px solid var(--border);
       z-index: 50;
       transform: translateX(100%);
       transition: transform 0.38s var(--ease-drawer);
       display: flex;
       flex-direction: column;
-      box-shadow: -8px 0 40px rgba(0,0,0,0.06);
     }
 
     .drawer.open { transform: translateX(0); }
@@ -408,145 +518,202 @@
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      padding: 24px;
+      padding: 22px 22px 18px;
       border-bottom: 1px solid var(--border);
       gap: 16px;
       flex-shrink: 0;
     }
 
+    .drawer-eyebrow {
+      font-size: 9px;
+      color: var(--green);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
     .drawer-name {
-      font-size: 16px;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-      line-height: 1.25;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--text-hi);
+      line-height: 1.2;
+      text-transform: uppercase;
     }
 
     .drawer-domain {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      font-size: 12px;
-      color: var(--muted);
+      gap: 5px;
+      font-size: 10px;
+      color: var(--text-muted);
       text-decoration: none;
-      margin-top: 3px;
+      margin-top: 5px;
+      letter-spacing: 0.06em;
       transition: color 0.1s ease;
     }
 
-    .drawer-domain:hover { color: var(--dim); }
+    .drawer-domain:hover { color: var(--text-dim); }
 
     .drawer-close {
-      width: 28px;
-      height: 28px;
-      border-radius: var(--r-sm);
+      width: 26px;
+      height: 26px;
       border: 1px solid var(--border);
-      background: var(--canvas);
-      font-size: 16px;
-      color: var(--dim);
+      background: var(--surface2);
+      font-size: 14px;
+      color: var(--text-dim);
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
       cursor: pointer;
-      transition: background 0.1s ease, color 0.1s ease;
+      transition: border-color 0.1s ease, color 0.1s ease, box-shadow 0.1s ease;
     }
 
-    .drawer-close:hover { background: var(--hover); color: var(--text); }
+    .drawer-close:hover {
+      border-color: var(--border-hi);
+      color: var(--text);
+      box-shadow: 0 0 8px rgba(74,246,38,0.1);
+    }
 
     .drawer-stats {
       display: flex;
-      gap: 20px;
-      padding: 14px 24px;
+      gap: 0;
       border-bottom: 1px solid var(--border);
-      background: var(--canvas);
       flex-shrink: 0;
     }
 
-    .d-stat-num {
-      font-family: 'Geist Mono', ui-monospace, monospace;
-      font-size: 20px;
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
-      letter-spacing: -0.02em;
-      line-height: 1;
+    .d-stat {
+      flex: 1;
+      padding: 14px 22px;
+      border-right: 1px solid var(--border);
     }
 
+    .d-stat:last-child { border-right: none; }
+
     .d-stat-label {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 3px;
+      font-size: 9px;
+      color: var(--text-muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
     }
+
+    .d-stat-num {
+      font-size: 22px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      color: var(--text-hi);
+    }
+
+    .d-stat-num.green { color: var(--green); }
 
     .drawer-body {
       flex: 1;
       overflow-y: auto;
-      padding: 14px;
+      padding: 12px;
       scrollbar-width: thin;
-      scrollbar-color: rgba(0,0,0,0.1) transparent;
+      scrollbar-color: var(--border-hi) transparent;
     }
 
-    .drawer-body::-webkit-scrollbar { width: 4px; }
-    .drawer-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+    .drawer-body::-webkit-scrollbar { width: 3px; }
+    .drawer-body::-webkit-scrollbar-thumb { background: var(--border-hi); }
 
     .links-list {
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 1px;
     }
 
     .link-item { opacity: 0; }
 
     .link-item.show {
-      animation: linkIn 0.28s var(--ease) both;
+      animation: linkIn 0.25s var(--ease) both;
     }
 
     @keyframes linkIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateX(-4px); }
+      to   { opacity: 1; transform: translateX(0); }
     }
 
     .link-item a {
       display: block;
-      padding: 9px 10px;
-      border-radius: var(--r-sm);
+      padding: 8px 10px;
       text-decoration: none;
-      transition: background 0.1s ease;
+      border-left: 2px solid transparent;
+      transition: background 0.1s ease, border-color 0.1s ease;
     }
 
-    .link-item a:hover { background: var(--canvas); }
+    .link-item a:hover {
+      background: var(--surface2);
+      border-left-color: var(--green);
+    }
+
+    .link-prefix {
+      font-size: 10px;
+      color: var(--text-muted);
+      user-select: none;
+    }
+
+    .link-item a:hover .link-prefix { color: var(--green); }
 
     .link-slug {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--text);
       line-height: 1.4;
       word-break: break-word;
     }
 
     .link-url {
-      font-family: 'Geist Mono', ui-monospace, monospace;
-      font-size: 10px;
-      color: var(--muted);
+      font-size: 9px;
+      color: var(--text-muted);
       margin-top: 2px;
       word-break: break-all;
+      letter-spacing: 0.02em;
     }
 
     .no-links {
       padding: 20px 10px;
-      font-size: 13px;
-      color: var(--muted);
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
     }
 
     /* ── Responsive ─────────────────────────────────────────────────────── */
     @media (max-width: 640px) {
       .stats { grid-template-columns: 1fr; }
-      .header { flex-direction: column; gap: 8px; padding: 40px 0 28px; }
-      .header-updated { text-align: left; }
+      .header { flex-direction: column; gap: 12px; padding: 36px 0 28px; }
+      .header-right { text-align: left; }
       .bar-track { width: 48px; }
     }
 
+    .refresh-btn {
+      display: block;
+      margin-top: 4px;
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--green);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      text-align: right;
+      transition: opacity 0.15s ease, text-shadow 0.15s ease;
+      text-shadow: 0 0 6px var(--green-glow);
+    }
+
+    .refresh-btn:hover  { opacity: 0.75; }
+    .refresh-btn:active { opacity: 0.5; }
+    .refresh-btn:disabled { opacity: 0.35; cursor: default; }
+
     @media (prefers-reduced-motion: reduce) {
-      *, .panel, .drawer, .stat-card { transition: none !important; animation: none !important; }
-      .site-row { opacity: 1 !important; }
+      *, .panel, .drawer, .stat-card, .cursor, .status-dot
+        { transition: none !important; animation: none !important; }
+      .site-row  { opacity: 1 !important; }
       .link-item { opacity: 1 !important; }
     }
   </style>
@@ -557,12 +724,12 @@
   <!-- Loading -->
   <div id="view-loading">
     <div class="spinner"></div>
-    <p style="font-size:13px;color:var(--dim)">Loading sources&hellip;</p>
+    <span>Initializing&hellip;</span>
   </div>
 
   <!-- Error -->
   <div id="view-error">
-    <p class="err-title">Failed to load</p>
+    <p class="err-title">// Connection Failed</p>
     <p class="err-body" id="err-msg"></p>
   </div>
 
@@ -572,10 +739,17 @@
 
       <header class="header">
         <div>
-          <h1>CTI Source Monitor</h1>
-          <p class="header-sub">Security blog activity &middot; <span id="hdr-total">—</span> sources tracked</p>
+          <h1>CTI Source Monitor<span class="cursor">_</span></h1>
+          <p class="header-sub">
+            <span class="status-dot"></span>
+            Online &bull; <span id="hdr-total">—</span> Sources Monitored
+          </p>
         </div>
-        <div class="header-updated" id="hdr-updated"></div>
+        <div class="header-right">
+          <span id="hdr-updated"></span>
+          <span>Auto-Sync: 15M</span>
+          <button id="btn-refresh" class="refresh-btn" onclick="refreshData(true)">[ Refresh ]</button>
+        </div>
       </header>
 
       <!-- Stat cards -->
@@ -583,16 +757,16 @@
         <button class="stat-card" id="card-active" aria-expanded="false">
           <span class="stat-num" id="num-active">—</span>
           <span class="stat-label">Active Sources</span>
-          <span class="stat-arrow">↓</span>
+          <span class="stat-arrow">▾</span>
         </button>
         <button class="stat-card" id="card-quiet" aria-expanded="false">
           <span class="stat-num amber" id="num-quiet">—</span>
           <span class="stat-label">Quiet Sites</span>
-          <span class="stat-arrow">↓</span>
+          <span class="stat-arrow">▾</span>
         </button>
         <div class="stat-card">
           <span class="stat-num" id="num-links">—</span>
-          <span class="stat-label">Links This Week</span>
+          <span class="stat-label">Links / 7 Days</span>
         </div>
       </div>
 
@@ -611,7 +785,7 @@
       </div>
 
       <footer class="page-footer">
-        <span>CTI Source Monitor &middot; Runs daily 21:30 IST &middot; Auto-refreshes every 8 hours</span>
+        <span>Sys: CTI-Monitor &bull; Run: Daily 21:30 IST</span>
         <span id="footer-date"></span>
       </footer>
 
@@ -625,10 +799,11 @@
 <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-name">
   <div class="drawer-hd">
     <div>
+      <div class="drawer-eyebrow">// Source Intel</div>
       <div class="drawer-name" id="drawer-name"></div>
       <a class="drawer-domain" id="drawer-domain" href="#" target="_blank" rel="noopener noreferrer">
         <span id="drawer-domain-txt"></span>
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+        <svg width="9" height="9" viewBox="0 0 10 10" fill="none">
           <path d="M3.5 2H2C1.45 2 1 2.45 1 3V8C1 8.55 1.45 9 2 9H7C7.55 9 8 8.55 8 8V6.5M6 1H9M9 1V4M9 1L4.5 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </a>
@@ -636,13 +811,13 @@
     <button class="drawer-close" id="drawer-close" aria-label="Close">✕</button>
   </div>
   <div class="drawer-stats">
-    <div>
+    <div class="d-stat">
+      <div class="d-stat-label">Total Captured</div>
       <div class="d-stat-num" id="d-total">—</div>
-      <div class="d-stat-label">total captured</div>
     </div>
-    <div>
-      <div class="d-stat-num" id="d-week">—</div>
-      <div class="d-stat-label">this week</div>
+    <div class="d-stat">
+      <div class="d-stat-label">This Week</div>
+      <div class="d-stat-num green" id="d-week">—</div>
     </div>
   </div>
   <div class="drawer-body">
@@ -652,10 +827,10 @@
 
 <script>
 /* ── Constants ─────────────────────────────────────────────────────────────── */
-const STALE_DAYS      = 7;
-const SKIP_TYPES      = new Set(["skip", "html_TODO"]);
-const REFRESH_MS      = 8 * 60 * 60 * 1000; // 8 hours — matches workflow cadence
-let   lastUpdatedAt   = null;
+const STALE_DAYS    = 7;
+const SKIP_TYPES    = new Set(["skip", "html_TODO"]);
+const REFRESH_MS    = 15 * 60 * 1000; // 15 minutes
+let   lastUpdatedAt = null;
 
 /* ── Utilities ─────────────────────────────────────────────────────────────── */
 function daysSince(iso) {
@@ -670,12 +845,17 @@ function fmtDate(iso) {
   });
 }
 
+function fmtIso(iso) {
+  if (!iso) return "";
+  return new Date(iso).toISOString().slice(0, 16).replace("T", " ") + "Z";
+}
+
 function relTime(iso) {
   const d = daysSince(iso);
   if (!isFinite(d)) return "";
-  if (d === 0) return "today";
-  if (d === 1) return "yesterday";
-  if (d < 30)  return `${d}d ago`;
+  if (d === 0) return "Today";
+  if (d === 1) return "Yesterday";
+  if (d < 30)  return `${d}D Ago`;
   return fmtDate(iso);
 }
 
@@ -687,9 +867,12 @@ function urlToSlug(href) {
   } catch { return href; }
 }
 
+function esc(s) { return s.replace(/"/g, "&quot;"); }
+
 /* ── Load & derive ─────────────────────────────────────────────────────────── */
-async function loadData() {
-  const res = await fetch("/api/data");
+async function loadData(bust = false) {
+  const url = bust ? `/api/data?bust=${Date.now()}` : "/api/data";
+  const res = await fetch(url, bust ? { cache: "no-store" } : {});
   if (!res.ok) {
     const j = await res.json().catch(() => ({}));
     throw new Error(j.error || `HTTP ${res.status}`);
@@ -698,11 +881,11 @@ async function loadData() {
 }
 
 function derive({ config, state, lastActive, updatedAt }) {
-  const cutoff     = new Date(Date.now() - STALE_DAYS * 86_400_000);
-  const cutoffStr  = cutoff.toISOString().slice(0, 10);
-  const failing    = new Set(lastActive._currently_failing || []);
-  const sevenDay   = lastActive._seven_day_counts || {};
-  const sites      = (config.sites || []).filter(s => !SKIP_TYPES.has(s.type));
+  const cutoff    = new Date(Date.now() - STALE_DAYS * 86_400_000);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  const failing   = new Set(lastActive._currently_failing || []);
+  const sevenDay  = lastActive._seven_day_counts || {};
+  const sites     = (config.sites || []).filter(s => !SKIP_TYPES.has(s.type));
   const activeSites = [], quietSites = [];
 
   for (const site of sites) {
@@ -736,6 +919,7 @@ function renderActive(sites, state) {
   el.innerHTML = sites.map((s, i) => {
     const pct = Math.round((s.count / max) * 100);
     return `<div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i, 9)}">
+      <span class="site-prefix">&gt;</span>
       <span class="site-name">${s.name}</span>
       <div class="site-meta">
         <div class="bar-wrap">
@@ -746,7 +930,7 @@ function renderActive(sites, state) {
       </div>
     </div>`;
   }).join("") + (sites.length > 12
-    ? `<div class="panel-footer">${sites.length} sources reporting</div>` : "");
+    ? `<div class="panel-footer">// ${sites.length} Sources Total</div>` : "");
 
   el.querySelectorAll(".site-row").forEach(row =>
     row.addEventListener("click", () => openDrawer(row.dataset.name, sites, state))
@@ -756,36 +940,35 @@ function renderActive(sites, state) {
 function renderQuiet(sites, state) {
   const el = document.getElementById("content-quiet");
 
-  el.innerHTML = sites.map((s, i) => `
-    <div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i, 9)}">
+  el.innerHTML = sites.map((s, i) => {
+    const cls = s.days >= 14 ? "badge-red" : "badge-amber";
+    return `<div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i, 9)}">
+      <span class="site-prefix">&gt;</span>
       <span class="site-name">${s.name}</span>
       <div class="site-meta">
         <span class="last-date">${fmtDate(s.lastActive)}</span>
-        <span class="badge badge-amber">${s.days}d quiet</span>
+        <span class="badge ${cls}">${s.days}D Quiet</span>
         <span class="chevron">›</span>
       </div>
-    </div>`).join("") + (sites.length > 8
-    ? `<div class="panel-footer">${sites.length} quiet sites total</div>` : "");
+    </div>`;
+  }).join("") + (sites.length > 8
+    ? `<div class="panel-footer">// ${sites.length} Quiet Sites Total</div>` : "");
 
   el.querySelectorAll(".site-row").forEach(row =>
     row.addEventListener("click", () => openDrawer(row.dataset.name, sites, state))
   );
 }
 
-function esc(s) { return s.replace(/"/g, "&quot;"); }
-
 /* ── Panel toggle ──────────────────────────────────────────────────────────── */
 function togglePanel(cardId, panelId) {
-  const card  = document.getElementById(cardId);
-  const panel = document.getElementById(panelId);
+  const card   = document.getElementById(cardId);
+  const panel  = document.getElementById(panelId);
   const isOpen = panel.classList.contains("open");
 
-  // Collapse all first
   ["panel-active", "panel-quiet"].forEach(id => {
     const p = document.getElementById(id);
     p.classList.remove("open");
-    // Reset bars for next animation
-    setTimeout(() => p.querySelectorAll(".bar-fill").forEach(b => b.style.width = "0%"), 400);
+    setTimeout(() => p.querySelectorAll(".bar-fill").forEach(b => b.style.width = "0%"), 420);
   });
   ["card-active", "card-quiet"].forEach(id =>
     document.getElementById(id).setAttribute("aria-expanded", "false")
@@ -795,26 +978,23 @@ function togglePanel(cardId, panelId) {
     panel.classList.add("open");
     card.setAttribute("aria-expanded", "true");
 
-    // Trigger stagger entrance
     const content = panel.querySelector(".panel-content");
     content.classList.remove("panel-entering");
-    void content.offsetHeight; // Force reflow to restart animation
+    void content.offsetHeight;
     content.classList.add("panel-entering");
 
-    // Animate bars after panel begins opening
-    setTimeout(() => {
-      panel.querySelectorAll(".bar-fill").forEach(b => b.style.width = b.dataset.w);
-    }, 120);
-
-    // Scroll panel into view
-    setTimeout(() => panel.scrollIntoView({ behavior: "smooth", block: "nearest" }), 60);
+    setTimeout(() =>
+      panel.querySelectorAll(".bar-fill").forEach(b => b.style.width = b.dataset.w),
+      130
+    );
+    setTimeout(() => panel.scrollIntoView({ behavior: "smooth", block: "nearest" }), 65);
   }
 }
 
 /* ── Drawer ────────────────────────────────────────────────────────────────── */
 function openDrawer(name, sites, state) {
   const site  = sites.find(s => s.name === name);
-  const links = (state[name] || []).slice().reverse(); // newest first
+  const links = (state[name] || []).slice().reverse();
 
   document.getElementById("drawer-name").textContent = name;
 
@@ -834,12 +1014,12 @@ function openDrawer(name, sites, state) {
 
   const list = document.getElementById("links-list");
   if (links.length === 0) {
-    list.innerHTML = `<li class="no-links">No links captured yet.</li>`;
+    list.innerHTML = `<li class="no-links">// No links captured yet.</li>`;
   } else {
     list.innerHTML = links.map((href, i) => `
-      <li class="link-item" style="animation-delay:${Math.min(i * 35, 420)}ms">
+      <li class="link-item" style="animation-delay:${Math.min(i * 32, 400)}ms">
         <a href="${href}" target="_blank" rel="noopener noreferrer">
-          <div class="link-slug">${urlToSlug(href)}</div>
+          <div><span class="link-prefix">&rarr; </span><span class="link-slug">${urlToSlug(href)}</span></div>
           <div class="link-url">${href}</div>
         </a>
       </li>`).join("");
@@ -849,7 +1029,6 @@ function openDrawer(name, sites, state) {
   document.getElementById("backdrop").classList.add("visible");
   document.body.style.overflow = "hidden";
 
-  // Stagger link items in
   requestAnimationFrame(() =>
     list.querySelectorAll(".link-item").forEach(li => li.classList.add("show"))
   );
@@ -859,35 +1038,32 @@ function closeDrawer() {
   document.getElementById("drawer").classList.remove("open");
   document.getElementById("backdrop").classList.remove("visible");
   document.body.style.overflow = "";
-  // Reset items so animation replays on next open
   setTimeout(() =>
     document.querySelectorAll(".link-item").forEach(li => li.classList.remove("show")),
-    400
+    420
   );
 }
 
-/* ── Update dashboard (called on init and on background refresh) ────────────── */
+/* ── Update dashboard ──────────────────────────────────────────────────────── */
 function updateDashboard({ sites, activeSites, quietSites, weekTotal, state, updatedAt }) {
   document.getElementById("hdr-total").textContent   = sites.length;
   document.getElementById("num-active").textContent  = activeSites.length;
   document.getElementById("num-quiet").textContent   = quietSites.length;
   document.getElementById("num-links").textContent   = weekTotal.toLocaleString();
-  document.getElementById("hdr-updated").textContent = updatedAt ? `Updated ${relTime(updatedAt)}` : "";
-  document.getElementById("footer-date").textContent = updatedAt ? fmtDate(updatedAt) : "";
+  document.getElementById("hdr-updated").textContent = updatedAt ? `Sync: ${relTime(updatedAt)}` : "";
+  document.getElementById("footer-date").textContent = updatedAt ? fmtIso(updatedAt) : "";
   renderActive(activeSites, state);
   renderQuiet(quietSites, state);
 }
 
-/* Brief "↺ Refreshed" flash on the timestamp label */
 function flashUpdated(updatedAt) {
   const el   = document.getElementById("hdr-updated");
-  const next = updatedAt ? `Updated ${relTime(updatedAt)}` : "";
-  el.textContent = "↺ Refreshed";
-  el.style.color = "var(--text)";
-  setTimeout(() => { el.textContent = next; el.style.color = ""; }, 2200);
+  const next = updatedAt ? `Sync: ${relTime(updatedAt)}` : "";
+  el.textContent = "[ Sync Complete ]";
+  el.style.color = "var(--green)";
+  setTimeout(() => { el.textContent = next; el.style.color = ""; }, 2400);
 }
 
-/* Silently collapse panels and close drawer before re-rendering */
 function resetUI() {
   closeDrawer();
   ["panel-active", "panel-quiet"].forEach(id => {
@@ -900,17 +1076,21 @@ function resetUI() {
   );
 }
 
-/* ── Background refresh ────────────────────────────────────────────────────── */
-async function refreshData() {
+/* ── Background / manual refresh ──────────────────────────────────────────── */
+async function refreshData(force = false) {
+  const btn = document.getElementById("btn-refresh");
+  if (btn) { btn.disabled = true; btn.textContent = "[ Syncing... ]"; }
   try {
-    const raw = await loadData();
-    if (raw.updatedAt === lastUpdatedAt) return; // no change — skip re-render
+    const raw = await loadData(force);
+    if (!force && raw.updatedAt === lastUpdatedAt) return;
     lastUpdatedAt = raw.updatedAt;
     resetUI();
     updateDashboard(derive(raw));
     flashUpdated(raw.updatedAt);
   } catch (err) {
-    console.warn("Background refresh failed:", err.message);
+    console.warn("Refresh failed:", err.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "[ Refresh ]"; }
   }
 }
 
@@ -925,7 +1105,6 @@ async function init() {
       .addEventListener("click", () => togglePanel("card-active", "panel-active"));
     document.getElementById("card-quiet")
       .addEventListener("click", () => togglePanel("card-quiet", "panel-quiet"));
-
     document.getElementById("drawer-close").addEventListener("click", closeDrawer);
     document.getElementById("backdrop").addEventListener("click", closeDrawer);
     document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer(); });
@@ -933,7 +1112,6 @@ async function init() {
     document.getElementById("view-loading").style.display = "none";
     document.getElementById("view-dashboard").style.display = "block";
 
-    // Re-fetch every 8 hours; re-renders only when updatedAt changes
     setInterval(refreshData, REFRESH_MS);
 
   } catch (err) {

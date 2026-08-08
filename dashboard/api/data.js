@@ -37,7 +37,13 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=86400");
+  // If the caller passes ?bust=1, skip the edge cache entirely so fresh
+  // artifact data is always returned (used by the manual Refresh button).
+  if (req.query.bust) {
+    res.setHeader("Cache-Control", "no-store");
+  } else {
+    res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
+  }
 
   try {
     // 1. Fetch config.json directly from repo (raw content)
