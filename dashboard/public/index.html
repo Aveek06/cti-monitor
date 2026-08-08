@@ -25,7 +25,7 @@
       --text-hi:     #E8E8E8;
       --text-dim:    #555555;
       --text-muted:  #333333;
-      --green:       #4AF626;   /* taste-skill terminal green — ONE accent */
+      --green:       #4AF626;
       --green-dim:   rgba(74,246,38,0.08);
       --green-glow:  rgba(74,246,38,0.18);
       --green-ring:  rgba(74,246,38,0.35);
@@ -34,6 +34,9 @@
       --amber-glow:  rgba(255,149,0,0.18);
       --amber-ring:  rgba(255,149,0,0.35);
       --red:         #FF3B30;
+      --red-dim:     rgba(255,59,48,0.08);
+      --red-glow:    rgba(255,59,48,0.18);
+      --red-ring:    rgba(255,59,48,0.35);
       --ease:        cubic-bezier(0.23, 1, 0.32, 1);
       --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
     }
@@ -50,7 +53,6 @@
       overflow-x: hidden;
     }
 
-    /* Subtle green radial at top */
     body::before {
       content: '';
       position: fixed;
@@ -60,7 +62,6 @@
       background: radial-gradient(ellipse 60% 35% at 50% -5%, rgba(74,246,38,0.04), transparent 65%);
     }
 
-    /* Scanline texture — CRT feel */
     body::after {
       content: '';
       position: fixed;
@@ -147,8 +148,7 @@
       align-items: flex-start;
       justify-content: space-between;
       gap: 24px;
-      padding: 60px 0 40px;
-      border-bottom: 1px solid var(--border);
+      padding: 60px 0 32px;
     }
 
     .header h1 {
@@ -206,12 +206,115 @@
 
     .header-right span { display: block; }
 
+    .refresh-btn {
+      display: block;
+      margin-top: 4px;
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--green);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      text-align: right;
+      transition: opacity 0.15s ease;
+      text-shadow: 0 0 6px var(--green-glow);
+    }
+
+    .refresh-btn:hover  { opacity: 0.75; }
+    .refresh-btn:active { opacity: 0.5; }
+    .refresh-btn:disabled { opacity: 0.35; cursor: default; }
+
+    /* ── Sparkline strip ────────────────────────────────────────────────── */
+    .sparkline-strip {
+      display: flex;
+      align-items: flex-end;
+      gap: 20px;
+      padding: 0 0 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .spark-meta {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-bottom: 20px;
+      min-width: 80px;
+    }
+
+    .spark-label {
+      font-size: 9px;
+      color: var(--text-muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .spark-total {
+      font-size: 20px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      color: var(--text-hi);
+    }
+
+    .spark-bars {
+      flex: 1;
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 52px;
+    }
+
+    .spark-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      height: 100%;
+      cursor: default;
+    }
+
+    .spark-col:hover .spark-fill { filter: brightness(1.3); }
+
+    .spark-bar-wrap {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+      background: var(--surface2);
+      min-height: 2px;
+    }
+
+    .spark-fill {
+      width: 100%;
+      height: 0%;
+      background: var(--green);
+      transition: height 0.55s cubic-bezier(0.16, 1, 0.3, 1), filter 0.1s ease;
+      min-height: 2px;
+    }
+
+    .spark-fill.has-data {
+      box-shadow: 0 0 4px rgba(74,246,38,0.3);
+    }
+
+    .spark-day {
+      font-size: 9px;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
     /* ── Stat cards ─────────────────────────────────────────────────────── */
     .stats {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 8px;
-      padding: 24px 0 8px;
+      padding: 20px 0 8px;
     }
 
     .stat-card {
@@ -241,7 +344,7 @@
       transform: translateY(-1px) scale(0.99);
     }
 
-    /* Selected — green ring + glow (active card) */
+    /* Selected — green ring (active) */
     #card-active[aria-expanded="true"] {
       background: var(--green-dim);
       border-color: var(--green);
@@ -249,11 +352,11 @@
       transform: none;
     }
 
-    #card-active[aria-expanded="true"] .stat-num     { color: var(--green); }
-    #card-active[aria-expanded="true"] .stat-label   { color: var(--green); opacity: 0.6; }
-    #card-active[aria-expanded="true"] .stat-arrow   { color: var(--green); opacity: 0.7; }
+    #card-active[aria-expanded="true"] .stat-num   { color: var(--green); }
+    #card-active[aria-expanded="true"] .stat-label { color: var(--green); opacity: 0.6; }
+    #card-active[aria-expanded="true"] .stat-arrow { color: var(--green); opacity: 0.7; }
 
-    /* Selected — amber ring (quiet card) */
+    /* Selected — amber ring (quiet) */
     #card-quiet[aria-expanded="true"] {
       background: var(--amber-dim);
       border-color: var(--amber);
@@ -261,9 +364,21 @@
       transform: none;
     }
 
-    #card-quiet[aria-expanded="true"] .stat-num     { color: var(--amber); }
-    #card-quiet[aria-expanded="true"] .stat-label   { color: var(--amber); opacity: 0.6; }
-    #card-quiet[aria-expanded="true"] .stat-arrow   { color: var(--amber); opacity: 0.7; }
+    #card-quiet[aria-expanded="true"] .stat-num   { color: var(--amber); }
+    #card-quiet[aria-expanded="true"] .stat-label { color: var(--amber); opacity: 0.6; }
+    #card-quiet[aria-expanded="true"] .stat-arrow { color: var(--amber); opacity: 0.7; }
+
+    /* Selected — red ring (failing) */
+    #card-failing[aria-expanded="true"] {
+      background: var(--red-dim);
+      border-color: var(--red);
+      box-shadow: 0 0 0 1px var(--red-ring), 0 0 24px var(--red-glow);
+      transform: none;
+    }
+
+    #card-failing[aria-expanded="true"] .stat-num   { color: var(--red); }
+    #card-failing[aria-expanded="true"] .stat-label { color: var(--red); opacity: 0.6; }
+    #card-failing[aria-expanded="true"] .stat-arrow { color: var(--red); opacity: 0.7; }
 
     .stat-num {
       font-size: 34px;
@@ -276,6 +391,7 @@
     }
 
     .stat-num.amber { color: var(--amber); }
+    .stat-num.red   { color: var(--red); }
 
     .stat-label {
       font-size: 10px;
@@ -296,17 +412,9 @@
       transition: transform 0.3s var(--ease), color 0.15s var(--ease);
     }
 
-    #card-active[aria-expanded="true"] .stat-arrow,
-    #card-quiet[aria-expanded="true"]  .stat-arrow  { transform: rotate(180deg); }
-
-    /* ── Section label (above panels) ───────────────────────────────────── */
-    .section-label {
-      font-size: 10px;
-      color: var(--text-muted);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      padding: 12px 0 4px;
-    }
+    #card-active[aria-expanded="true"]  .stat-arrow,
+    #card-quiet[aria-expanded="true"]   .stat-arrow,
+    #card-failing[aria-expanded="true"] .stat-arrow { transform: rotate(180deg); }
 
     /* ── Panels — CSS grid accordion ────────────────────────────────────── */
     .panel {
@@ -347,12 +455,11 @@
 
     .site-row:last-of-type { border-bottom: none; }
 
-    .site-row:hover {
-      background: var(--surface2);
-      border-left-color: var(--green);
-    }
+    .site-row:hover { background: var(--surface2); }
 
-    #panel-quiet .site-row:hover { border-left-color: var(--amber); }
+    #panel-active  .site-row:hover { border-left-color: var(--green); }
+    #panel-quiet   .site-row:hover { border-left-color: var(--amber); }
+    #panel-failing .site-row:hover { border-left-color: var(--red); }
 
     .panel-entering .site-row {
       animation: rowIn 0.32s var(--ease) calc(var(--i, 0) * 50ms) both;
@@ -370,8 +477,9 @@
       user-select: none;
     }
 
-    .site-row:hover .site-prefix { color: var(--green); }
-    #panel-quiet .site-row:hover .site-prefix { color: var(--amber); }
+    #panel-active  .site-row:hover .site-prefix { color: var(--green); }
+    #panel-quiet   .site-row:hover .site-prefix { color: var(--amber); }
+    #panel-failing .site-row:hover .site-prefix { color: var(--red); }
 
     .site-name {
       flex: 1;
@@ -435,8 +543,8 @@
 
     .badge-red {
       color: var(--red);
-      background: rgba(255,59,48,0.08);
-      border: 1px solid rgba(255,59,48,0.25);
+      background: var(--red-dim);
+      border: 1px solid rgba(255,59,48,0.3);
     }
 
     .last-date {
@@ -451,10 +559,11 @@
       transition: transform 0.15s var(--ease), color 0.1s ease;
     }
 
-    .site-row:hover .chevron              { transform: translateX(2px); color: var(--green); }
-    #panel-quiet .site-row:hover .chevron { transform: translateX(2px); color: var(--amber); }
+    #panel-active  .site-row:hover .chevron { transform: translateX(2px); color: var(--green); }
+    #panel-quiet   .site-row:hover .chevron { transform: translateX(2px); color: var(--amber); }
+    #panel-failing .site-row:hover .chevron { transform: translateX(2px); color: var(--red); }
 
-    /* Panel footer count */
+    /* Panel footer */
     .panel-footer {
       padding: 9px 16px;
       font-size: 10px;
@@ -532,6 +641,8 @@
       margin-bottom: 6px;
     }
 
+    .drawer-eyebrow.red { color: var(--red); }
+
     .drawer-name {
       font-size: 15px;
       font-weight: 700;
@@ -578,7 +689,6 @@
 
     .drawer-stats {
       display: flex;
-      gap: 0;
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
@@ -629,9 +739,7 @@
 
     .link-item { opacity: 0; }
 
-    .link-item.show {
-      animation: linkIn 0.25s var(--ease) both;
-    }
+    .link-item.show { animation: linkIn 0.25s var(--ease) both; }
 
     @keyframes linkIn {
       from { opacity: 0; transform: translateX(-4px); }
@@ -683,38 +791,20 @@
 
     /* ── Responsive ─────────────────────────────────────────────────────── */
     @media (max-width: 640px) {
-      .stats { grid-template-columns: 1fr; }
-      .header { flex-direction: column; gap: 12px; padding: 36px 0 28px; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .header { flex-direction: column; gap: 12px; padding: 36px 0 24px; }
       .header-right { text-align: left; }
       .bar-track { width: 48px; }
+      .spark-bars { height: 36px; }
+      .spark-total { font-size: 16px; }
     }
-
-    .refresh-btn {
-      display: block;
-      margin-top: 4px;
-      font-family: inherit;
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      color: var(--green);
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 0;
-      text-align: right;
-      transition: opacity 0.15s ease, text-shadow 0.15s ease;
-      text-shadow: 0 0 6px var(--green-glow);
-    }
-
-    .refresh-btn:hover  { opacity: 0.75; }
-    .refresh-btn:active { opacity: 0.5; }
-    .refresh-btn:disabled { opacity: 0.35; cursor: default; }
 
     @media (prefers-reduced-motion: reduce) {
-      *, .panel, .drawer, .stat-card, .cursor, .status-dot
+      *, .panel, .drawer, .stat-card, .cursor, .status-dot, .spark-fill
         { transition: none !important; animation: none !important; }
       .site-row  { opacity: 1 !important; }
       .link-item { opacity: 1 !important; }
+      .spark-fill { height: var(--h, 0%) !important; }
     }
   </style>
 </head>
@@ -752,6 +842,15 @@
         </div>
       </header>
 
+      <!-- 7-day signal sparkline -->
+      <div class="sparkline-strip">
+        <div class="spark-meta">
+          <div class="spark-label">Signal / 7D</div>
+          <div class="spark-total" id="spark-total">—</div>
+        </div>
+        <div class="spark-bars" id="spark-bars"></div>
+      </div>
+
       <!-- Stat cards -->
       <div class="stats">
         <button class="stat-card" id="card-active" aria-expanded="false">
@@ -762,6 +861,11 @@
         <button class="stat-card" id="card-quiet" aria-expanded="false">
           <span class="stat-num amber" id="num-quiet">—</span>
           <span class="stat-label">Quiet Sites</span>
+          <span class="stat-arrow">▾</span>
+        </button>
+        <button class="stat-card" id="card-failing" aria-expanded="false">
+          <span class="stat-num red" id="num-failing">—</span>
+          <span class="stat-label">Scraper Errors</span>
           <span class="stat-arrow">▾</span>
         </button>
         <div class="stat-card">
@@ -784,6 +888,13 @@
         </div>
       </div>
 
+      <!-- Failing / scraper error panel -->
+      <div class="panel" id="panel-failing">
+        <div class="panel-inner">
+          <div class="panel-content" id="content-failing"></div>
+        </div>
+      </div>
+
       <footer class="page-footer">
         <span>Sys: CTI-Monitor &bull; Run: Daily 21:30 IST</span>
         <span id="footer-date"></span>
@@ -799,7 +910,7 @@
 <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-name">
   <div class="drawer-hd">
     <div>
-      <div class="drawer-eyebrow">// Source Intel</div>
+      <div class="drawer-eyebrow" id="drawer-eyebrow">// Source Intel</div>
       <div class="drawer-name" id="drawer-name"></div>
       <a class="drawer-domain" id="drawer-domain" href="#" target="_blank" rel="noopener noreferrer">
         <span id="drawer-domain-txt"></span>
@@ -827,9 +938,9 @@
 
 <script>
 /* ── Constants ─────────────────────────────────────────────────────────────── */
-const STALE_DAYS    = 7;
-const SKIP_TYPES    = new Set(["skip", "html_TODO"]);
-const REFRESH_MS    = 15 * 60 * 1000; // 15 minutes
+const STALE_DAYS = 7;
+const SKIP_TYPES = new Set(["skip", "html_TODO"]);
+const REFRESH_MS = 15 * 60 * 1000;
 let   lastUpdatedAt = null;
 
 /* ── Utilities ─────────────────────────────────────────────────────────────── */
@@ -840,9 +951,7 @@ function daysSince(iso) {
 
 function fmtDate(iso) {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("en-GB", {
-    day: "2-digit", month: "short", year: "numeric",
-  });
+  return new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function fmtIso(iso) {
@@ -867,7 +976,7 @@ function urlToSlug(href) {
   } catch { return href; }
 }
 
-function esc(s) { return s.replace(/"/g, "&quot;"); }
+function esc(s) { return String(s).replace(/"/g, "&quot;"); }
 
 /* ── Load & derive ─────────────────────────────────────────────────────────── */
 async function loadData(bust = false) {
@@ -889,9 +998,8 @@ function derive({ config, state, lastActive, updatedAt }) {
   const activeSites = [], quietSites = [];
 
   for (const site of sites) {
-    const name   = site.name;
-    const counts = sevenDay[name] || {};
-    const week7  = Object.entries(counts)
+    const name  = site.name;
+    const week7 = Object.entries(sevenDay[name] || {})
       .filter(([d]) => d >= cutoffStr)
       .reduce((sum, [, v]) => sum + v, 0);
     const lastTs = lastActive[name];
@@ -906,16 +1014,32 @@ function derive({ config, state, lastActive, updatedAt }) {
 
   activeSites.sort((a, b) => b.count - a.count);
   quietSites.sort((a, b) => b.days - a.days);
+
+  const failingSites = [...failing].map(name => {
+    const site = sites.find(s => s.name === name);
+    return site ? { name, url: site.url } : null;
+  }).filter(Boolean).sort((a, b) => a.name.localeCompare(b.name));
+
   const weekTotal = activeSites.reduce((s, x) => s + x.count, 0);
 
-  return { sites, activeSites, quietSites, weekTotal, state, updatedAt };
+  // Build 7-day daily totals for sparkline
+  const sparkDays = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 86_400_000).toISOString().slice(0, 10);
+    sparkDays.push(d);
+  }
+  const sparkData = sparkDays.map(date => ({
+    date,
+    count: sites.reduce((sum, s) => sum + (sevenDay[s.name]?.[date] || 0), 0),
+  }));
+
+  return { sites, activeSites, quietSites, failingSites, weekTotal, sparkData, state, updatedAt };
 }
 
-/* ── Render ────────────────────────────────────────────────────────────────── */
+/* ── Render panels ─────────────────────────────────────────────────────────── */
 function renderActive(sites, state) {
   const max = sites[0]?.count || 1;
   const el  = document.getElementById("content-active");
-
   el.innerHTML = sites.map((s, i) => {
     const pct = Math.round((s.count / max) * 100);
     return `<div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i, 9)}">
@@ -931,7 +1055,6 @@ function renderActive(sites, state) {
     </div>`;
   }).join("") + (sites.length > 12
     ? `<div class="panel-footer">// ${sites.length} Sources Total</div>` : "");
-
   el.querySelectorAll(".site-row").forEach(row =>
     row.addEventListener("click", () => openDrawer(row.dataset.name, sites, state))
   );
@@ -939,7 +1062,6 @@ function renderActive(sites, state) {
 
 function renderQuiet(sites, state) {
   const el = document.getElementById("content-quiet");
-
   el.innerHTML = sites.map((s, i) => {
     const cls = s.days >= 14 ? "badge-red" : "badge-amber";
     return `<div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i, 9)}">
@@ -953,24 +1075,79 @@ function renderQuiet(sites, state) {
     </div>`;
   }).join("") + (sites.length > 8
     ? `<div class="panel-footer">// ${sites.length} Quiet Sites Total</div>` : "");
-
   el.querySelectorAll(".site-row").forEach(row =>
     row.addEventListener("click", () => openDrawer(row.dataset.name, sites, state))
   );
 }
 
+function renderFailing(sites, state) {
+  const el = document.getElementById("content-failing");
+  if (sites.length === 0) {
+    el.innerHTML = `<div class="panel-footer">// No scraper errors detected</div>`;
+    return;
+  }
+  el.innerHTML = sites.map((s, i) =>
+    `<div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i, 9)}">
+      <span class="site-prefix">&gt;</span>
+      <span class="site-name">${s.name}</span>
+      <div class="site-meta">
+        <span class="badge badge-red">Scraper Err</span>
+        <span class="chevron">›</span>
+      </div>
+    </div>`
+  ).join("") + (sites.length > 12
+    ? `<div class="panel-footer">// ${sites.length} Errors Total</div>` : "");
+  el.querySelectorAll(".site-row").forEach(row =>
+    row.addEventListener("click", () => openDrawer(row.dataset.name, sites, state, true))
+  );
+}
+
+/* ── Sparkline ─────────────────────────────────────────────────────────────── */
+function renderSparkline(sparkData) {
+  const el    = document.getElementById("spark-bars");
+  const max   = Math.max(...sparkData.map(d => d.count), 1);
+  const total = sparkData.reduce((s, d) => s + d.count, 0);
+
+  el.innerHTML = sparkData.map((d, i) => {
+    const pct  = Math.round((d.count / max) * 100);
+    const day  = new Date(d.date + "T12:00:00Z")
+                   .toLocaleDateString("en-US", { weekday: "short" }).slice(0, 2);
+    const cls  = d.count > 0 ? " has-data" : "";
+    return `<div class="spark-col" title="${d.date}: ${d.count} links">
+      <div class="spark-bar-wrap">
+        <div class="spark-fill${cls}" data-h="${pct}%" style="transition-delay:${i * 55}ms"></div>
+      </div>
+      <div class="spark-day">${day}</div>
+    </div>`;
+  }).join("");
+
+  document.getElementById("spark-total").textContent =
+    total > 0 ? `${total.toLocaleString()} links` : "—";
+
+  // Animate bars after layout settles
+  requestAnimationFrame(() =>
+    setTimeout(() =>
+      el.querySelectorAll(".spark-fill").forEach(b => b.style.height = b.dataset.h),
+      80
+    )
+  );
+}
+
 /* ── Panel toggle ──────────────────────────────────────────────────────────── */
+const ALL_PANELS = ["panel-active", "panel-quiet", "panel-failing"];
+const ALL_CARDS  = ["card-active",  "card-quiet",  "card-failing"];
+
 function togglePanel(cardId, panelId) {
   const card   = document.getElementById(cardId);
   const panel  = document.getElementById(panelId);
   const isOpen = panel.classList.contains("open");
 
-  ["panel-active", "panel-quiet"].forEach(id => {
+  ALL_PANELS.forEach(id => {
     const p = document.getElementById(id);
     p.classList.remove("open");
     setTimeout(() => p.querySelectorAll(".bar-fill").forEach(b => b.style.width = "0%"), 420);
   });
-  ["card-active", "card-quiet"].forEach(id =>
+  ALL_CARDS.forEach(id =>
     document.getElementById(id).setAttribute("aria-expanded", "false")
   );
 
@@ -992,9 +1169,13 @@ function togglePanel(cardId, panelId) {
 }
 
 /* ── Drawer ────────────────────────────────────────────────────────────────── */
-function openDrawer(name, sites, state) {
+function openDrawer(name, sites, state, isFailing = false) {
   const site  = sites.find(s => s.name === name);
   const links = (state[name] || []).slice().reverse();
+
+  const eyebrow = document.getElementById("drawer-eyebrow");
+  eyebrow.textContent = isFailing ? "// Scraper Error — Historical Intel" : "// Source Intel";
+  eyebrow.classList.toggle("red", isFailing);
 
   document.getElementById("drawer-name").textContent = name;
 
@@ -1045,15 +1226,18 @@ function closeDrawer() {
 }
 
 /* ── Update dashboard ──────────────────────────────────────────────────────── */
-function updateDashboard({ sites, activeSites, quietSites, weekTotal, state, updatedAt }) {
+function updateDashboard({ sites, activeSites, quietSites, failingSites, weekTotal, sparkData, state, updatedAt }) {
   document.getElementById("hdr-total").textContent   = sites.length;
   document.getElementById("num-active").textContent  = activeSites.length;
   document.getElementById("num-quiet").textContent   = quietSites.length;
+  document.getElementById("num-failing").textContent = failingSites.length;
   document.getElementById("num-links").textContent   = weekTotal.toLocaleString();
   document.getElementById("hdr-updated").textContent = updatedAt ? `Sync: ${relTime(updatedAt)}` : "";
   document.getElementById("footer-date").textContent = updatedAt ? fmtIso(updatedAt) : "";
   renderActive(activeSites, state);
   renderQuiet(quietSites, state);
+  renderFailing(failingSites, state);
+  renderSparkline(sparkData);
 }
 
 function flashUpdated(updatedAt) {
@@ -1066,14 +1250,16 @@ function flashUpdated(updatedAt) {
 
 function resetUI() {
   closeDrawer();
-  ["panel-active", "panel-quiet"].forEach(id => {
+  ALL_PANELS.forEach(id => {
     const p = document.getElementById(id);
     p.classList.remove("open");
     p.querySelectorAll(".bar-fill").forEach(b => b.style.width = "0%");
   });
-  ["card-active", "card-quiet"].forEach(id =>
+  ALL_CARDS.forEach(id =>
     document.getElementById(id).setAttribute("aria-expanded", "false")
   );
+  // Reset sparkline bars
+  document.querySelectorAll(".spark-fill").forEach(b => b.style.height = "0%");
 }
 
 /* ── Background / manual refresh ──────────────────────────────────────────── */
@@ -1105,6 +1291,8 @@ async function init() {
       .addEventListener("click", () => togglePanel("card-active", "panel-active"));
     document.getElementById("card-quiet")
       .addEventListener("click", () => togglePanel("card-quiet", "panel-quiet"));
+    document.getElementById("card-failing")
+      .addEventListener("click", () => togglePanel("card-failing", "panel-failing"));
     document.getElementById("drawer-close").addEventListener("click", closeDrawer);
     document.getElementById("backdrop").addEventListener("click", closeDrawer);
     document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer(); });
