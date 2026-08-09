@@ -822,6 +822,50 @@
       letter-spacing: 0.06em;
     }
 
+    /* ── Week groups (drawer) ───────────────────────────────────────────── */
+    .week-group { margin-bottom: 2px; }
+
+    .week-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 10px 7px;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      z-index: 1;
+    }
+
+    .week-header.current {
+      color: var(--green);
+      border-bottom-color: rgba(74,246,38,0.2);
+    }
+
+    .week-count {
+      font-variant-numeric: tabular-nums;
+      opacity: 0.7;
+    }
+
+    /* This-week links — persistent green left accent + subtle tint */
+    .fresh-link a {
+      background: rgba(74,246,38,0.03);
+      border-left-color: rgba(74,246,38,0.35);
+    }
+
+    .fresh-link a:hover {
+      background: rgba(74,246,38,0.07);
+      border-left-color: var(--green);
+    }
+
+    .fresh-link .link-slug   { color: var(--text-hi); }
+    .fresh-link .link-prefix { color: rgba(74,246,38,0.45); }
+    .fresh-link a:hover .link-prefix { color: var(--green); }
+
     /* ── Responsive ─────────────────────────────────────────────────────── */
     @media (max-width: 640px) {
       .stats { grid-template-columns: repeat(2, 1fr); }
@@ -965,7 +1009,7 @@
     </div>
   </div>
   <div class="drawer-body">
-    <ul class="links-list" id="links-list"></ul>
+    <div id="links-list"></div>
   </div>
 </div>
 
@@ -975,6 +1019,7 @@ const STALE_DAYS = 7;
 const SKIP_TYPES = new Set(["skip", "html_TODO"]);
 const REFRESH_MS = 15 * 60 * 1000;
 let   lastUpdatedAt = null;
+let   lastSevenDay  = {};
 
 /* ── Utilities ─────────────────────────────────────────────────────────────── */
 function daysSince(iso) {
@@ -1066,7 +1111,7 @@ function derive({ config, state, lastActive, updatedAt }) {
     count: sites.reduce((sum, s) => sum + (sevenDay[s.name]?.[date] || 0), 0),
   }));
 
-  return { sites, activeSites, quietSites, failingSites, weekTotal, sparkData, state, updatedAt };
+  return { sites, activeSites, quietSites, failingSites, weekTotal, sparkData, state, sevenDay, updatedAt };
 }
 
 /* ── Render panels ─────────────────────────────────────────────────────────── */
@@ -1203,6 +1248,81 @@ function togglePanel(cardId, panelId) {
   }
 }
 
+/* ── Link date assignment & grouping ───────────────────────────────────────── */
+function assignLinkDates(name, links) {
+  // links are newest-first; _seven_day_counts gives per-day counts newest→oldest
+  // Map daily counts onto the URL list to infer approximate dates.
+  const counts = lastSevenDay[name] || {};
+  const dates  = Object.keys(counts).sort().reverse(); // newest date first
+  const result = [];
+  let   idx    = 0;
+
+  for (const date of dates) {
+    for (let i = 0; i < counts[date] && idx < links.length; i++, idx++) {
+      result.push({ href: links[idx], date });
+    }
+  }
+  while (idx < links.length) {
+    result.push({ href: links[idx++], date: null });
+  }
+  return result;
+}
+
+function groupLinksByWeek(datedLinks) {
+  const d7  = new Date(Date.now() -  7 * 86_400_000).toISOString().slice(0, 10);
+  const d14 = new Date(Date.now() - 14 * 86_400_000).toISOString().slice(0, 10);
+  const groups = { thisWeek: [], lastWeek: [], older: [] };
+  for (const item of datedLinks) {
+    if (item.date && item.date >= d7)       groups.thisWeek.push(item);
+    else if (item.date && item.date >= d14) groups.lastWeek.push(item);
+    else                                    groups.older.push(item);
+  }
+  return groups;
+}
+
+function renderGroupedLinks(links, name) {
+  const container = document.getElementById("links-list");
+
+  if (links.length === 0) {
+    container.innerHTML = `<div class="no-links">// No links captured yet.</div>`;
+    return;
+  }
+
+  const { thisWeek, lastWeek, older } = groupLinksByWeek(assignLinkDates(name, links));
+
+  const GROUPS = [
+    { label: "This Week",  items: thisWeek, hdrCls: "current", itemCls: "fresh-link" },
+    { label: "Last Week",  items: lastWeek, hdrCls: "",         itemCls: "" },
+    { label: "Older",      items: older,    hdrCls: "",         itemCls: "" },
+  ].filter(g => g.items.length > 0);
+
+  let delay = 0;
+  container.innerHTML = GROUPS.map(g => {
+    const rows = g.items.map(item => {
+      const d = Math.min(delay++ * 28, 420);
+      return `<li class="link-item ${g.itemCls}" style="animation-delay:${d}ms">
+        <a href="${esc(item.href)}" target="_blank" rel="noopener noreferrer">
+          <div><span class="link-prefix">&rarr; </span><span class="link-slug">${urlToSlug(item.href)}</span></div>
+          <div class="link-url">${item.href}</div>
+        </a>
+      </li>`;
+    }).join("");
+
+    const n = g.items.length;
+    return `<div class="week-group">
+      <div class="week-header ${g.hdrCls}">
+        <span>// ${g.label}</span>
+        <span class="week-count">${n} link${n !== 1 ? "s" : ""}</span>
+      </div>
+      <ul class="links-list">${rows}</ul>
+    </div>`;
+  }).join("");
+
+  requestAnimationFrame(() =>
+    container.querySelectorAll(".link-item").forEach(li => li.classList.add("show"))
+  );
+}
+
 /* ── Drawer ────────────────────────────────────────────────────────────────── */
 function openDrawer(name, sites, state, isFailing = false) {
   const site  = sites.find(s => s.name === name);
@@ -1228,26 +1348,11 @@ function openDrawer(name, sites, state, isFailing = false) {
   document.getElementById("d-total").textContent = links.length.toLocaleString();
   document.getElementById("d-week").textContent  = site?.count ? site.count : "—";
 
-  const list = document.getElementById("links-list");
-  if (links.length === 0) {
-    list.innerHTML = `<li class="no-links">// No links captured yet.</li>`;
-  } else {
-    list.innerHTML = links.map((href, i) => `
-      <li class="link-item" style="animation-delay:${Math.min(i * 32, 400)}ms">
-        <a href="${href}" target="_blank" rel="noopener noreferrer">
-          <div><span class="link-prefix">&rarr; </span><span class="link-slug">${urlToSlug(href)}</span></div>
-          <div class="link-url">${href}</div>
-        </a>
-      </li>`).join("");
-  }
+  renderGroupedLinks(links, name);
 
   document.getElementById("drawer").classList.add("open");
   document.getElementById("backdrop").classList.add("visible");
   document.body.style.overflow = "hidden";
-
-  requestAnimationFrame(() =>
-    list.querySelectorAll(".link-item").forEach(li => li.classList.add("show"))
-  );
 }
 
 function closeDrawer() {
@@ -1261,7 +1366,8 @@ function closeDrawer() {
 }
 
 /* ── Update dashboard ──────────────────────────────────────────────────────── */
-function updateDashboard({ sites, activeSites, quietSites, failingSites, weekTotal, sparkData, state, updatedAt }) {
+function updateDashboard({ sites, activeSites, quietSites, failingSites, weekTotal, sparkData, state, sevenDay, updatedAt }) {
+  lastSevenDay = sevenDay;
   document.getElementById("hdr-total").textContent   = sites.length;
   document.getElementById("num-active").textContent  = activeSites.length;
   document.getElementById("num-quiet").textContent   = quietSites.length;
