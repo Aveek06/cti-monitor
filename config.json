@@ -200,8 +200,9 @@
     },
     {
       "name": "Layerx Security",
-      "type": "feed",
-      "url": "https://layerxsecurity.com/feed/"
+      "type": "scrapling_stealthy",
+      "url": "https://layerxsecurity.com/blog/",
+      "link_path_prefix": "/blog/"
     },
     {
       "name": "FBI",
