@@ -135,7 +135,7 @@
     },
     {
       "name": "Europol",
-      "type": "feed",
+      "type": "skip",
       "url": "https://www.europol.europa.eu/rss/",
       "title_keywords": [
         "cyber",
@@ -205,7 +205,7 @@
     },
     {
       "name": "FBI",
-      "type": "feed",
+      "type": "skip",
       "url": "https://www.fbi.gov/rss.xml"
     },
     {
