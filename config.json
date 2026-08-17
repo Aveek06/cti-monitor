@@ -475,8 +475,9 @@
     },
     {
       "name": "Kandji",
-      "type": "feed",
-      "url": "https://www.kandji.io/blog/feed/"
+      "type": "scrapling_stealthy",
+      "url": "https://www.iru.com/blog/tag/threat-intelligence",
+      "link_path_prefix": "/blog/"
     },
     {
       "name": "Praetorian",
