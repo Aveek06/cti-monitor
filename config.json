@@ -783,7 +783,8 @@
     {
       "name": "Sygnia",
       "type": "feed",
-      "url": "https://www.sygnia.co/feed/"
+      "url": "https://www.sygnia.co/feed/",
+      "path_exclude": ["/webinars/"]
     },
     {
       "name": "Zimperium",
