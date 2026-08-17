@@ -809,5 +809,32 @@
     "https://www.elliptic.co/insights/what-webx-tokyo-taught-me-about-japans-readiness-for-on-chain-finance/",
     "https://www.elliptic.co/insights/how-bitcoin-atm-scams-work/",
     "https://www.elliptic.co/insights/crypto-regulatory-affairs-new-regulatory-future/"
+  ],
+  "Open Source Malware": [
+    "https://opensourcemalware.com/blog/stubmaker-rubygems-windows-infostealer",
+    "https://opensourcemalware.com/blog/the-opensourcemalwareshow-episode17",
+    "https://opensourcemalware.com/blog/developer-guide-getting-over-polinrider",
+    "https://opensourcemalware.com/blog/the-opensourcemalwareshow-episode16",
+    "https://opensourcemalware.com/blog/russian-ai-slopsquatting-npm-campaign",
+    "https://opensourcemalware.com/blog/new-npm-worm-keyv-cachable",
+    "https://opensourcemalware.com/blog/nullreceiver-dprk-c2-technique",
+    "https://opensourcemalware.com/blog/the-opensourcemalwareshow-episode15",
+    "https://opensourcemalware.com/blog/polinrider-caused-dozens-of-npm-and-go-compromises",
+    "https://opensourcemalware.com/blog/npm-prepublication-malware-scanning",
+    "https://opensourcemalware.com/blog/opensourcemalware-show-episode14",
+    "https://opensourcemalware.com/blog/chainveil-and-vitevenom-dprk-polinrider-campaign",
+    "https://opensourcemalware.com/blog/opensourcemalware-show-episode13",
+    "https://opensourcemalware.com/blog/polinrider-blast-radius-grows",
+    "https://opensourcemalware.com/blog/cybersecurity-startup-publishes-infostealers-to-npm",
+    "https://opensourcemalware.com/blog/opensourcemalware-show-episode12",
+    "https://opensourcemalware.com/blog/polinrider-jumps-the-fence",
+    "https://opensourcemalware.com/blog/opensourcemalware-show-episode11",
+    "https://opensourcemalware.com/blog/opensourcemalware-show-episode10",
+    "https://opensourcemalware.com/blog/opensourcemalware-show-episode09",
+    "https://opensourcemalware.com/blog/mastra-npm-malware",
+    "https://opensourcemalware.com/blog/opensourcemalware-show-episode08",
+    "https://opensourcemalware.com/blog/npm-v12",
+    "https://opensourcemalware.com/blog/active-malware-campaigns-in-january-may-2026",
+    "https://opensourcemalware.com/blog/miasma-blight-reaches-microsoft-73-repos-disabled-in-105-seconds"
   ]
 }

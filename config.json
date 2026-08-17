@@ -1397,6 +1397,12 @@
       "link_path_prefix": "/blog/blog/",
       "path_exclude": ["/author/", "/tag/"],
       "notes": "No RSS. scrapling_fetcher 200. Articles at /blog/blog/slug (double path). 9 current articles."
+    },
+    {
+      "name": "Open Source Malware",
+      "type": "feed",
+      "url": "https://opensourcemalware.com/rss.xml",
+      "link_path_prefix": "/blog/"
     }
   ]
 }
