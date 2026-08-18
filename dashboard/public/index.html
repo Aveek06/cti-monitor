@@ -1434,18 +1434,29 @@ function buildGlobalLinks(state, sevenDay) {
   const all = [];
   for (const [name, urls] of Object.entries(state)) {
     if (!Array.isArray(urls) || urls.length === 0) continue;
-    const reversed = [...urls].reverse(); // newest first
-    const counts   = sevenDay[name] || {};
-    const dates    = Object.keys(counts).sort().reverse(); // newest date first
-    let idx = 0;
+    const counts = sevenDay[name] || {};
+    const dates  = Object.keys(counts).sort().reverse(); // newest date first
+    const total  = dates.reduce((s, d) => s + (counts[d] || 0), 0);
+    if (total === 0) continue;
+
+    // Scrapers discover newest articles first and append them in that order,
+    // so the END of state holds the most recently appended links. Within each
+    // run's batch: lower index = newer publication, higher index = older pub.
+    const recent = urls.slice(-total);
+
+    // Assign dates from the END of 'recent' (most-recently-appended = newest date).
+    // Each batch slice preserves within-run order: newest publication first.
+    let end = recent.length;
     for (const date of dates) {
-      for (let i = 0; i < counts[date] && idx < reversed.length; i++, idx++) {
-        all.push({ href: reversed[idx], date, site: name });
-      }
+      const n     = counts[date] || 0;
+      const start = Math.max(end - n, 0);
+      const batch = recent.slice(start, end);
+      for (const href of batch) all.push({ href, date, site: name });
+      end = start;
+      if (end <= 0) break;
     }
-    // Undated links are skipped — they have no reliable recency signal
   }
-  // All entries have a date; sort newest-first
+
   all.sort((a, b) => b.date.localeCompare(a.date));
   return all.slice(0, 100);
 }
