@@ -876,8 +876,97 @@
       .spark-total { font-size: 16px; }
     }
 
+    /* ── Links modal ──────────────────────────────────────────────────────── */
+    .lm-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.72);
+      z-index: 300;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.22s ease;
+    }
+    .lm-backdrop.visible { opacity: 1; pointer-events: auto; }
+
+    .lm-modal {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -46%);
+      width: min(680px, 94vw);
+      max-height: 82vh;
+      background: #0D0D0D;
+      border: 1px solid var(--border-hi);
+      display: flex; flex-direction: column;
+      z-index: 301;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.22s ease, transform 0.22s var(--ease);
+    }
+    .lm-modal.open {
+      opacity: 1; pointer-events: auto;
+      transform: translate(-50%, -50%);
+    }
+
+    .lm-hd {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px 14px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .lm-title {
+      font-size: 11px; letter-spacing: 0.08em;
+      color: var(--text-dim); text-transform: uppercase;
+    }
+    .lm-title-count { color: var(--green); margin-left: 8px; }
+
+    .lm-search-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 11px 20px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .lm-search-prefix { color: var(--green); font-size: 13px; flex-shrink: 0; }
+    #lm-search {
+      flex: 1; background: none; border: none; outline: none;
+      font: inherit; font-size: 13px;
+      color: var(--text); caret-color: var(--green);
+    }
+    #lm-search::placeholder { color: var(--text-muted); }
+
+    .lm-body {
+      flex: 1; overflow-y: auto; padding: 4px 0;
+    }
+    .lm-body::-webkit-scrollbar { width: 3px; }
+    .lm-body::-webkit-scrollbar-thumb { background: var(--border-hi); }
+
+    .lm-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 8px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .lm-row:last-child { border-bottom: none; }
+    .lm-row:hover { background: rgba(255,255,255,0.02); }
+    .lm-row a { color: inherit; text-decoration: none; flex: 1; min-width: 0; }
+    .lm-site {
+      font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--green); opacity: 0.8;
+      flex-shrink: 0; width: 110px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .lm-slug {
+      font-size: 12px; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
+    }
+    .lm-url {
+      font-size: 10px; color: var(--text-muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
+    }
+    .lm-row:hover .lm-slug { color: var(--green); }
+    .lm-empty {
+      padding: 48px 20px; text-align: center;
+      font-size: 12px; color: var(--text-muted);
+    }
+
     @media (prefers-reduced-motion: reduce) {
-      *, .panel, .drawer, .stat-card, .cursor, .status-dot, .spark-fill
+      *, .panel, .drawer, .stat-card, .cursor, .status-dot, .spark-fill,
+        .lm-modal, .lm-backdrop
         { transition: none !important; animation: none !important; }
       .site-row  { opacity: 1 !important; }
       .link-item { opacity: 1 !important; }
@@ -945,10 +1034,11 @@
           <span class="stat-label">Scraper Errors</span>
           <span class="stat-arrow">▾</span>
         </button>
-        <div class="stat-card">
+        <button class="stat-card" id="card-links">
           <span class="stat-num" id="num-links">—</span>
           <span class="stat-label">Links / 7 Days</span>
-        </div>
+          <span class="stat-arrow">▾</span>
+        </button>
       </div>
 
       <!-- Active sources panel -->
@@ -1013,6 +1103,20 @@
   </div>
 </div>
 
+<!-- Links modal -->
+<div class="lm-backdrop" id="lm-backdrop"></div>
+<div class="lm-modal" id="lm-modal" role="dialog" aria-modal="true" aria-label="Recent Links">
+  <div class="lm-hd">
+    <div class="lm-title">// Recent Links <span class="lm-title-count" id="lm-count"></span></div>
+    <button class="drawer-close" id="lm-close" aria-label="Close">✕</button>
+  </div>
+  <div class="lm-search-bar">
+    <span class="lm-search-prefix">&gt;</span>
+    <input type="text" id="lm-search" placeholder="Search sites, links, URLs..." autocomplete="off" spellcheck="false">
+  </div>
+  <div class="lm-body" id="lm-body"></div>
+</div>
+
 <script>
 /* ── Constants ─────────────────────────────────────────────────────────────── */
 const STALE_DAYS = 7;
@@ -1020,6 +1124,8 @@ const SKIP_TYPES = new Set(["skip", "html_TODO"]);
 const REFRESH_MS = 15 * 60 * 1000;
 let   lastUpdatedAt = null;
 let   lastSevenDay  = {};
+let   lastState     = {};
+let   _lmAllLinks   = [];
 
 /* ── Utilities ─────────────────────────────────────────────────────────────── */
 function daysSince(iso) {
@@ -1323,6 +1429,81 @@ function renderGroupedLinks(links, name) {
   );
 }
 
+/* ── Global links modal ────────────────────────────────────────────────────── */
+function buildGlobalLinks(state, sevenDay) {
+  const all = [];
+  for (const [name, urls] of Object.entries(state)) {
+    if (!Array.isArray(urls) || urls.length === 0) continue;
+    const reversed = [...urls].reverse();
+    const counts   = sevenDay[name] || {};
+    const dates    = Object.keys(counts).sort().reverse();
+    let idx = 0;
+    for (const date of dates) {
+      for (let i = 0; i < counts[date] && idx < reversed.length; i++, idx++) {
+        all.push({ href: reversed[idx], date, site: name });
+      }
+    }
+    while (idx < reversed.length) {
+      all.push({ href: reversed[idx++], date: null, site: name });
+    }
+  }
+  all.sort((a, b) => {
+    if (a.date && b.date) return b.date.localeCompare(a.date);
+    if (a.date) return -1;
+    if (b.date) return 1;
+    return 0;
+  });
+  return all.slice(0, 100);
+}
+
+function renderLmRows(links) {
+  const body = document.getElementById("lm-body");
+  if (links.length === 0) {
+    body.innerHTML = `<div class="lm-empty">// No links match.</div>`;
+    return;
+  }
+  body.innerHTML = links.map(item =>
+    `<div class="lm-row">
+      <span class="lm-site">${esc(item.site)}</span>
+      <a href="${esc(item.href)}" target="_blank" rel="noopener noreferrer">
+        <span class="lm-slug">${urlToSlug(item.href)}</span>
+        <span class="lm-url">${esc(item.href)}</span>
+      </a>
+    </div>`
+  ).join("");
+}
+
+function openLinksModal() {
+  _lmAllLinks = buildGlobalLinks(lastState, lastSevenDay);
+  document.getElementById("lm-count").textContent = _lmAllLinks.length;
+  document.getElementById("lm-search").value = "";
+  renderLmRows(_lmAllLinks);
+  document.getElementById("lm-modal").classList.add("open");
+  document.getElementById("lm-backdrop").classList.add("visible");
+  document.body.style.overflow = "hidden";
+  setTimeout(() => document.getElementById("lm-search").focus(), 180);
+}
+
+function closeLinksModal() {
+  document.getElementById("lm-modal").classList.remove("open");
+  document.getElementById("lm-backdrop").classList.remove("visible");
+  document.body.style.overflow = "";
+}
+
+function filterLm(query) {
+  const q = query.toLowerCase().trim();
+  const filtered = q
+    ? _lmAllLinks.filter(l =>
+        l.site.toLowerCase().includes(q) ||
+        l.href.toLowerCase().includes(q) ||
+        urlToSlug(l.href).toLowerCase().includes(q)
+      )
+    : _lmAllLinks;
+  document.getElementById("lm-count").textContent =
+    q ? `${filtered.length} / ${_lmAllLinks.length}` : _lmAllLinks.length;
+  renderLmRows(filtered);
+}
+
 /* ── Drawer ────────────────────────────────────────────────────────────────── */
 function openDrawer(name, sites, state, isFailing = false) {
   const site  = sites.find(s => s.name === name);
@@ -1368,6 +1549,7 @@ function closeDrawer() {
 /* ── Update dashboard ──────────────────────────────────────────────────────── */
 function updateDashboard({ sites, activeSites, quietSites, failingSites, weekTotal, sparkData, state, sevenDay, updatedAt }) {
   lastSevenDay = sevenDay;
+  lastState    = state;
   document.getElementById("hdr-total").textContent   = sites.length;
   document.getElementById("num-active").textContent  = activeSites.length;
   document.getElementById("num-quiet").textContent   = quietSites.length;
@@ -1434,9 +1616,13 @@ async function init() {
       .addEventListener("click", () => togglePanel("card-quiet", "panel-quiet"));
     document.getElementById("card-failing")
       .addEventListener("click", () => togglePanel("card-failing", "panel-failing"));
+    document.getElementById("card-links").addEventListener("click", openLinksModal);
     document.getElementById("drawer-close").addEventListener("click", closeDrawer);
     document.getElementById("backdrop").addEventListener("click", closeDrawer);
-    document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer(); });
+    document.getElementById("lm-close").addEventListener("click", closeLinksModal);
+    document.getElementById("lm-backdrop").addEventListener("click", closeLinksModal);
+    document.getElementById("lm-search").addEventListener("input", e => filterLm(e.target.value));
+    document.addEventListener("keydown", e => { if (e.key === "Escape") { closeDrawer(); closeLinksModal(); } });
 
     document.getElementById("view-loading").style.display = "none";
     document.getElementById("view-dashboard").style.display = "block";
