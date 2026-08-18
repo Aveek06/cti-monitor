@@ -933,7 +933,7 @@ def send_digest_email(new_items, failures, duplicate_links=None):
     </body></html>
     """
 
-    recipients = [r.strip() for r in EMAIL_TO.split(",") if r.strip()]
+    recipients = [r for r in re.split(r'[,\s]+', EMAIL_TO.strip()) if r]
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = f"CTI Monitor: {len(new_items)} new post(s) - {datetime.now().strftime('%Y-%m-%d')}"
