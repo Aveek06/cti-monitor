@@ -1122,10 +1122,11 @@
 const STALE_DAYS = 7;
 const SKIP_TYPES = new Set(["skip", "html_TODO"]);
 const REFRESH_MS = 15 * 60 * 1000;
-let   lastUpdatedAt = null;
-let   lastSevenDay  = {};
-let   lastState     = {};
-let   _lmAllLinks   = [];
+let   lastUpdatedAt   = null;
+let   lastSevenDay    = {};
+let   lastState       = {};
+let   lastPrevRunLinks = [];
+let   _lmAllLinks     = [];
 
 /* ── Utilities ─────────────────────────────────────────────────────────────── */
 function daysSince(iso) {
@@ -1173,7 +1174,7 @@ async function loadData(bust = false) {
   return res.json();
 }
 
-function derive({ config, state, lastActive, updatedAt }) {
+function derive({ config, state, lastActive, prevRunLinks, updatedAt }) {
   const cutoff    = new Date(Date.now() - STALE_DAYS * 86_400_000);
   const cutoffStr = cutoff.toISOString().slice(0, 10);
   const failing   = new Set(lastActive._currently_failing || []);
@@ -1217,7 +1218,7 @@ function derive({ config, state, lastActive, updatedAt }) {
     count: sites.reduce((sum, s) => sum + (sevenDay[s.name]?.[date] || 0), 0),
   }));
 
-  return { sites, activeSites, quietSites, failingSites, weekTotal, sparkData, state, sevenDay, updatedAt };
+  return { sites, activeSites, quietSites, failingSites, weekTotal, sparkData, state, sevenDay, prevRunLinks: prevRunLinks || [], updatedAt };
 }
 
 /* ── Render panels ─────────────────────────────────────────────────────────── */
@@ -1430,35 +1431,52 @@ function renderGroupedLinks(links, name) {
 }
 
 /* ── Global links modal ────────────────────────────────────────────────────── */
-function buildGlobalLinks(state, sevenDay) {
-  const all = [];
+function buildGlobalLinks(state, sevenDay, prevRunLinks) {
+  const MAX   = 150;
+  const today = new Date().toISOString().slice(0, 10);
+
+  // Reverse map: URL → site name (scan last 100 per site — covers recent runs)
+  const urlSiteMap = new Map();
+  for (const [site, urls] of Object.entries(state)) {
+    if (!Array.isArray(urls)) continue;
+    for (const url of urls.slice(-100)) urlSiteMap.set(url, site);
+  }
+
+  // Primary: definitive new links from the most recent run
+  const seen    = new Set();
+  const primary = [];
+  for (const href of (prevRunLinks || [])) {
+    const site = urlSiteMap.get(href);
+    if (!site) continue;
+    primary.push({ href, site, date: today });
+    seen.add(href);
+  }
+
+  // Secondary: links from previous days via _seven_day_counts
+  const secondary = [];
   for (const [name, urls] of Object.entries(state)) {
     if (!Array.isArray(urls) || urls.length === 0) continue;
     const counts = sevenDay[name] || {};
-    const dates  = Object.keys(counts).sort().reverse(); // newest date first
+    // Only days strictly before today (today's links are already in primary)
+    const dates  = Object.keys(counts).sort().reverse().filter(d => d < today);
     const total  = dates.reduce((s, d) => s + (counts[d] || 0), 0);
     if (total === 0) continue;
 
-    // Scrapers discover newest articles first and append them in that order,
-    // so the END of state holds the most recently appended links. Within each
-    // run's batch: lower index = newer publication, higher index = older pub.
     const recent = urls.slice(-total);
-
-    // Assign dates from the END of 'recent' (most-recently-appended = newest date).
-    // Each batch slice preserves within-run order: newest publication first.
     let end = recent.length;
     for (const date of dates) {
       const n     = counts[date] || 0;
       const start = Math.max(end - n, 0);
-      const batch = recent.slice(start, end);
-      for (const href of batch) all.push({ href, date, site: name });
+      for (const href of recent.slice(start, end)) {
+        if (!seen.has(href)) { secondary.push({ href, date, site: name }); seen.add(href); }
+      }
       end = start;
       if (end <= 0) break;
     }
   }
+  secondary.sort((a, b) => b.date.localeCompare(a.date));
 
-  all.sort((a, b) => b.date.localeCompare(a.date));
-  return all.slice(0, 100);
+  return [...primary, ...secondary].slice(0, MAX);
 }
 
 function renderLmRows(links) {
@@ -1479,7 +1497,7 @@ function renderLmRows(links) {
 }
 
 function openLinksModal() {
-  _lmAllLinks = buildGlobalLinks(lastState, lastSevenDay);
+  _lmAllLinks = buildGlobalLinks(lastState, lastSevenDay, lastPrevRunLinks);
   document.getElementById("lm-count").textContent = _lmAllLinks.length;
   document.getElementById("lm-search").value = "";
   renderLmRows(_lmAllLinks);
@@ -1552,9 +1570,10 @@ function closeDrawer() {
 }
 
 /* ── Update dashboard ──────────────────────────────────────────────────────── */
-function updateDashboard({ sites, activeSites, quietSites, failingSites, weekTotal, sparkData, state, sevenDay, updatedAt }) {
-  lastSevenDay = sevenDay;
-  lastState    = state;
+function updateDashboard({ sites, activeSites, quietSites, failingSites, weekTotal, sparkData, state, sevenDay, prevRunLinks, updatedAt }) {
+  lastSevenDay     = sevenDay;
+  lastState        = state;
+  lastPrevRunLinks = prevRunLinks || [];
   document.getElementById("hdr-total").textContent   = sites.length;
   document.getElementById("num-active").textContent  = activeSites.length;
   document.getElementById("num-quiet").textContent   = quietSites.length;
