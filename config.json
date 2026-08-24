@@ -482,8 +482,9 @@
     },
     {
       "name": "Praetorian",
-      "type": "feed",
-      "url": "https://www.praetorian.com/feed/"
+      "type": "scrapling",
+      "url": "https://www.praetorian.com/blog/",
+      "link_path_prefix": "/blog/"
     },
     {
       "name": "Red Canary",
