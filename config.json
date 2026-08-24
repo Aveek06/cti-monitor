@@ -1253,15 +1253,10 @@
       "notes": "Blog moved from blog.sekoia.io to www.sekoia.com/blog (301 redirect). Feed dead. scrapling_fetcher on new URL."
     },
     {
-      "name": "Speartip",
-      "type": "html",
-      "url": "https://us.zurichresilience.com/cybersecurity/articles-and-insights",
-      "post_container": "div.card-content",
-      "link_selector": "a",
-      "date_selector": null,
-      "date_format": "auto",
-      "needs_js": true,
-      "notes": "speartip.com redirects to us.zurichresilience.com; us. subdomain required â€” www. does not render article cards in headless browser. 18 card-content hits, sampleHref=real article."
+      “name”: “Speartip”,
+      “type”: “scrapling”,
+      “url”: “https://www.zurichresilience.com/knowledge-and-insights-hub”,
+      “link_path_prefix”: “/knowledge-and-insights-hub”
     },
     {
       "name": "Koi Security",
