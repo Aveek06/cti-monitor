@@ -1254,7 +1254,7 @@
     },
     {
       “name”: “Speartip”,
-      “type”: “scrapling”,
+      “type”: “scrapling_stealthy”,
       “url”: “https://www.zurichresilience.com/knowledge-and-insights-hub”,
       “link_path_prefix”: “/knowledge-and-insights-hub”
     },
