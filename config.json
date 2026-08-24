@@ -120,8 +120,9 @@
     },
     {
       "name": "DarkTrace",
-      "type": "feed",
-      "url": "https://www.darktrace.com/blog/rss.xml"
+      "type": "scrapling_stealthy",
+      "url": "https://www.darktrace.com/blog/",
+      "link_path_prefix": "/blog/"
     },
     {
       "name": "Cybereason",
