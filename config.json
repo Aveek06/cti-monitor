@@ -317,11 +317,6 @@
       "path_exclude": ["/resource/case-study/"]
     },
     {
-      "name": "g0njxa Medium Blog",
-      "type": "feed",
-      "url": "https://g0njxa.medium.com/feed/"
-    },
-    {
       "name": "ASEC",
       "type": "feed",
       "url": "https://asec.ahnlab.com/en/feed/"
@@ -700,16 +695,6 @@
       "name": "Unit 42- Palo Alto Networks",
       "type": "feed",
       "url": "https://unit42.paloaltonetworks.com/feed/"
-    },
-    {
-      "name": "US Treasury",
-      "type": "feed",
-      "url": "https://home.treasury.gov/rss.xml"
-    },
-    {
-      "name": "US Department of Justice",
-      "type": "feed",
-      "url": "https://www.justice.gov/rss.xml"
     },
     {
       "name": "Vmware",
