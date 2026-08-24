@@ -1305,12 +1305,9 @@
     },
     {
       "name": "StrongestLayer",
-      "type": "html_auto",
-      "url": "https://www.strongestlayer.com/research",
-      "notes": "html_auto; research page links to /white-paper/ paths; seeded 19 papers",
-      "link_path_prefix": "/white-paper/",
-      "path_exclude": [],
-      "min_slug_length": 8
+      "type": "scrapling",
+      "url": "https://www.strongestlayer.com/blog",
+      "link_path_prefix": "/blog/"
     },
     {
       "name": "Interlab",
