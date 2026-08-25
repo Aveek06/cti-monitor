@@ -1238,10 +1238,10 @@
       "notes": "Blog moved from blog.sekoia.io to www.sekoia.com/blog (301 redirect). Feed dead. scrapling_fetcher on new URL."
     },
     {
-      “name”: “Speartip”,
-      “type”: “scrapling_stealthy”,
-      “url”: “https://www.zurichresilience.com/knowledge-and-insights-hub”,
-      “link_path_prefix”: “/knowledge-and-insights-hub”
+      "name": "Speartip",
+      "type": "scrapling_stealthy",
+      "url": "https://www.zurichresilience.com/knowledge-and-insights-hub",
+      "link_path_prefix": "/knowledge-and-insights-hub"
     },
     {
       "name": "Koi Security",
