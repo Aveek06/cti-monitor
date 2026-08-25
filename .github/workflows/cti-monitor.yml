@@ -58,7 +58,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install feedparser requests playwright beautifulsoup4 crawl4ai "scrapling[fetchers]"
+          pip install feedparser requests playwright beautifulsoup4 crawl4ai "scrapling[fetchers]" anthropic
           playwright install chromium
           crawl4ai-setup
           scrapling install
@@ -100,6 +100,7 @@ jobs:
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python run_check.py config.json state.json last_active.json prev_run_links.json
 
       - name: Send weekly stale-sites report

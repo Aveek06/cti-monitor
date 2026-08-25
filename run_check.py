@@ -39,9 +39,33 @@ SMTP_USERNAME = os.environ.get("SMTP_USERNAME", "")
 SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
 EMAIL_FROM = SMTP_USERNAME
 EMAIL_TO = os.environ.get("EMAIL_TO", SMTP_USERNAME)
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
 MAX_SEEN_PER_SITE = 2000  # cap stored history so state.json doesn't grow forever
 STALE_ARTICLE_DAYS = 7   # articles older than this are suppressed from the digest email
+
+
+def summarize_article(url, client):
+    """Fetch article content and return a 1-2 sentence CTI summary, or '' on failure."""
+    try:
+        slug = url.rstrip("/").split("/")[-1].replace("-", " ").replace("_", " ")
+        resp = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
+        soup = BeautifulSoup(resp.text, "html.parser")
+        for tag in soup(["nav", "header", "footer", "script", "style", "aside", "form"]):
+            tag.decompose()
+        text = soup.get_text(separator=" ", strip=True)[:4000]
+        msg = client.messages.create(
+            model="claude-haiku-4-5",
+            max_tokens=150,
+            messages=[{"role": "user", "content":
+                f"Title hint: {slug}\n\nContent:\n{text}\n\n"
+                "Summarize this cybersecurity article in 1-2 sentences. "
+                "Focus on the specific threat, technique, or finding. Be concrete and brief."}]
+        )
+        return msg.content[0].text.strip()
+    except Exception as e:
+        print(f"  [summarize] {url[:70]}: {e}")
+        return ""
 
 
 def load_json(path, default):
@@ -893,8 +917,10 @@ def normalize_date(date_str):
 def send_digest_email(new_items, failures, duplicate_links=None):
     rows_html = ""
     for item in new_items:
+        summary_html = (f"<br><span style='color:#888;font-size:11px;font-style:italic'>"
+                        f"{item['summary']}</span>" if item.get("summary") else "")
         rows_html += (f"<tr><td>{item['date']}</td><td>{item['date_source']}</td>"
-                       f"<td><a href='{item['link']}'>{item['link']}</a></td>"
+                       f"<td><a href='{item['link']}'>{item['link']}</a>{summary_html}</td>"
                        f"<td>{item['site']}</td></tr>")
 
     failures_html = ""
@@ -961,7 +987,11 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
         raise ValueError(f"Duplicate site names in config (fix before running): {dupes}")
 
     state = load_json(state_path, {})
-    prev_run_links = set(load_json(prev_links_path, []))
+    raw_prev = load_json(prev_links_path, [])
+    if raw_prev and isinstance(raw_prev[0], dict):
+        prev_run_links = set(item["url"] for item in raw_prev)
+    else:
+        prev_run_links = set(raw_prev)
 
     last_active = load_json(last_active_path, {})
     now_iso = datetime.now(timezone.utc).isoformat()
@@ -1069,13 +1099,11 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
     save_json(last_active_path, last_active)
 
     # Compare with previous run — any link appearing as new in both runs is a state bug
-    current_links = [item["link"] for item in new_items]
     duplicate_links = [item for item in new_items if item["link"] in prev_run_links]
     if duplicate_links:
         print(f"WARNING: {len(duplicate_links)} link(s) also appeared as new in the previous run:")
         for d in duplicate_links:
             print(f"  [{d['site']}] {d['link']}")
-    save_json(prev_links_path, current_links)
 
     # Filter articles older than STALE_ARTICLE_DAYS from the digest.
     # "detected" means no date was found and today was assigned — always treat as fresh.
@@ -1091,6 +1119,24 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
         print(f"Suppressed {len(stale_items)} stale article(s) older than {STALE_ARTICLE_DAYS} days (still added to state):")
         for item in stale_items:
             print(f"  [{item['site']}] {item['date']} {item['link']}")
+
+    # Summarise fresh articles via Claude Haiku
+    if ANTHROPIC_API_KEY and fresh_items:
+        try:
+            import anthropic as _anthropic
+            _ai = _anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+            print(f"Summarising {len(fresh_items)} article(s)...")
+            for item in fresh_items:
+                item["summary"] = summarize_article(item["link"], _ai)
+        except Exception as e:
+            print(f"Summarisation skipped: {e}")
+
+    # Save enriched prev_run_links (URL + summary + metadata) for dashboard
+    save_json(prev_links_path, [
+        {"url": item["link"], "site": item["site"], "date": item["date"],
+         "summary": item.get("summary", "")}
+        for item in new_items
+    ])
 
     print(f"Run complete: {len(fresh_items)} new post(s) in digest ({len(stale_items)} stale suppressed), {len(failures)} site(s) failed.")
     send_digest_email(fresh_items, failures, duplicate_links or None)
