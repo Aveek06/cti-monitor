@@ -35,7 +35,7 @@ def load_json(path, default):
         return default
 
 
-def send_stale_email(stale_sites, active_sites, total_active, report_date):
+def send_stale_email(stale_sites, active_sites, total_active, report_date, ai_weekly_cost=0.0):
     # ── palette (dark theme, inline styles for email compatibility) ───────────
     BG       = "#0d1117"
     SURFACE  = "#161b22"
@@ -151,6 +151,14 @@ def send_stale_email(stale_sites, active_sites, total_active, report_date):
         <span style="font-size:11px;color:{DIM};text-transform:uppercase;
           letter-spacing:.06em;margin-left:6px;">Links This Week</span>
       </td>
+      {'<td width="8" style="font-size:0;">&nbsp;</td>'
+       f'<td style="background:{SURFACE2};border:1px solid {BORDER};border-radius:6px;'
+       f'padding:6px 12px;white-space:nowrap;">'
+       f'<span style="font-family:monospace;font-size:20px;font-weight:600;'
+       f'color:{DIM};line-height:1;">${ai_weekly_cost:.4f}</span>'
+       f'<span style="font-size:11px;color:{DIM};text-transform:uppercase;'
+       f'letter-spacing:.06em;margin-left:6px;">AI Cost (7d)</span></td>'
+       if ai_weekly_cost > 0 else ''}
     </tr>
     </table>
   </td></tr>
@@ -312,6 +320,10 @@ def main(config_path, last_active_path):
 
     report_date = now.strftime("%Y-%m-%d")
 
+    # Sum 7-day AI cost from last_active["_ai_cost"]
+    ai_cost_by_day = last_active.get("_ai_cost", {})
+    ai_weekly_cost = sum(v for k, v in ai_cost_by_day.items() if k >= cutoff_str)
+
     if not stale_sites:
         print(
             f"Weekly stale-sites check ({report_date}): "
@@ -322,9 +334,10 @@ def main(config_path, last_active_path):
     print(
         f"Weekly stale-sites check ({report_date}): "
         f"{len(stale_sites)} of {total_active} site(s) stale. "
-        f"{len(active_sites)} site(s) with 7-day activity data."
+        f"{len(active_sites)} site(s) with 7-day activity data. "
+        f"7-day AI cost: ${ai_weekly_cost:.4f}"
     )
-    send_stale_email(stale_sites, active_sites, total_active, report_date)
+    send_stale_email(stale_sites, active_sites, total_active, report_date, ai_weekly_cost)
 
 
 if __name__ == "__main__":

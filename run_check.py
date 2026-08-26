@@ -45,8 +45,12 @@ MAX_SEEN_PER_SITE = 2000  # cap stored history so state.json doesn't grow foreve
 STALE_ARTICLE_DAYS = 7   # articles older than this are suppressed from the digest email
 
 
+HAIKU_COST_PER_INPUT  = 1.0 / 1_000_000   # $1.00 per 1M input tokens
+HAIKU_COST_PER_OUTPUT = 5.0 / 1_000_000   # $5.00 per 1M output tokens
+
+
 def summarize_article(url, client):
-    """Fetch article content and return a 1-2 sentence CTI summary, or '' on failure."""
+    """Fetch article and return (summary, input_tokens, output_tokens). Summary is '' on failure."""
     try:
         slug = url.rstrip("/").split("/")[-1].replace("-", " ").replace("_", " ")
         resp = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
@@ -62,10 +66,10 @@ def summarize_article(url, client):
                 "Summarize this cybersecurity article in 1-2 sentences. "
                 "Focus on the specific threat, technique, or finding. Be concrete and brief."}]
         )
-        return msg.content[0].text.strip()
+        return msg.content[0].text.strip(), msg.usage.input_tokens, msg.usage.output_tokens
     except Exception as e:
         print(f"  [summarize] {url[:70]}: {e}")
-        return ""
+        return "", 0, 0
 
 
 def load_json(path, default):
@@ -914,7 +918,7 @@ def normalize_date(date_str):
     return datetime.now(timezone.utc).strftime("%Y-%m-%d"), "detected"
 
 
-def send_digest_email(new_items, failures, duplicate_links=None):
+def send_digest_email(new_items, failures, duplicate_links=None, ai_run_cost=0.0, ioc_results=None):
     rows_html = ""
     for item in new_items:
         summary_html = (f"<br><span style='color:#888;font-size:11px;font-style:italic'>"
@@ -950,12 +954,45 @@ def send_digest_email(new_items, failures, duplicate_links=None):
         </table>
         """
 
+    ioc_html = ""
+    if ioc_results:
+        def _ioc_table(rows, cap=20):
+            if not rows:
+                return "<p style='color:#888;font-size:12px'>None.</p>"
+            shown = rows[:cap]
+            trs = "".join(
+                f"<tr><td style='font-family:monospace;font-size:11px'>{r['value'][:60]}</td>"
+                f"<td>{r['type']}</td>"
+                f"<td>{r.get('attributed_apt') or '—'}</td>"
+                f"<td>{r.get('score', '—')}</td></tr>"
+                for r in shown
+            )
+            more = f"<p style='color:#888;font-size:11px'>… and {len(rows)-cap} more</p>" if len(rows) > cap else ""
+            return (
+                "<table border='1' cellpadding='4' cellspacing='0' style='font-size:12px'>"
+                "<tr><th>Indicator</th><th>Type</th><th>APT</th><th>Score</th></tr>"
+                f"{trs}</table>{more}"
+            )
+        ioc_html = (
+            f"<hr><h3>IOC Extraction — This Run</h3>"
+            f"<h4>New ({len(ioc_results['new'])})</h4>{_ioc_table(ioc_results['new'])}"
+            f"<h4>Active — Score &ge; 30 ({len(ioc_results['active'])})</h4>{_ioc_table(ioc_results['active'])}"
+            f"<h4>Expiring — Score &lt; 30 ({len(ioc_results['expiring'])})</h4>{_ioc_table(ioc_results['expiring'])}"
+        )
+
+    ai_cost_html = ""
+    if ai_run_cost > 0:
+        ai_cost_html = (f"<p style='color:#888;font-size:11px;margin-top:24px;border-top:1px solid #eee;padding-top:8px'>"
+                        f"AI summarisation cost this run: <b>${ai_run_cost:.4f}</b> (Claude Haiku 4.5)</p>")
+
     html = f"""
     <html><body>
     <h2>CTI Source Monitor - New Posts ({len(new_items)})</h2>
     {body_html}
     {failures_html}
     {duplicates_html}
+    {ioc_html}
+    {ai_cost_html}
     </body></html>
     """
 
@@ -1120,14 +1157,29 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
         for item in stale_items:
             print(f"  [{item['site']}] {item['date']} {item['link']}")
 
-    # Summarise fresh articles via Claude Haiku
+    # Summarise fresh articles via Claude Haiku, tracking token usage for cost reporting
+    ai_run_cost = 0.0
     if ANTHROPIC_API_KEY and fresh_items:
         try:
             import anthropic as _anthropic
             _ai = _anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
             print(f"Summarising {len(fresh_items)} article(s)...")
+            total_input_tokens = 0
+            total_output_tokens = 0
             for item in fresh_items:
-                item["summary"] = summarize_article(item["link"], _ai)
+                summary, inp, out = summarize_article(item["link"], _ai)
+                item["summary"] = summary
+                total_input_tokens += inp
+                total_output_tokens += out
+            ai_run_cost = (total_input_tokens * HAIKU_COST_PER_INPUT +
+                           total_output_tokens * HAIKU_COST_PER_OUTPUT)
+            print(f"AI cost this run: {total_input_tokens} input + {total_output_tokens} output tokens = ${ai_run_cost:.6f}")
+            # Accumulate daily AI cost in last_active for the weekly report
+            ai_cost_by_day = last_active.setdefault("_ai_cost", {})
+            ai_cost_by_day[today_str] = round(ai_cost_by_day.get(today_str, 0.0) + ai_run_cost, 8)
+            for old_date in [d for d in list(ai_cost_by_day) if d < cutoff_str]:
+                del ai_cost_by_day[old_date]
+            save_json(last_active_path, last_active)
         except Exception as e:
             print(f"Summarisation skipped: {e}")
 
@@ -1138,8 +1190,17 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
         for item in new_items
     ])
 
+    # Run IOC extraction pipeline on fresh articles
+    ioc_results = {"new": [], "active": [], "expiring": []}
+    if fresh_items:
+        try:
+            from ioc_pipeline import run as run_ioc_pipeline
+            ioc_results = run_ioc_pipeline(fresh_items)
+        except Exception as e:
+            print(f"IOC pipeline skipped: {e}")
+
     print(f"Run complete: {len(fresh_items)} new post(s) in digest ({len(stale_items)} stale suppressed), {len(failures)} site(s) failed.")
-    send_digest_email(fresh_items, failures, duplicate_links or None)
+    send_digest_email(fresh_items, failures, duplicate_links or None, ai_run_cost, ioc_results)
 
 
 if __name__ == "__main__":

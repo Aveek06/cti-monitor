@@ -58,7 +58,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install feedparser requests playwright beautifulsoup4 crawl4ai "scrapling[fetchers]" anthropic
+          pip install feedparser requests playwright beautifulsoup4 crawl4ai "scrapling[fetchers]" anthropic psycopg2-binary
           playwright install chromium
           crawl4ai-setup
           scrapling install
@@ -71,6 +71,7 @@ jobs:
             state.json
             last_active.json
             prev_run_links.json
+            ioc_export.json
           key: cti-state-${{ github.run_id }}
           restore-keys: |
             cti-state-
@@ -101,6 +102,8 @@ jobs:
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          VT_API_KEY:        ${{ secrets.VT_API_KEY }}
+          DATABASE_URL:      ${{ secrets.DATABASE_URL }}
         run: python run_check.py config.json state.json last_active.json prev_run_links.json
 
       - name: Send weekly stale-sites report
@@ -127,6 +130,7 @@ jobs:
             state.json
             last_active.json
             prev_run_links.json
+            ioc_export.json
           retention-days: 7
 
       - name: Save state
@@ -137,4 +141,5 @@ jobs:
             state.json
             last_active.json
             prev_run_links.json
+            ioc_export.json
           key: cti-state-${{ github.run_id }}

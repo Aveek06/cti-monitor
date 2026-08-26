@@ -87,10 +87,12 @@ module.exports = async function handler(req, res) {
 
     const state      = parseEntry("state.json");
     const lastActive = parseEntry("last_active.json");
-    let   prevRunLinks = [];
+    let prevRunLinks = [];
+    let iocExport    = [];
     try { prevRunLinks = parseEntry("prev_run_links.json"); } catch (_) {}
+    try { iocExport    = parseEntry("ioc_export.json");     } catch (_) {}
 
-    return res.json({ config, state, lastActive, prevRunLinks, updatedAt: artifact.updated_at });
+    return res.json({ config, state, lastActive, prevRunLinks, iocExport, updatedAt: artifact.updated_at });
   } catch (err) {
     const status =
       typeof err.status === "number" && err.status >= 400 && err.status < 600
