@@ -89,3 +89,15 @@ def get_all_stix_objects(conn) -> list[dict]:
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute("SELECT stix_object FROM ioc_indicators ORDER BY last_seen DESC")
         return [row["stix_object"] for row in cur.fetchall()]
+
+
+def prune_expired(conn, grace_days: int = 90) -> int:
+    """Delete IOCs whose last_seen is older than grace_days. Returns deleted row count."""
+    with conn.cursor() as cur:
+        cur.execute(
+            "DELETE FROM ioc_indicators WHERE last_seen < CURRENT_DATE - INTERVAL '%s days'",
+            (grace_days,),
+        )
+        deleted = cur.rowcount
+    conn.commit()
+    return deleted

@@ -97,8 +97,12 @@ def run(new_items: list[dict]) -> dict:
         with open("ioc_export.json", "w", encoding="utf-8") as f:
             json.dump(export, f, indent=2, default=str)
         print(f"IOC pipeline: exported {len(export)} active IOC(s) to ioc_export.json")
+
+        pruned = ioc_db.prune_expired(conn, grace_days=90)
+        if pruned:
+            print(f"IOC pipeline: pruned {pruned} IOC(s) older than 90 days.")
     except Exception as e:
-        print(f"IOC pipeline: result query failed: {e}")
+        print(f"IOC pipeline: result query / export failed: {e}")
 
     conn.close()
     return results
