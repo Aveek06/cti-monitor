@@ -1,11 +1,10 @@
 """
-Reads last_active.json and config.json, then emails a list of active
-security blog sites that have produced no new posts in the past 7 days.
-
-Run only on Fridays (the cti-monitor.yml workflow handles the day check).
+Reads last_active.json and config.json, then emails a weekly report.
+Always sends on Fridays — shows stale sites if any, otherwise an all-clear.
+Optionally reads ioc_export.json for an IOC summary section.
 
 Usage:
-    python weekly_report.py config.json last_active.json
+    python weekly_report.py config.json last_active.json [ioc_export.json]
 """
 
 import os
@@ -35,8 +34,64 @@ def load_json(path, default):
         return default
 
 
-def send_stale_email(stale_sites, active_sites, total_active, report_date, ai_weekly_cost=0.0):
-    # ── palette (dark theme, inline styles for email compatibility) ───────────
+def _live_score(last_seen_str, tau, ltv):
+    """Recompute Jakusz decay score as of now."""
+    try:
+        last_seen = datetime.strptime(last_seen_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        t = (datetime.now(timezone.utc) - last_seen).days
+        denom = float(tau or 30) * float(ltv or 1.0)
+        return max(0.0, round(100.0 * (1.0 - (t / denom) ** 2), 1))
+    except Exception:
+        return 0.0
+
+
+def _compute_ioc_stats(ioc_export, cutoff_str):
+    """Return summary dict from ioc_export list."""
+    if not ioc_export:
+        return None
+
+    by_type = {}
+    by_apt  = {}
+    new_this_week = 0
+    scored = []
+
+    for row in ioc_export:
+        ioc_type = row.get("type", "unknown")
+        apt      = row.get("apt") or "Unknown"
+        score    = _live_score(row.get("last_seen", ""), row.get("tau"), row.get("ltv"))
+
+        if score < 1:
+            continue
+
+        by_type[ioc_type] = by_type.get(ioc_type, 0) + 1
+        by_apt[apt]       = by_apt.get(apt, 0) + 1
+
+        first_seen = row.get("first_seen", "")
+        if first_seen >= cutoff_str:
+            new_this_week += 1
+
+        scored.append({
+            "value":   row.get("value", ""),
+            "type":    ioc_type,
+            "apt":     apt,
+            "score":   score,
+            "source":  row.get("source_blog", ""),
+        })
+
+    scored.sort(key=lambda x: x["score"], reverse=True)
+
+    return {
+        "total":         len(scored),
+        "new_this_week": new_this_week,
+        "by_type":       by_type,
+        "by_apt":        by_apt,
+        "top":           scored[:10],
+    }
+
+
+def send_stale_email(stale_sites, active_sites, total_active, report_date,
+                     ai_weekly_cost=0.0, ioc_stats=None):
+    # palette (dark theme, inline styles for email compatibility)
     BG       = "#0d1117"
     SURFACE  = "#161b22"
     SURFACE2 = "#1c2128"
@@ -47,28 +102,58 @@ def send_stale_email(stale_sites, active_sites, total_active, report_date, ai_we
     AMBER    = "#e3925a"
     CRIT     = "#e5534b"
     CYAN     = "#7dd3f0"
-    BAR_PX   = 120  # total bar-track width in pixels
+    GREEN    = "#57ab5a"
+    BAR_PX   = 120
 
     total_links_week = sum(s["count"] for s in active_sites)
     max_count = active_sites[0]["count"] if active_sites else 1
 
-    # ── stale rows ────────────────────────────────────────────────────────────
-    stale_rows = ""
-    for s in stale_sites:
-        day_col = CRIT if s["days_since"] >= 14 else AMBER
-        stale_rows += (
-            f'<tr>'
-            f'<td style="padding:10px 16px 10px 20px;border-bottom:1px solid {BORDER};'
-            f'font-size:13px;color:{TEXT};">{s["name"]}</td>'
-            f'<td style="padding:10px 16px;border-bottom:1px solid {BORDER};'
-            f'font-family:monospace;font-size:12px;color:{DIM};">{s["last_active"]}</td>'
-            f'<td style="padding:10px 20px 10px 16px;border-bottom:1px solid {BORDER};'
-            f'font-family:monospace;font-size:13px;font-weight:600;'
-            f'color:{day_col};text-align:right;">{s["days_since"]}</td>'
-            f'</tr>'
+    # stale rows (or all-clear message)
+    if stale_sites:
+        stale_rows = ""
+        for s in stale_sites:
+            day_col = CRIT if s["days_since"] >= 14 else AMBER
+            stale_rows += (
+                f'<tr>'
+                f'<td style="padding:10px 16px 10px 20px;border-bottom:1px solid {BORDER};'
+                f'font-size:13px;color:{TEXT};">{s["name"]}</td>'
+                f'<td style="padding:10px 16px;border-bottom:1px solid {BORDER};'
+                f'font-family:monospace;font-size:12px;color:{DIM};">{s["last_active"]}</td>'
+                f'<td style="padding:10px 20px 10px 16px;border-bottom:1px solid {BORDER};'
+                f'font-family:monospace;font-size:13px;font-weight:600;'
+                f'color:{day_col};text-align:right;">{s["days_since"]}</td>'
+                f'</tr>'
+            )
+        stale_section_header = (
+            f'<span style="color:{AMBER};margin-right:8px;font-size:14px;vertical-align:middle;">&#11044;</span>'
+            f'<span style="font-size:13px;font-weight:600;color:{HEAD};vertical-align:middle;">'
+            f'Stale Sites &#8212; No Posts in {STALE_DAYS}+ Days</span>'
+        )
+        stale_table_cols = f"""
+    <tr style="background:{SURFACE2};">
+      <th style="padding:9px 16px 9px 20px;font-size:11px;font-weight:600;
+        text-transform:uppercase;letter-spacing:.07em;color:{DIM};
+        text-align:left;border-bottom:1px solid {BORDER};">Site</th>
+      <th style="padding:9px 16px;font-size:11px;font-weight:600;
+        text-transform:uppercase;letter-spacing:.07em;color:{DIM};
+        text-align:left;border-bottom:1px solid {BORDER};">Last Active</th>
+      <th style="padding:9px 20px 9px 16px;font-size:11px;font-weight:600;
+        text-transform:uppercase;letter-spacing:.07em;color:{DIM};
+        text-align:right;border-bottom:1px solid {BORDER};">Days Since Last Post</th>
+    </tr>
+    {stale_rows}"""
+    else:
+        stale_section_header = (
+            f'<span style="color:{GREEN};margin-right:8px;font-size:14px;vertical-align:middle;">&#11044;</span>'
+            f'<span style="font-size:13px;font-weight:600;color:{HEAD};vertical-align:middle;">'
+            f'All Sites Active &#8212; No Stale Sources This Week</span>'
+        )
+        stale_table_cols = (
+            f'<tr><td style="padding:20px;text-align:center;font-size:13px;color:{GREEN};">'
+            f'&#10003; All {total_active} monitored sources published within the past {STALE_DAYS} days.</td></tr>'
         )
 
-    # ── activity rows with proportional bar charts ────────────────────────────
+    # activity rows
     activity_rows = ""
     if active_sites:
         for s in active_sites:
@@ -97,6 +182,131 @@ def send_stale_email(stale_sites, active_sites, total_active, report_date, ai_we
             f'No 7-day activity data yet (accumulates after first week of tracking).'
             f'</td></tr>'
         )
+
+    # IOC section
+    ioc_section_html = ""
+    if ioc_stats and ioc_stats["total"] > 0:
+        st = ioc_stats
+
+        # type breakdown chips
+        type_chips = ""
+        type_order = ["sha256", "sha1", "md5", "domain"]
+        for t in type_order:
+            if t in st["by_type"]:
+                type_chips += (
+                    f'<span style="display:inline-block;background:{SURFACE2};border:1px solid {BORDER};'
+                    f'border-radius:4px;padding:2px 8px;margin-right:6px;margin-bottom:4px;'
+                    f'font-family:monospace;font-size:11px;color:{CYAN};">'
+                    f'{t} ({st["by_type"][t]})</span>'
+                )
+
+        # APT breakdown chips
+        apt_chips = ""
+        for apt, cnt in sorted(st["by_apt"].items(), key=lambda x: -x[1]):
+            apt_color = AMBER if apt != "Unknown" else DIM
+            apt_chips += (
+                f'<span style="display:inline-block;background:{SURFACE2};border:1px solid {BORDER};'
+                f'border-radius:4px;padding:2px 8px;margin-right:6px;margin-bottom:4px;'
+                f'font-family:monospace;font-size:11px;color:{apt_color};">'
+                f'{apt} ({cnt})</span>'
+            )
+
+        # top IOC rows
+        top_rows = ""
+        for r in st["top"]:
+            val = r["value"]
+            display_val = val[:48] + "..." if len(val) > 51 else val
+            pct = int(r["score"])
+            bar_fill  = max(2, int(80 * pct / 100))
+            bar_empty = 80 - bar_fill
+            score_col = GREEN if pct >= 70 else (CYAN if pct >= 40 else AMBER)
+            apt_color  = AMBER if r["apt"] != "Unknown" else DIM
+            top_rows += (
+                f'<tr>'
+                f'<td style="padding:8px 12px 8px 20px;border-bottom:1px solid {BORDER};'
+                f'font-family:monospace;font-size:11px;color:{TEXT};word-break:break-all;">'
+                f'{display_val}</td>'
+                f'<td style="padding:8px 12px;border-bottom:1px solid {BORDER};'
+                f'font-family:monospace;font-size:11px;color:{DIM};white-space:nowrap;">{r["type"]}</td>'
+                f'<td style="padding:8px 12px;border-bottom:1px solid {BORDER};'
+                f'font-size:11px;color:{apt_color};white-space:nowrap;">{r["apt"]}</td>'
+                f'<td style="padding:8px 20px 8px 12px;border-bottom:1px solid {BORDER};white-space:nowrap;">'
+                f'<table cellpadding="0" cellspacing="0" style="display:inline-table;vertical-align:middle;margin-right:6px;">'
+                f'<tr>'
+                f'<td width="{bar_fill}" height="5" bgcolor="{score_col}" style="font-size:0;line-height:0;">&nbsp;</td>'
+                f'<td width="{bar_empty}" height="5" bgcolor="{SURFACE2}" style="font-size:0;line-height:0;">&nbsp;</td>'
+                f'</tr></table>'
+                f'<span style="font-family:monospace;font-size:11px;font-weight:600;'
+                f'color:{score_col};vertical-align:middle;">{r["score"]:.0f}</span>'
+                f'</td>'
+                f'</tr>'
+            )
+
+        ioc_section_html = f"""
+  <!-- IOC Summary section -->
+  <tr><td style="background:{SURFACE};border:1px solid {BORDER};border-top:none;border-radius:0 0 8px 8px;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+    <tr><td style="padding:14px 20px 12px;border-bottom:1px solid {BORDER};">
+      <table width="100%" cellpadding="0" cellspacing="0"><tr>
+        <td>
+          <span style="color:{AMBER};margin-right:8px;font-size:14px;vertical-align:middle;">&#9650;</span>
+          <span style="font-size:13px;font-weight:600;color:{HEAD};vertical-align:middle;">
+            IOC Indicators &#8212; 7-Day Summary</span>
+        </td>
+        <td align="right">
+          <span style="font-family:monospace;font-size:11px;color:{DIM};
+            background:{SURFACE2};border:1px solid {BORDER};border-radius:10px;
+            padding:2px 8px;">{st["total"]} active</span>
+        </td>
+      </tr></table>
+    </td></tr>
+    <tr><td style="padding:14px 20px;">
+      <table cellpadding="0" cellspacing="0" style="margin-bottom:10px;">
+        <tr>
+          <td style="background:{SURFACE2};border:1px solid {BORDER};border-radius:6px;
+            padding:6px 12px;white-space:nowrap;margin-right:8px;">
+            <span style="font-family:monospace;font-size:18px;font-weight:600;color:{CYAN};">{st["total"]}</span>
+            <span style="font-size:11px;color:{DIM};text-transform:uppercase;letter-spacing:.06em;margin-left:6px;">Active IOCs</span>
+          </td>
+          <td width="8">&nbsp;</td>
+          <td style="background:{SURFACE2};border:1px solid {BORDER};border-radius:6px;
+            padding:6px 12px;white-space:nowrap;">
+            <span style="font-family:monospace;font-size:18px;font-weight:600;color:{GREEN};">{st["new_this_week"]}</span>
+            <span style="font-size:11px;color:{DIM};text-transform:uppercase;letter-spacing:.06em;margin-left:6px;">New This Week</span>
+          </td>
+        </tr>
+      </table>
+      <div style="margin-bottom:6px;">
+        <span style="font-size:11px;color:{DIM};text-transform:uppercase;
+          letter-spacing:.07em;margin-right:8px;">By Type:</span>{type_chips}
+      </div>
+      <div>
+        <span style="font-size:11px;color:{DIM};text-transform:uppercase;
+          letter-spacing:.07em;margin-right:8px;">By APT:</span>{apt_chips}
+      </div>
+    </td></tr>
+    <tr style="background:{SURFACE2};">
+      <th colspan="4" style="padding:9px 20px;font-size:11px;font-weight:600;
+        text-transform:uppercase;letter-spacing:.07em;color:{DIM};
+        text-align:left;border-bottom:1px solid {BORDER};">Top IOCs by Decay Score</th>
+    </tr>
+    <tr style="background:{SURFACE2};">
+      <th style="padding:9px 12px 9px 20px;font-size:10px;font-weight:600;
+        text-transform:uppercase;letter-spacing:.07em;color:{DIM};
+        text-align:left;border-bottom:1px solid {BORDER};">Indicator</th>
+      <th style="padding:9px 12px;font-size:10px;font-weight:600;
+        text-transform:uppercase;letter-spacing:.07em;color:{DIM};
+        text-align:left;border-bottom:1px solid {BORDER};">Type</th>
+      <th style="padding:9px 12px;font-size:10px;font-weight:600;
+        text-transform:uppercase;letter-spacing:.07em;color:{DIM};
+        text-align:left;border-bottom:1px solid {BORDER};">APT</th>
+      <th style="padding:9px 20px 9px 12px;font-size:10px;font-weight:600;
+        text-transform:uppercase;letter-spacing:.07em;color:{DIM};
+        text-align:left;border-bottom:1px solid {BORDER};">Score</th>
+    </tr>
+    {top_rows}
+    </table>
+  </td></tr>"""
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -159,6 +369,14 @@ def send_stale_email(stale_sites, active_sites, total_active, report_date, ai_we
        f'<span style="font-size:11px;color:{DIM};text-transform:uppercase;'
        f'letter-spacing:.06em;margin-left:6px;">AI Cost (7d)</span></td>'
        if ai_weekly_cost > 0 else ''}
+      {'<td width="8" style="font-size:0;">&nbsp;</td>'
+       f'<td style="background:{SURFACE2};border:1px solid {BORDER};border-radius:6px;'
+       f'padding:6px 12px;white-space:nowrap;">'
+       f'<span style="font-family:monospace;font-size:20px;font-weight:600;'
+       f'color:{AMBER};line-height:1;">{ioc_stats["total"]}</span>'
+       f'<span style="font-size:11px;color:{DIM};text-transform:uppercase;'
+       f'letter-spacing:.06em;margin-left:6px;">Active IOCs</span></td>'
+       if ioc_stats and ioc_stats["total"] > 0 else ''}
     </tr>
     </table>
   </td></tr>
@@ -168,11 +386,7 @@ def send_stale_email(stale_sites, active_sites, total_active, report_date, ai_we
     <table width="100%" cellpadding="0" cellspacing="0">
     <tr><td style="padding:14px 20px 12px;border-bottom:1px solid {BORDER};">
       <table width="100%" cellpadding="0" cellspacing="0"><tr>
-        <td>
-          <span style="color:{AMBER};margin-right:8px;font-size:14px;vertical-align:middle;">&#11044;</span>
-          <span style="font-size:13px;font-weight:600;color:{HEAD};vertical-align:middle;">
-            Stale Sites &#8212; No Posts in {STALE_DAYS}+ Days</span>
-        </td>
+        <td>{stale_section_header}</td>
         <td align="right">
           <span style="font-family:monospace;font-size:11px;color:{DIM};
             background:{SURFACE2};border:1px solid {BORDER};border-radius:10px;
@@ -185,24 +399,12 @@ def send_stale_email(stale_sites, active_sites, total_active, report_date, ai_we
       Sites currently returning scraper errors are excluded &#8212;
       those failures appear in the regular digest.
     </td></tr>
-    <tr style="background:{SURFACE2};">
-      <th style="padding:9px 16px 9px 20px;font-size:11px;font-weight:600;
-        text-transform:uppercase;letter-spacing:.07em;color:{DIM};
-        text-align:left;border-bottom:1px solid {BORDER};">Site</th>
-      <th style="padding:9px 16px;font-size:11px;font-weight:600;
-        text-transform:uppercase;letter-spacing:.07em;color:{DIM};
-        text-align:left;border-bottom:1px solid {BORDER};">Last Active</th>
-      <th style="padding:9px 20px 9px 16px;font-size:11px;font-weight:600;
-        text-transform:uppercase;letter-spacing:.07em;color:{DIM};
-        text-align:right;border-bottom:1px solid {BORDER};">Days Since Last Post</th>
-    </tr>
-    {stale_rows}
+    {stale_table_cols}
     </table>
   </td></tr>
 
   <!-- Source Activity section -->
-  <tr><td style="background:{SURFACE};border:1px solid {BORDER};border-top:none;
-    border-radius:0 0 8px 8px;">
+  <tr><td style="background:{SURFACE};border:1px solid {BORDER};border-top:none;border-radius:0;">
     <table width="100%" cellpadding="0" cellspacing="0">
     <tr><td style="padding:14px 20px 12px;border-bottom:1px solid {BORDER};">
       <table width="100%" cellpadding="0" cellspacing="0"><tr>
@@ -230,6 +432,8 @@ def send_stale_email(stale_sites, active_sites, total_active, report_date, ai_we
     </table>
   </td></tr>
 
+  {ioc_section_html}
+
   <!-- Footer -->
   <tr><td style="padding:20px 0 0;text-align:center;font-size:11px;color:{DIM};line-height:1.8;">
     CTI Source Monitor &middot; Automated weekly digest<br>
@@ -242,14 +446,26 @@ def send_stale_email(stale_sites, active_sites, total_active, report_date, ai_we
 </body>
 </html>"""
 
+    all_clear = len(stale_sites) == 0
+    subject = (
+        f"CTI Monitor: Weekly Report &#8212; All Clear ({report_date})"
+        if all_clear else
+        f"CTI Monitor: Weekly Report &#8212; {len(stale_sites)} site(s) quiet ({report_date})"
+    )
+    # email subject must be plain text
+    subject_plain = (
+        f"CTI Monitor: Weekly Report - All Clear ({report_date})"
+        if all_clear else
+        f"CTI Monitor: Weekly Report - {len(stale_sites)} site(s) quiet ({report_date})"
+    )
+    if ioc_stats and ioc_stats["total"] > 0:
+        subject_plain += f", {ioc_stats['total']} active IOCs"
+
     recipients = [r.strip() for r in EMAIL_TO.split(",") if r.strip()]
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = (
-        f"CTI Monitor: Weekly Report — {len(stale_sites)} site(s) quiet, "
-        f"{len(active_sites)} active ({report_date})"
-    )
-    msg["From"] = EMAIL_FROM
-    msg["To"]   = ", ".join(recipients)
+    msg["Subject"] = subject_plain
+    msg["From"]    = EMAIL_FROM
+    msg["To"]      = ", ".join(recipients)
     msg.attach(MIMEText(html, "html"))
 
     try:
@@ -257,12 +473,13 @@ def send_stale_email(stale_sites, active_sites, total_active, report_date, ai_we
             server.starttls()
             server.login(SMTP_USERNAME, SMTP_PASSWORD)
             server.sendmail(EMAIL_FROM, recipients, msg.as_string())
-        print(f"Stale sites email sent: {len(stale_sites)} site(s) listed.")
+        status = "all-clear" if all_clear else f"{len(stale_sites)} stale"
+        print(f"Weekly email sent: {status}, {total_active} active, {ioc_stats['total'] if ioc_stats else 0} IOCs.")
     except Exception as e:
-        print(f"Stale sites email failed: {e}")
+        print(f"Weekly email failed: {e}")
 
 
-def main(config_path, last_active_path):
+def main(config_path, last_active_path, ioc_export_path=None):
     config      = load_json(config_path,      {"sites": []})
     last_active = load_json(last_active_path, {})
 
@@ -304,9 +521,8 @@ def main(config_path, last_active_path):
 
     stale_sites.sort(key=lambda x: x["days_since"], reverse=True)
 
-    # Compute 7-day link counts per site from _seven_day_counts in last_active
     cutoff_str = threshold.strftime("%Y-%m-%d")
-    seven_day = last_active.get("_seven_day_counts", {})
+    seven_day  = last_active.get("_seven_day_counts", {})
     active_sites = []
     for site in config["sites"]:
         name = site["name"]
@@ -320,27 +536,30 @@ def main(config_path, last_active_path):
 
     report_date = now.strftime("%Y-%m-%d")
 
-    # Sum 7-day AI cost from last_active["_ai_cost"]
     ai_cost_by_day = last_active.get("_ai_cost", {})
     ai_weekly_cost = sum(v for k, v in ai_cost_by_day.items() if k >= cutoff_str)
 
-    if not stale_sites:
-        print(
-            f"Weekly stale-sites check ({report_date}): "
-            f"all {total_active} active sites are current. No email sent."
-        )
-        return
+    ioc_export = load_json(ioc_export_path or "ioc_export.json", [])
+    ioc_stats  = _compute_ioc_stats(ioc_export, cutoff_str)
 
+    stale_label = f"{len(stale_sites)} stale" if stale_sites else "all clear"
+    ioc_label   = f", {ioc_stats['total']} active IOCs" if ioc_stats else ""
     print(
-        f"Weekly stale-sites check ({report_date}): "
-        f"{len(stale_sites)} of {total_active} site(s) stale. "
-        f"{len(active_sites)} site(s) with 7-day activity data. "
-        f"7-day AI cost: ${ai_weekly_cost:.4f}"
+        f"Weekly report ({report_date}): {stale_label} of {total_active} sites{ioc_label}. Sending email."
     )
-    send_stale_email(stale_sites, active_sites, total_active, report_date, ai_weekly_cost)
+
+    send_stale_email(
+        stale_sites, active_sites, total_active, report_date,
+        ai_weekly_cost=ai_weekly_cost,
+        ioc_stats=ioc_stats,
+    )
 
 
 if __name__ == "__main__":
-    cfg = sys.argv[1] if len(sys.argv) > 1 else "config.json"
-    la  = sys.argv[2] if len(sys.argv) > 2 else "last_active.json"
-    main(cfg, la)
+    if len(sys.argv) < 3:
+        print("Usage: python weekly_report.py config.json last_active.json [ioc_export.json]")
+        sys.exit(1)
+    cfg      = sys.argv[1]
+    la       = sys.argv[2]
+    ioc_path = sys.argv[3] if len(sys.argv) > 3 else None
+    main(cfg, la, ioc_path)
