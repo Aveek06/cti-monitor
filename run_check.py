@@ -918,7 +918,7 @@ def normalize_date(date_str):
     return datetime.now(timezone.utc).strftime("%Y-%m-%d"), "detected"
 
 
-def send_digest_email(new_items, failures, duplicate_links=None, ai_run_cost=0.0, ioc_results=None):
+def send_digest_email(new_items, failures, duplicate_links=None, ai_run_cost=0.0, ioc_results=None, ai_status=""):
     rows_html = ""
     for item in new_items:
         summary_html = (f"<br><span style='color:#888;font-size:11px;font-style:italic'>"
@@ -980,10 +980,11 @@ def send_digest_email(new_items, failures, duplicate_links=None, ai_run_cost=0.0
             f"<h4>Expiring — Score &lt; 30 ({len(ioc_results['expiring'])})</h4>{_ioc_table(ioc_results['expiring'])}"
         )
 
-    ai_cost_html = ""
-    if ai_run_cost > 0:
-        ai_cost_html = (f"<p style='color:#888;font-size:11px;margin-top:24px;border-top:1px solid #eee;padding-top:8px'>"
-                        f"AI summarisation cost this run: <b>${ai_run_cost:.4f}</b> (Claude Haiku 4.5)</p>")
+    ai_cost_html = (
+        f"<p style='color:#888;font-size:11px;margin-top:24px;"
+        f"border-top:1px solid #eee;padding-top:8px'>"
+        f"AI (Claude Haiku 4.5): {ai_status or 'no status'}</p>"
+    )
 
     html = f"""
     <html><body>
@@ -1159,7 +1160,13 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
 
     # Summarise fresh articles via Claude Haiku, tracking token usage for cost reporting
     ai_run_cost = 0.0
-    if ANTHROPIC_API_KEY and fresh_items:
+    ai_status   = ""
+    if not ANTHROPIC_API_KEY:
+        ai_status = "disabled — ANTHROPIC_API_KEY not configured"
+        print("AI summarisation: ANTHROPIC_API_KEY not set, skipping.")
+    elif not fresh_items:
+        ai_status = "no new articles this run"
+    else:
         try:
             import anthropic as _anthropic
             _ai = _anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -1173,6 +1180,9 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
                 total_output_tokens += out
             ai_run_cost = (total_input_tokens * HAIKU_COST_PER_INPUT +
                            total_output_tokens * HAIKU_COST_PER_OUTPUT)
+            ai_status = (f"{len(fresh_items)} article(s) summarised — "
+                         f"{total_input_tokens} in + {total_output_tokens} out tokens = "
+                         f"${ai_run_cost:.4f}")
             print(f"AI cost this run: {total_input_tokens} input + {total_output_tokens} output tokens = ${ai_run_cost:.6f}")
             # Accumulate daily AI cost in last_active for the weekly report
             ai_cost_by_day = last_active.setdefault("_ai_cost", {})
@@ -1181,6 +1191,7 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
                 del ai_cost_by_day[old_date]
             save_json(last_active_path, last_active)
         except Exception as e:
+            ai_status = f"error — {e}"
             print(f"Summarisation skipped: {e}")
 
     # Save enriched prev_run_links (URL + summary + metadata) for dashboard
@@ -1200,7 +1211,7 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
             print(f"IOC pipeline skipped: {e}")
 
     print(f"Run complete: {len(fresh_items)} new post(s) in digest ({len(stale_items)} stale suppressed), {len(failures)} site(s) failed.")
-    send_digest_email(fresh_items, failures, duplicate_links or None, ai_run_cost, ioc_results)
+    send_digest_email(fresh_items, failures, duplicate_links or None, ai_run_cost, ioc_results, ai_status)
 
 
 if __name__ == "__main__":
