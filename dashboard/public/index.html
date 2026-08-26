@@ -1835,6 +1835,12 @@ function switchTab(name) {
 /* ── IOC rendering ─────────────────────────────────────────────────────────── */
 let _allIocs = [];
 
+function liveScore(lastSeen, tau, ltv) {
+  const t = (Date.now() - new Date(lastSeen + "T00:00:00Z")) / 86_400_000;
+  const denom = (tau || 30) * (ltv || 1.0);
+  return Math.max(0, Math.min(100, 100 * (1 - (t / denom) ** 2)));
+}
+
 function scoreColor(s) {
   if (s >= 70) return "var(--green)";
   if (s >= 30) return "var(--amber)";
@@ -1863,14 +1869,15 @@ function renderIocs(data) {
 
 function filterIocs(q) {
   const lq = (q || "").toLowerCase();
-  const rows = lq
-    ? _allIocs.filter(r =>
+  const rows = (_allIocs
+    .filter(r => !lq ||
         r.value.toLowerCase().includes(lq) ||
         (r.type || "").includes(lq) ||
         (r.source_blog || "").toLowerCase().includes(lq) ||
         (r.apt || "").toLowerCase().includes(lq)
-      )
-    : _allIocs;
+    )
+    .map(r => ({ ...r, _live: liveScore(r.last_seen, r.tau, r.ltv) }))
+    .sort((a, b) => b._live - a._live));
 
   document.getElementById("ioc-count").textContent = `${rows.length} IOC${rows.length !== 1 ? "s" : ""}`;
   const empty = document.getElementById("ioc-empty");
@@ -1883,8 +1890,9 @@ function filterIocs(q) {
   }
   empty.style.display = "none";
   tbody.innerHTML = rows.map(r => {
-    const col  = scoreColor(r.score || 0);
-    const bar  = Math.min(100, Math.max(0, Math.round(r.score || 0)));
+    const s    = r._live;
+    const col  = scoreColor(s);
+    const bar  = Math.round(s);
     const apt  = r.apt
       ? `<span class="ioc-apt">${esc(r.apt)}</span>`
       : `<span class="ioc-dim">—</span>`;
@@ -1901,14 +1909,14 @@ function filterIocs(q) {
       </td>
       <td>${apt}</td>
       <td>
-        <span style="font-variant-numeric:tabular-nums;color:${col}">${(r.score||0).toFixed(1)}</span>
+        <span style="font-variant-numeric:tabular-nums;color:${col}">${s.toFixed(1)}</span>
         ${vt ? `<br>${vt}` : ""}
       </td>
       <td class="ioc-decay-cell">
         <div class="ioc-decay-track">
           <div class="ioc-decay-fill" style="width:${bar}%;background:${col}"></div>
         </div>
-        <span style="font-size:9px;color:var(--text-muted);letter-spacing:.04em">${r.first_seen||""}</span>
+        <span style="font-size:9px;color:var(--text-muted);letter-spacing:.04em">${r.last_seen||""}</span>
       </td>
     </tr>`;
   }).join("");

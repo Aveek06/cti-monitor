@@ -85,6 +85,8 @@ def run(new_items: list[dict]) -> dict:
                 "type":           r["type"],
                 "apt":            r.get("attributed_apt"),
                 "score":          r.get("score", 0),
+                "tau":            float(r.get("tau") or ioc_scorer.TAU_DEFAULT[ioc_scorer.ioc_group(r["type"])]),
+                "ltv":            float(r.get("ltv") or 1.0),
                 "source_blog":    r.get("source_blog"),
                 "source_article": r.get("source_article"),
                 "first_seen":     str(r["first_seen"]),
