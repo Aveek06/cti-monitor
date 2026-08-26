@@ -1,113 +1,229 @@
 # CTI Monitor
 
-An automated Cyber Threat Intelligence (CTI) feed aggregator that monitors **173 security research sources** and sends a digest email every 8 hours with newly published blog posts and advisories.
+An automated Cyber Threat Intelligence (CTI) pipeline that monitors **173 security research sources**, sends daily email digests with AI-generated article summaries, extracts IOCs from new articles into a scored STIX 2.1 feed, and surfaces everything on a live dashboard.
 
-## What it does
+---
 
-- Monitors RSS/Atom feeds, HTML blog pages, JSON APIs, and bot-protected sites across 173 CTI sources (CrowdStrike, Kaspersky, Microsoft, CISA, Unit 42, Mandiant, Sophos, Trellix, and many more)
-- Detects new posts by diffing against a seen-links history (`state.json`)
-- Sends an HTML email digest with every new post — link, date, and source
-- If nothing new is found, sends a "no new posts" notification so you always know the monitor ran
-- Runs automatically every 8 hours via cron-job.org triggering GitHub Actions
+## Features
 
-## Sources
+| Feature | Detail |
+|---|---|
+| **Source monitoring** | 173 active sources — RSS feeds, HTML blogs, WAF-protected sites |
+| **AI summaries** | 1-2 sentence CTI summary per article via Claude Haiku 4.5 |
+| **IOC extraction** | SHA256 / SHA1 / MD5 / domain via regex, with defang support |
+| **STIX 2.1 storage** | Each IOC stored as a valid STIX 2.1 Indicator in Supabase PostgreSQL |
+| **Decay scoring** | Jakusz (2025) adversary-aware formula with APT10/29/38 LTV coefficients |
+| **VirusTotal verification** | Hash IOCs verified against VT API (min 10 malicious engines) |
+| **Live dashboard** | Sources tab + IOC tab with live decay scores recomputed in the browser |
+| **Weekly report** | Friday email listing stale sites, 7-day activity, and cumulative AI cost |
+| **AI cost tracking** | Per-run cost in every digest email; 7-day rollup in weekly report |
+| **Zero-post notification** | Digest always sent — even when no new articles are found |
 
-| Type | Count | Method |
-|------|-------|--------|
-| `feed` | 127 | RSS/Atom via feedparser |
-| `html` | 24 | Playwright headless browser + CSS selector |
-| `scrapling_fetcher` | 9 | curl_cffi TLS fingerprinting, no browser (Cloudflare-blocked feeds/pages) |
-| `html_auto` | 6 | Playwright headless browser + link extraction |
-| `scrapling_feed` | 2 | curl_cffi TLS fingerprinting + feedparser |
-| `playwright_api` | 2 | Playwright + XHR interception |
-| `crawl4ai` | 1 | crawl4ai with anti-bot fingerprinting |
-| `scrapling_stealthy` | 1 | Patchright stealth browser (WAF bypass) |
-| `api` | 1 | Direct JSON API |
-| **Total active** | **173** | |
+---
 
-18 additional sources are currently set to `skip` (managed Cloudflare Turnstile, geo-blocked, or dead domains).
+## Architecture
+
+```
+GitHub Actions (daily 21:30 IST)
+  │
+  ├── run_check.py
+  │     ├── Scrape 173 sources (RSS / scrapling / scrapling_stealthy / crawl4ai)
+  │     ├── Diff against state.json (dedup, capped per site)
+  │     ├── Filter articles older than 30 days from digest
+  │     ├── Summarise fresh articles → Claude Haiku 4.5 (1-2 sentences)
+  │     ├── ioc_pipeline.py
+  │     │     ├── ioc_extractor.py  — fetch + defang + regex extract
+  │     │     ├── stix_converter.py — build STIX 2.1 Indicator objects
+  │     │     ├── ioc_db.py         — upsert to Supabase (psycopg2)
+  │     │     ├── vt_enricher.py    — VirusTotal hash verification
+  │     │     ├── ioc_scorer.py     — Jakusz decay score
+  │     │     └── Save ioc_export.json (scored, for dashboard)
+  │     ├── Save state.json, last_active.json, prev_run_links.json
+  │     └── Send HTML digest email (articles + summaries + IOC tables + AI cost)
+  │
+  ├── weekly_report.py  (Fridays only)
+  │     └── Send stale-sites email (sites quiet 7+ days, activity chart, 7-day AI cost)
+  │
+  └── GitHub Actions cache + artifact
+        state.json / last_active.json / prev_run_links.json / ioc_export.json
+
+Dashboard (Vercel)
+  ├── /api/data.js   — fetches latest artifact from GitHub, returns JSON
+  └── /public/index.html
+        ├── Sources tab — site cards, 7-day sparkline, active / quiet / failing panels
+        └── IOCs tab    — searchable table, live decay scores computed in browser
+```
+
+---
+
+## Scraper Types
+
+| Type | Method | Used for |
+|---|---|---|
+| `rss` / `feed` | feedparser | Standard RSS/Atom feeds |
+| `scrapling` | Lightweight HTTP + CSS selectors | Plain HTML blogs |
+| `scrapling_stealthy` | Patchright stealth browser | WAF/Cloudflare-protected sites |
+| `crawl4ai` | AI-assisted crawler | JS-heavy SPAs |
+| `skip` | No-op | Disabled sources |
+
+---
 
 ## Setup
 
-### 1. Fork / clone this repo
+### 1. Fork and clone
 
 ```bash
 git clone https://github.com/Aveek06/cti-monitor.git
 cd cti-monitor
 ```
 
-### 2. Add GitHub repository secrets
+### 2. Supabase (IOC storage)
 
-Go to **Settings → Secrets and variables → Actions** and add:
+1. Create a project at [supabase.com](https://supabase.com)
+2. Go to **Settings → Database → Connection string** and copy the URI (port 5432)
+3. The `ioc_indicators` table is auto-created on first pipeline run — no manual SQL needed
+
+### 3. VirusTotal API key
+
+Sign up at [virustotal.com](https://www.virustotal.com), go to your profile, and copy your API key. The free tier allows 4 requests/minute (the pipeline sleeps 15s between calls).
+
+### 4. GitHub repository secrets
+
+Go to **Settings → Secrets and variables → Actions → New repository secret** and add:
 
 | Secret | Description |
-|--------|-------------|
-| `SMTP_USERNAME` | Your Gmail address |
+|---|---|
+| `SMTP_USERNAME` | Gmail address used to send digests |
 | `SMTP_PASSWORD` | Gmail app password (16 chars — not your login password) |
-| `EMAIL_TO` | Comma-separated addresses where digests should be delivered |
+| `EMAIL_TO` | Comma-separated recipient addresses |
+| `ANTHROPIC_API_KEY` | Anthropic API key for Claude Haiku 4.5 article summaries |
+| `VT_API_KEY` | VirusTotal API key for hash verification |
+| `DATABASE_URL` | Supabase connection string (postgresql://...) |
 
-> To generate a Gmail app password: Google Account → Security → 2-Step Verification → App passwords
+> Gmail app password: Google Account → Security → 2-Step Verification → App passwords
 
-### 3. Set up the cron trigger
+### 5. Dashboard (Vercel)
 
-The workflow is triggered by an external cron service (e.g. [cron-job.org](https://cron-job.org)) that hits the GitHub Actions `workflow_dispatch` endpoint every 8 hours. Alternatively, go to **Actions → CTI Monitor → Run workflow** to trigger it manually.
+1. Import the repo into [Vercel](https://vercel.com), set **Root Directory** to `dashboard`
+2. Add a `GITHUB_TOKEN` environment variable in Vercel (a GitHub personal access token with `repo` read scope)
+3. Vercel auto-deploys on every push; the dashboard reads the latest GitHub Actions artifact
 
-### 4. Trigger a test run
+### 6. Trigger a test run
 
-Go to **Actions → CTI Monitor → Run workflow** to run it manually and verify you receive an email.
+Go to **Actions → CTI Monitor → Run workflow** to run manually and confirm you receive an email.
 
-## How it works
+---
+
+## Email Digest
+
+Each daily digest contains:
+
+- **New articles table** — date, source, link, and a 1-2 sentence AI summary beneath each link
+- **IOC tables** — New this run / Active (score ≥ 30) / Expiring (score < 30), capped at 20 rows each
+- **AI status footer** — articles summarised, token counts, cost (or reason if skipped)
+
+---
+
+## IOC Pipeline
+
+### Extraction
+
+Articles are fetched, stripped to plain text, and scanned with regex after un-defanging (`hxxp→http`, `[.]→.`):
+
+| IOC type | Pattern |
+|---|---|
+| SHA-256 | 64-char hex word |
+| SHA-1 | 40-char hex word |
+| MD5 | 32-char hex word |
+| Domain | Common TLDs after defang |
+
+APT attribution is detected by keyword scan (APT10/29/38 aliases). IPs are excluded per the Jakusz paper.
+
+### STIX 2.1 Storage
+
+Each IOC becomes a `stix2.Indicator` object with a deterministic UUID (`uuid5(namespace, value:type)`) so the same IOC is safe to re-ingest. Stored in Supabase `ioc_indicators` with full STIX JSON in a `JSONB` column.
+
+### Decay Scoring (Jakusz 2025)
 
 ```
-run_check.py
-  ├── feed             → feedparser pulls all RSS/Atom entries
-  ├── html             → Playwright scrapes post cards via CSS selector
-  ├── html_auto        → Playwright extracts all matching links (no selector needed)
-  ├── playwright_api   → Playwright intercepts background XHR/JSON responses
-  ├── api              → requests fetches JSON API directly
-  ├── crawl4ai         → crawl4ai browser with anti-bot evasion
-  ├── scrapling_feed   → curl_cffi TLS fingerprinting + feedparser (IP-blocked feeds)
-  ├── scrapling_stealthy → patchright stealth browser (WAF-protected sites)
-  ├── Diff against state.json (seen-links history)
-  ├── New links → fetch publish date if missing → email digest
-  └── Save updated state.json to GitHub Actions cache
+score = 100 × (1 − (t / (τ × LTV))²)
+
+t   = days since last_seen
+τ   = VirusTotal TTL (observed) or default (domain: 30d, hash: 60d)
+LTV = adversary-specific lifetime value:
+      APT10: domain 0.97 / hash 1.85
+      APT29: domain 0.61 / hash 0.84
+      APT38: domain 0.83 / hash 0.77
+      Unknown: 1.0
 ```
 
-### Key files
+Scores are recomputed **live in the browser** on every page load using the exported `tau` and `ltv` values — the dashboard always shows true current-moment decay, not a stale snapshot.
+
+### Pruning
+
+IOCs with `last_seen` older than **90 days** are automatically deleted from Supabase at the end of each pipeline run. If a pruned IOC resurfaces in a new article, the upsert recreates it with today's date.
+
+---
+
+## Weekly Report
+
+Sent every **Friday at 21:30 IST**. Contains:
+
+- Stat chips: active sources / quiet sites / links this week / 7-day AI cost
+- Stale sites table (color-coded: amber ≥ 7 days, red ≥ 14 days)
+- Source activity bar chart (7-day link counts)
+
+Sites currently failing their scraper are excluded from the stale report — they appear in the daily digest instead.
+
+---
+
+## Key Files
 
 | File | Purpose |
-|------|---------|
-| `run_check.py` | Main pipeline — scrape, diff, email |
-| `config.json` | All 191 site definitions (type, URL, selectors, filters) |
-| `state.json` | Seen-links history per site (persisted via GitHub Actions cache) |
-| `CTI_Source_List.xlsx` | Source-of-truth spreadsheet; sync workflow auto-generates config.json from it |
-| `.github/workflows/cti-monitor.yml` | Main monitor workflow (triggered every 8 hours) |
-| `.github/workflows/sync.yml` | Auto-syncs config.json when CTI_Source_List.xlsx is updated |
+|---|---|
+| `run_check.py` | Main pipeline: scrape → diff → summarise → IOC extract → email |
+| `config.json` | All site definitions (type, URL, selectors, filters) |
+| `state.json` | Seen-links history per site (GitHub Actions cache) |
+| `last_active.json` | Per-site timestamps, 7-day counts, daily AI cost |
+| `prev_run_links.json` | Enriched link objects `{url, site, date, summary}` for dashboard |
+| `ioc_export.json` | Scored IOC list `{value, type, apt, score, tau, ltv, …}` for dashboard |
+| `ioc_extractor.py` | Fetch article text, defang, regex extract, APT detection |
+| `stix_converter.py` | Build STIX 2.1 Indicator / ThreatActor / Relationship dicts |
+| `ioc_scorer.py` | Jakusz decay formula + LTV coefficients |
+| `vt_enricher.py` | VirusTotal hash verification (free-tier rate-limited) |
+| `ioc_db.py` | Supabase upsert/query/prune via psycopg2 |
+| `ioc_pipeline.py` | Orchestrates extraction → STIX → DB → VT → export |
+| `weekly_report.py` | Friday stale-sites report |
+| `dashboard/api/data.js` | Vercel function: fetches GitHub artifact, returns JSON |
+| `dashboard/public/index.html` | Live dashboard (Sources + IOC tabs) |
+| `.github/workflows/cti-monitor.yml` | Daily workflow (21:30 IST via cron-job.org + fallback schedule) |
 
-### Per-site config fields
+---
 
-| Field | Applies to | Description |
-|-------|-----------|-------------|
-| `url` | all | Page or feed URL to fetch |
-| `post_container` | `html`, `crawl4ai` | CSS selector for each post card |
-| `link_selector` | `html`, `crawl4ai` | CSS selector for the link inside each card (`"self"` if the container is the link) |
-| `date_selector` | `html`, `crawl4ai` | CSS selector for the date element (optional) |
-| `link_path_prefix` | `html_auto`, `crawl4ai`, `scrapling_*` | Only keep links whose path starts with this prefix |
-| `path_exclude` | `html_auto`, `crawl4ai`, `scrapling_*` | Drop links whose path contains any of these strings |
-| `min_slug_length` | `html_auto`, `crawl4ai`, `scrapling_*` | Drop links whose last path segment is shorter than N chars |
-| `extra_wait_ms` | `html_auto`, `crawl4ai` | Extra wait after page load for JS-heavy SPAs (default 3000–5000ms) |
-| `page_timeout_ms` | all Playwright/browser types | Navigation timeout override (default 30000ms) |
-| `title_keywords` | `feed`, `scrapling_feed` | Only keep feed entries whose title contains one of these keywords |
-
-## Local development
+## Local Development
 
 ```bash
-pip install feedparser requests playwright beautifulsoup4 crawl4ai "scrapling[fetchers]"
+pip install feedparser requests playwright beautifulsoup4 crawl4ai "scrapling[fetchers]" anthropic psycopg2-binary
 playwright install chromium
 crawl4ai-setup
 scrapling install
 
-python run_check.py config.json state.json
+# Set environment variables
+export SMTP_USERNAME=you@gmail.com
+export SMTP_PASSWORD=your-app-password
+export EMAIL_TO=recipient@example.com
+export ANTHROPIC_API_KEY=sk-ant-...
+export VT_API_KEY=your-vt-key
+export DATABASE_URL=postgresql://...
+
+python run_check.py config.json state.json last_active.json prev_run_links.json
+python weekly_report.py config.json last_active.json  # stale-sites report
 ```
 
-Set `SMTP_USERNAME`, `SMTP_PASSWORD`, and `EMAIL_TO` as environment variables before running locally.
+Dashboard (requires Node.js + Vercel CLI):
+
+```bash
+cd dashboard
+npm install
+GITHUB_TOKEN=ghp_... vercel dev
+```
