@@ -44,6 +44,9 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 MAX_SEEN_PER_SITE = 2000  # cap stored history so state.json doesn't grow forever
 STALE_ARTICLE_DAYS = 7   # articles older than this are suppressed from the digest email
 
+# Matches dates embedded in URLs: /2024/05/15/ or /2024-05-15- or /blog/2024/06/10/
+_URL_DATE_RE = re.compile(r'/(\d{4})[/\-](\d{2})[/\-](\d{2})(?:[/\-_.]|$)')
+
 
 HAIKU_COST_PER_INPUT  = 1.0 / 1_000_000   # $1.00 per 1M input tokens
 HAIKU_COST_PER_OUTPUT = 5.0 / 1_000_000   # $5.00 per 1M output tokens
@@ -861,7 +864,9 @@ def fetch_post_date(link):
     Extract the publish date of an individual post page. Called only for new
     links where the scraper returned no date (typically 0-5 per run).
 
-    Two-tier strategy:
+    Three-tier strategy:
+      0. URL pattern (instant): many security blog URLs embed the date
+         (e.g. /2024/05/15/). Free, no network call.
       1. requests (fast, ~1s): checks JSON-LD, OG meta, <time datetime>
          in static HTML — works when date metadata is server-rendered.
       2. crawl4AI fallback (~15s): fetches the fully JS-rendered page and
@@ -869,6 +874,16 @@ def fetch_post_date(link):
          text — catches dates injected by JavaScript (Intezer, Forescout,
          Akamai, StrongestLayer).
     """
+    # Tier 0: URL-embedded date — instant, no network
+    m = _URL_DATE_RE.search(link)
+    if m:
+        y, mo, d = m.group(1), m.group(2), m.group(3)
+        try:
+            datetime(int(y), int(mo), int(d))
+            return f"{y}-{mo}-{d}"
+        except ValueError:
+            pass
+
     # Tier 1: fast static fetch
     try:
         r = requests.get(link, headers={"User-Agent": _POST_DATE_UA},
@@ -1144,11 +1159,23 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
             print(f"  [{d['site']}] {d['link']}")
 
     # Filter articles older than STALE_ARTICLE_DAYS from the digest.
-    # "detected" means no date was found and today was assigned — always treat as fresh.
     # State is already saved above, so stale articles are still deduped going forward.
+    # For "detected" items (page gave no date): do one last URL-pattern check so that
+    # articles from URLs like /2024/05/15/ are still suppressed even when the page
+    # itself has no parseable date metadata.
     stale_threshold = (datetime.now(timezone.utc) - timedelta(days=STALE_ARTICLE_DAYS)).strftime("%Y-%m-%d")
     fresh_items, stale_items = [], []
     for item in new_items:
+        if item["date_source"] == "detected":
+            m = _URL_DATE_RE.search(item["link"])
+            if m:
+                y, mo, d = m.group(1), m.group(2), m.group(3)
+                try:
+                    datetime(int(y), int(mo), int(d))
+                    item["date"] = f"{y}-{mo}-{d}"
+                    item["date_source"] = "url_parsed"
+                except ValueError:
+                    pass
         if item["date_source"] != "detected" and item["date"] < stale_threshold:
             stale_items.append(item)
         else:
