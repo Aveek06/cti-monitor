@@ -7,7 +7,8 @@ SHA1_RE   = re.compile(r'\b[0-9a-fA-F]{40}\b')
 MD5_RE    = re.compile(r'\b[0-9a-fA-F]{32}\b')
 DOMAIN_RE = re.compile(
     r'\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)'
-    r'+(?:com|net|org|io|gov|edu|co|uk|de|ru|cn|info|biz|xyz|top|online|site|tech|app|cloud)\b',
+    r'+(?:com|net|org|io|gov|edu|co|uk|de|ru|cn|kr|jp|in|au|fr|nl|br|pl|it|es|se|no|ch|fi|'
+    r'info|biz|xyz|top|online|site|tech|app|cloud|live|space|store|shop|club|pro|me|cc|tv)\b',
     re.IGNORECASE,
 )
 
@@ -18,9 +19,14 @@ _FP_DOMAINS = {
 }
 
 APT_ALIASES = {
-    "APT10": ["apt10", "apt-10", "menupass", "menu pass", "stone panda", "cloud hopper", "stonepanda"],
-    "APT29": ["apt29", "apt-29", "cozy bear", "cozybear", "wellmess", "goldmax", "hammertoss"],
-    "APT38": ["apt38", "apt-38", "lazarus", "beagleboyz", "fastcash"],
+    "APT10":    ["apt10", "apt-10", "menupass", "menu pass", "stone panda", "cloud hopper", "stonepanda"],
+    "APT29":    ["apt29", "apt-29", "cozy bear", "cozybear", "wellmess", "goldmax", "hammertoss"],
+    "APT38":    ["apt38", "apt-38", "lazarus", "beagleboyz", "fastcash", "hidden cobra", "bluenoroff"],
+    "APT43":    ["apt43", "apt-43", "kimsuky", "thallium", "velvet chollima", "babyshark", "golddragon", "black banshee"],
+    "APT41":    ["apt41", "apt-41", "winnti", "barium", "double dragon", "bronze atlas"],
+    "APT28":    ["apt28", "apt-28", "fancy bear", "fancybear", "sofacy", "pawn storm", "sednit", "strontium"],
+    "APT32":    ["apt32", "apt-32", "ocean lotus", "oceanlotus", "cobalt kitty"],
+    "APT34":    ["apt34", "apt-34", "oilrig", "helix kitten", "crambus", "iridium"],
 }
 
 
