@@ -849,11 +849,16 @@ async def _fetch_date_crawl4ai_async(link):
             result = await crawler.arun(url=link, config=run_cfg)
         if not result.success:
             return ""
-        # Try structured metadata in JS-rendered HTML first
-        date = _extract_date_from_soup(BeautifulSoup(result.html or "", "html.parser"))
+        # htmldate with extensive_search on JS-rendered HTML (slower path, worth it here)
+        try:
+            from htmldate import find_date as _hd_find
+            date = _hd_find(result.html or "", original_date=True, extensive_search=True,
+                            outputformat="%Y-%m-%d")
+        except Exception:
+            date = _extract_date_from_soup(BeautifulSoup(result.html or "", "html.parser"))
         if date:
             return date
-        # Fall back to regex scan of the markdown text
+        # Last resort: regex scan of the crawl4ai markdown text
         return _extract_date_from_markdown(result.markdown or "")
     except Exception:
         return ""
@@ -884,11 +889,16 @@ def fetch_post_date(link):
         except ValueError:
             pass
 
-    # Tier 1: fast static fetch
+    # Tier 1: fast static fetch + htmldate full-page scan
     try:
         r = requests.get(link, headers={"User-Agent": _POST_DATE_UA},
                          timeout=10, allow_redirects=True)
-        date = _extract_date_from_soup(BeautifulSoup(r.text, "html.parser"))
+        try:
+            from htmldate import find_date as _hd_find
+            date = _hd_find(r.text, original_date=True, extensive_search=False,
+                            outputformat="%Y-%m-%d")
+        except Exception:
+            date = _extract_date_from_soup(BeautifulSoup(r.text, "html.parser"))
         if date:
             return date
     except Exception:
