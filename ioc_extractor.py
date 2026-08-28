@@ -19,14 +19,59 @@ _FP_DOMAINS = {
 }
 
 APT_ALIASES = {
+    # ── Jakusz-scored groups (LTV coefficients in ioc_scorer.py) ──────────────
     "APT10":    ["apt10", "apt-10", "menupass", "menu pass", "stone panda", "cloud hopper", "stonepanda"],
-    "APT29":    ["apt29", "apt-29", "cozy bear", "cozybear", "wellmess", "goldmax", "hammertoss"],
+    "APT29":    ["apt29", "apt-29", "cozy bear", "cozybear", "wellmess", "goldmax", "hammertoss",
+                 "nobelium", "midnight blizzard", "yttrium"],
     "APT38":    ["apt38", "apt-38", "lazarus", "beagleboyz", "fastcash", "hidden cobra", "bluenoroff"],
-    "APT43":    ["apt43", "apt-43", "kimsuky", "thallium", "velvet chollima", "babyshark", "golddragon", "black banshee"],
-    "APT41":    ["apt41", "apt-41", "winnti", "barium", "double dragon", "bronze atlas"],
-    "APT28":    ["apt28", "apt-28", "fancy bear", "fancybear", "sofacy", "pawn storm", "sednit", "strontium"],
-    "APT32":    ["apt32", "apt-32", "ocean lotus", "oceanlotus", "cobalt kitty"],
-    "APT34":    ["apt34", "apt-34", "oilrig", "helix kitten", "crambus", "iridium"],
+
+    # ── Chinese nation-state (heavy university / life-sciences / research targeting) ─
+    "APT40":    ["apt40", "apt-40", "temp.periscope", "bronze mohawk", "gadolinium",
+                 "radius typhoon", "kryptonite panda"],
+    "APT41":    ["apt41", "apt-41", "winnti", "barium", "double dragon", "bronze atlas",
+                 "earth baku", "brass typhoon"],
+    "APT18":    ["apt18", "apt-18", "wekby", "tg-0416"],          # historical healthcare targeting
+    "Hafnium":  ["hafnium"],                                        # COVID-19 / university research
+    "VoltTyphoon": ["volt typhoon", "volttyphoon", "bronze silhouette", "vanguard panda",
+                    "dev-0391"],                                    # critical infra / healthcare OT
+
+    # ── Iranian nation-state (medical research, universities, pharma) ─────────
+    "APT33":    ["apt33", "apt-33", "elfin", "refined kitten", "magnallium", "holmium"],
+    "APT34":    ["apt34", "apt-34", "oilrig", "helix kitten", "crambus", "iridium", "hazel sandstorm"],
+    "APT35":    ["apt35", "apt-35", "charming kitten", "charmingkitten", "phosphorus",
+                 "mint sandstorm", "newscaster", "ta453", "ballistic bobcat"],  # targets universities, hospitals
+    "APT42":    ["apt42", "apt-42", "damselfly", "calanque"],      # IRGC, academia / ngo / healthcare-adjacent
+    "MuddyWater": ["muddywater", "muddy water", "static kitten", "seedworm",
+                   "mercury", "mango sandstorm", "ta450"],         # health sector campaigns in ME
+
+    # ── Russian nation-state (hospitals, pharma, research) ───────────────────
+    "APT28":    ["apt28", "apt-28", "fancy bear", "fancybear", "sofacy", "pawn storm",
+                 "sednit", "strontium", "forest blizzard"],
+    "Sandworm": ["sandworm", "sand worm", "apt44", "apt-44", "voodoo bear", "seashell blizzard",
+                 "iridium", "electrum", "telebots"],               # disrupted hospitals in Ukraine/EU
+    "Turla":    ["turla", "snake", "venomous bear", "waterbug", "secret blizzard",
+                 "uroboros", "penquin"],                            # academic / research espionage
+
+    # ── North Korean (hospitals, pharma, medical device ransomware) ───────────
+    "APT43":    ["apt43", "apt-43", "kimsuky", "thallium", "velvet chollima",
+                 "babyshark", "golddragon", "black banshee", "emerald sleet"],
+    "Andariel": ["andariel", "silent chollima", "stonefly", "onyx sleet",
+                 "apt45", "apt-45", "guardians of peace"],          # ransomware against hospitals, biotech
+
+    # ── Other nation-state ────────────────────────────────────────────────────
+    "APT32":    ["apt32", "apt-32", "ocean lotus", "oceanlotus", "cobalt kitty", "canvas cyclone"],
+    "SideWinder": ["sidewinder", "rattlesnake", "apt-c-17", "hardcore nationalist"],  # targets health orgs in South Asia
+
+    # ── Financially motivated / ransomware (heavy hospital targeting) ─────────
+    "ALPHV":    ["alphv", "blackcat", "black cat", "noberus"],     # Change Healthcare, hospital chains
+    "LockBit":  ["lockbit", "lock bit", "abcd ransomware"],        # NHS, hospital systems worldwide
+    "Clop":     ["clop", "cl0p", "ta505", "fin11"],                # NHS via MOVEit, pharma
+    "Hive":     ["hive ransomware", "hiveransom"],                  # FBI-disrupted; hit 1500+ orgs incl. hospitals
+    "Medusa":   ["medusa ransomware", "medusalocker", "medusa blog"],  # active hospital targeting
+    "RansomHub": ["ransomhub", "ransom hub"],                       # successors to ALPHV, targeting healthcare
+    "BlackBasta": ["black basta", "blackbasta"],                    # Ascension Health, NHS Scotland
+    "WizardSpider": ["wizard spider", "wizardspider", "trickbot", "ryuk",
+                     "conti", "team9"],                             # hospital ransomware wave 2020-2022
 }
 
 
