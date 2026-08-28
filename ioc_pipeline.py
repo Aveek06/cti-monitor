@@ -29,6 +29,20 @@ def run(new_items: list[dict]) -> dict:
         conn.close()
         return results
 
+    # Auto-prune any FP domains that slipped into the DB before filtering was tightened
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id, value FROM ioc_indicators WHERE type = 'domain'")
+            rows = cur.fetchall()
+        fp_ids = [row[0] for row in rows if ioc_extractor._is_fp(row[1])]
+        if fp_ids:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM ioc_indicators WHERE id = ANY(%s)", (fp_ids,))
+            conn.commit()
+            print(f"IOC pipeline: pruned {len(fp_ids)} false-positive domain(s) from DB.")
+    except Exception as e:
+        print(f"IOC pipeline: FP domain cleanup failed: {e}")
+
     today      = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     total_iocs = 0
 
