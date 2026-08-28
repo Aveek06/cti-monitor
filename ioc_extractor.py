@@ -13,10 +13,41 @@ DOMAIN_RE = re.compile(
 )
 
 _FP_DOMAINS = {
-    "example.com", "github.com", "google.com", "microsoft.com", "amazon.com",
-    "cloudflare.com", "twitter.com", "linkedin.com", "youtube.com", "facebook.com",
-    "virustotal.com", "mitre.org", "w3.org", "schema.org", "jquery.com",
+    # Infrastructure / CDN
+    "example.com", "cloudflare.com", "amazonaws.com", "akamai.com", "fastly.com",
+    "w3.org", "schema.org", "jquery.com", "bootstrapcdn.com", "jsdelivr.net",
+    # Major tech platforms
+    "google.com", "googleapis.com", "gstatic.com", "googletagmanager.com",
+    "microsoft.com", "azure.com", "azurewebsites.net", "live.com", "office.com",
+    "amazon.com", "aws.amazon.com",
+    "apple.com", "icloud.com",
+    "facebook.com", "instagram.com", "whatsapp.com", "meta.com",
+    "twitter.com", "x.com",
+    "linkedin.com", "youtube.com", "tiktok.com",
+    # AI / security vendors (commonly cited in CTI articles)
+    "anthropic.com", "claude.com",
+    "openai.com", "openai.azure.com",
+    "github.com", "githubusercontent.com", "githubassets.com",
+    "virustotal.com", "shodan.io", "censys.io", "greynoise.io", "alienvault.com",
+    # Threat intel / govt / standards bodies
+    "mitre.org", "nist.gov", "cisa.gov", "us-cert.gov", "cert.org",
+    "nvd.nist.gov", "cve.org",
+    "sans.org", "owasp.org",
+    # News / research (appear as references, not IOCs)
+    "bleepingcomputer.com", "krebsonsecurity.com",
+    "therecord.media", "darkreading.com", "securityweek.com",
+    "wired.com", "techcrunch.com",
+    "arstechnica.com", "thehackernews.com",
 }
+
+
+def _is_fp(domain: str) -> bool:
+    """Return True if domain matches any FP entry exactly or as a subdomain."""
+    d = domain.lower()
+    for fp in _FP_DOMAINS:
+        if d == fp or d.endswith("." + fp):
+            return True
+    return False
 
 APT_ALIASES = {
     # ── Jakusz-scored groups (LTV coefficients in ioc_scorer.py) ──────────────
@@ -124,7 +155,7 @@ def extract_iocs(text: str) -> list[dict]:
 
     for m in DOMAIN_RE.finditer(clean):
         v = m.group().lower()
-        if v not in seen and v not in _FP_DOMAINS:
+        if v not in seen and not _is_fp(v):
             seen.add(v)
             results.append({"value": v, "type": "domain"})
 
