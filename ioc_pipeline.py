@@ -120,6 +120,11 @@ def run(new_items: list[dict]) -> dict:
             vt_enricher.enrich_pending_hashes(conn, vt_api_key)
         except Exception as e:
             print(f"VT enrichment error: {e}")
+        print("Running VirusTotal IP enrichment (up to 20 IPs, 15s between calls)...")
+        try:
+            vt_enricher.enrich_pending_ips(conn, vt_api_key)
+        except Exception as e:
+            print(f"VT IP enrichment error: {e}")
     else:
         print("VT_API_KEY not set — skipping VirusTotal enrichment.")
 
