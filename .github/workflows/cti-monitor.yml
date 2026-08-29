@@ -2,6 +2,12 @@ name: CTI Monitor
 
 on:
   workflow_dispatch:   # triggered externally by cron-job.org once daily at 16:00 UTC (21:30 IST)
+    inputs:
+      force_weekly:
+        description: "Send weekly report regardless of day/time"
+        required: false
+        default: "false"
+        type: string
   schedule:
     - cron: "0 20 * * *"   # fallback: fires 4h after cron-job.org (16:00 UTC / 21:30 IST) if missed
 
@@ -114,8 +120,9 @@ jobs:
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
         run: |
           HOUR=$(date +%H)
-          if [ "$(date +%u)" = "5" ] && [ "$HOUR" -ge 16 ] && [ "$HOUR" -le 20 ]; then
-            echo "Friday 16:00–20:00 UTC (21:30 IST) — running weekly stale-sites report."
+          FORCE="${{ github.event.inputs.force_weekly }}"
+          if [ "$FORCE" = "true" ] || { [ "$(date +%u)" = "5" ] && [ "$HOUR" -ge 16 ] && [ "$HOUR" -le 20 ]; }; then
+            echo "Running weekly stale-sites report (force=${FORCE}, day=$(date +%u), hour=${HOUR})."
             python weekly_report.py config.json last_active.json ioc_export.json
           else
             echo "Outside weekly report window (day $(date +%u), hour ${HOUR}) — skipping."
