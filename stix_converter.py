@@ -9,6 +9,8 @@ STIX_PATTERNS = {
     "sha1":   "[file:hashes.'SHA-1' = '{v}']",
     "md5":    "[file:hashes.'MD5' = '{v}']",
     "domain": "[domain-name:value = '{v}']",
+    "ipv4":   "[ipv4-addr:value = '{v}']",
+    "ipv6":   "[ipv6-addr:value = '{v}']",
 }
 
 

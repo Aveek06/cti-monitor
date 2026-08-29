@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from iocsearcher.searcher import Searcher as _IocSearcher
 
 _searcher = _IocSearcher()
-_TYPE_MAP = {"fqdn": "domain", "ip4": "ip", "ip6": "ip"}
+_TYPE_MAP = {"fqdn": "domain", "ip4": "ipv4", "ip6": "ipv6"}
 
 _FP_DOMAINS = {
     # Infrastructure / CDN
