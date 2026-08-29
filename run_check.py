@@ -149,9 +149,7 @@ def check_api_site(site):
     """
     entries = []
     try:
-        ua = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-              "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
-        headers = {"User-Agent": ua, "Accept": "application/json"}
+        headers = {"User-Agent": _C4AI_UA, "Accept": "application/json"}
         method = site.get("method", "GET").upper()
         if method == "POST":
             r = requests.post(site["url"], json=site.get("post_body", {}),
@@ -166,7 +164,7 @@ def check_api_site(site):
         if items_path:
             items = _get_nested(data, items_path)
         if not isinstance(items, list):
-            return entries, f"api error: items_path '{items_path}' did not resolve to a list"
+            return entries, f"{site['type']} error: items_path '{items_path}' did not resolve to a list"
 
         link_field = site.get("link_field", "")
         link_template = site.get("link_template", "")
@@ -187,7 +185,7 @@ def check_api_site(site):
             if link:
                 entries.append((link, date_str))
     except Exception as ex:
-        return entries, f"api error: {ex}"
+        return entries, f"{site['type']} error: {ex}"
     return entries, None
 
 
@@ -203,19 +201,17 @@ def check_nextjs_site(site):
     """
     entries = []
     try:
-        ua = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-              "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
-        r = requests.get(site["url"], headers={"User-Agent": ua}, timeout=15)
+        r = requests.get(site["url"], headers={"User-Agent": _C4AI_UA}, timeout=15)
         r.raise_for_status()
         soup = BeautifulSoup(r.text, "html.parser")
         script = soup.find("script", id="__NEXT_DATA__")
         if not script:
-            return entries, "nextjs error: __NEXT_DATA__ script tag not found"
+            return entries, f"{site['type']} error: __NEXT_DATA__ script tag not found"
         data = json.loads(script.string)
 
         items = _get_nested(data, site.get("items_path", ""))
         if not isinstance(items, list):
-            return entries, f"nextjs error: items_path did not resolve to a list"
+            return entries, f"{site['type']} error: items_path did not resolve to a list"
 
         link_field = site.get("link_field", "url")
         base_url = site.get("base_url", "")
@@ -229,7 +225,7 @@ def check_nextjs_site(site):
             if link:
                 entries.append((link, date_str))
     except Exception as ex:
-        return entries, f"nextjs error: {ex}"
+        return entries, f"{site['type']} error: {ex}"
     return entries, None
 
 
@@ -252,11 +248,7 @@ def check_playwright_api_site(site, browser):
     entries = []
     captured_bodies = []
     try:
-        context = browser.new_context(
-            user_agent=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
-            ignore_https_errors=True,
-        )
+        context = browser.new_context(user_agent=_C4AI_UA, ignore_https_errors=True)
         page = context.new_page()
         intercept_pattern = site.get("intercept_url_contains", "")
         intercept_suffix = site.get("intercept_url_suffix", "")
@@ -305,12 +297,12 @@ def check_playwright_api_site(site, browser):
         context.close()
 
         if not captured_bodies:
-            return entries, "playwright_api error: no matching API response intercepted"
+            return entries, f"{site['type']} error: no matching API response intercepted"
 
         data = captured_bodies[-1]
         items = _get_nested(data, site.get("items_path", ""))
         if not isinstance(items, list):
-            return entries, "playwright_api error: items_path did not resolve to a list"
+            return entries, f"{site['type']} error: items_path did not resolve to a list"
 
         link_field = site.get("link_field", "")
         base_url = site.get("base_url", "")
@@ -326,7 +318,7 @@ def check_playwright_api_site(site, browser):
             if link:
                 entries.append((link, date_str))
     except Exception as ex:
-        return entries, f"playwright_api error: {ex}"
+        return entries, f"{site['type']} error: {ex}"
     return entries, None
 
 
@@ -550,7 +542,7 @@ def check_scrapling_fetcher_site(site):
         )
         return _parse_crawl4ai_html(site, page.html_content or "")
     except Exception as ex:
-        return [], f"scrapling_fetcher error: {ex}"
+        return [], f"{site['type']} error: {ex}"
 
 
 def check_scrapling_feed_site(site):
@@ -596,7 +588,7 @@ def check_scrapling_feed_site(site):
             entries.append((link, date_str))
         return entries, None
     except Exception as ex:
-        return [], f"scrapling_feed error: {ex}"
+        return [], f"{site['type']} error: {ex}"
 
 
 def check_scrapling_stealthy_site(site):
@@ -627,7 +619,7 @@ def check_scrapling_stealthy_site(site):
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
             return pool.submit(_fetch).result()
     except Exception as ex:
-        return [], f"scrapling_stealthy error: {ex}"
+        return [], f"{site['type']} error: {ex}"
 
 
 def check_html_auto_site(site, browser):
@@ -651,11 +643,7 @@ def check_html_auto_site(site, browser):
     """
     entries = []
     try:
-        context = browser.new_context(
-            user_agent=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
-            ignore_https_errors=True,
-        )
+        context = browser.new_context(user_agent=_C4AI_UA, ignore_https_errors=True)
         page = context.new_page()
         page.goto(site["url"], timeout=site.get("page_timeout_ms", 30000), wait_until="domcontentloaded")
         try:
@@ -718,7 +706,7 @@ def check_html_auto_site(site, browser):
 
         context.close()
     except Exception as ex:
-        return entries, f"html_auto error: {ex}"
+        return entries, f"{site['type']} error: {ex}"
     return entries, None
 
 
@@ -742,11 +730,7 @@ def check_html_site(site, browser):
     """Returns list of (link, date_str) for every post card found on the page."""
     entries = []
     try:
-        context = browser.new_context(
-            user_agent=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
-            ignore_https_errors=True,
-        )
+        context = browser.new_context(user_agent=_C4AI_UA, ignore_https_errors=True)
         page = context.new_page()
         page.goto(site["url"], timeout=site.get("page_timeout_ms", 30000), wait_until="domcontentloaded")
         try:
@@ -783,7 +767,7 @@ def check_html_site(site, browser):
 
         context.close()
     except Exception as ex:
-        return entries, f"scrape error: {ex}"
+        return entries, f"{site['type']} error: {ex}"
     return entries, None
 
 
