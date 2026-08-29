@@ -51,58 +51,192 @@ def _is_fp(domain: str) -> bool:
 
 APT_ALIASES = {
     # ── Jakusz-scored groups (LTV coefficients in ioc_scorer.py) ──────────────
-    "APT10":    ["apt10", "apt-10", "menupass", "menu pass", "stone panda", "cloud hopper", "stonepanda"],
-    "APT29":    ["apt29", "apt-29", "cozy bear", "cozybear", "wellmess", "goldmax", "hammertoss",
-                 "nobelium", "midnight blizzard", "yttrium"],
-    "APT38":    ["apt38", "apt-38", "lazarus", "beagleboyz", "fastcash", "hidden cobra", "bluenoroff"],
+    "APT10":    ["apt10", "apt-10", "menupass", "menu pass", "stone panda", "cloud hopper",
+                 "stonepanda", "cicada", "potassium", "red apollo", "cvnx", "hogfish",
+                 "bronze riverside"],
+    "APT29":    ["apt29", "apt-29", "cozy bear", "cozybear", "wellmess", "goldmax",
+                 "hammertoss", "nobelium", "midnight blizzard", "yttrium", "iron ritual",
+                 "iron hemlock", "noblebaron", "dark halo", "unc2452", "the dukes",
+                 "cozyduke", "solarstorm", "blue kitsune", "unc3524"],
+    "APT38":    ["apt38", "apt-38", "lazarus", "beagleboyz", "fastcash", "hidden cobra",
+                 "bluenoroff", "nickel gladstone", "stardust chollima", "sapphire sleet",
+                 "copernicium", "zinc", "nickel academy", "diamond sleet",
+                 "labyrinth chollima"],
 
-    # ── Chinese nation-state (heavy university / life-sciences / research targeting) ─
+    # ── Chinese nation-state ──────────────────────────────────────────────────
+    "APT1":     ["apt1", "apt-1", "comment crew", "comment group", "comment panda"],
+    "APT3":     ["apt3", "apt-3", "gothic panda", "pirpi", "ups team", "buckeye",
+                 "threat group-0110", "tg-0110"],
+    "APT5":     ["apt5", "apt-5", "mulberry typhoon", "manganese", "bronze fleetwood",
+                 "keyhole panda", "unc2630"],
+    "APT12":    ["apt12", "apt-12", "ixeshe", "dyncalc", "numbered panda", "dnscalc"],
+    "APT15":    ["apt15", "apt-15", "ke3chang", "mirage", "vixen panda", "gref",
+                 "playful dragon", "royalapt", "nickel", "nylon typhoon"],
+    "APT16":    ["apt16", "apt-16"],
+    "APT17":    ["apt17", "apt-17", "deputy dog"],
+    "APT18":    ["apt18", "apt-18", "wekby", "tg-0416", "dynamite panda",
+                 "threat group-0416"],
+    "APT19":    ["apt19", "apt-19", "codoso", "c0d0so0", "codoso team", "sunshop group"],
+    "APT27":    ["apt27", "apt-27", "threat group-3390", "tg-3390", "emissary panda",
+                 "bronze union", "iron tiger", "luckymouse", "lucky mouse",
+                 "linen typhoon", "earth smilodon"],
+    "APT30":    ["apt30", "apt-30"],
     "APT40":    ["apt40", "apt-40", "temp.periscope", "bronze mohawk", "gadolinium",
-                 "radius typhoon", "kryptonite panda"],
+                 "radius typhoon", "kryptonite panda", "mudcarp", "temp.jumper",
+                 "gingham typhoon", "leviathan"],
     "APT41":    ["apt41", "apt-41", "winnti", "barium", "double dragon", "bronze atlas",
-                 "earth baku", "brass typhoon"],
-    "APT18":    ["apt18", "apt-18", "wekby", "tg-0416"],          # historical healthcare targeting
-    "Hafnium":  ["hafnium"],                                        # COVID-19 / university research
+                 "earth baku", "brass typhoon", "wicked panda"],
+    "Hafnium":  ["hafnium", "silk typhoon", "operation exchange marauder"],
     "VoltTyphoon": ["volt typhoon", "volttyphoon", "bronze silhouette", "vanguard panda",
-                    "dev-0391"],                                    # critical infra / healthcare OT
+                    "dev-0391", "unc3236", "voltzite", "insidious taurus", "dazedtoad"],
+    "Axiom":    ["axiom", "group 72"],
+    "BlackTech": ["blacktech", "black tech", "palmerworm"],
+    "BRONZE BUTLER": ["bronze butler", "redbaldknight"],
+    "Daggerfly": ["daggerfly", "evasive panda", "bronze highland"],
+    "Darkhotel": ["darkhotel", "dubnium", "zigzag hail"],
+    "Deep Panda": ["deep panda", "deeppanda", "shell crew", "black vine"],
+    "Earth Lusca": ["earth lusca", "earthlusca", "tag-22", "charcoal typhoon", "chromium"],
+    "Elderwood": ["elderwood", "elderwood gang", "beijing group", "sneaky panda"],
+    "GALLIUM":  ["gallium", "granite typhoon"],
+    "Lotus Blossom": ["lotus blossom", "lotusblossom", "dragonfish", "spring dragon",
+                      "raspberry typhoon", "bilbug"],
+    "MirrorFace": ["mirrorface", "mirror face", "earth kasha"],
+    "Mustang Panda": ["mustang panda", "mustangpanda", "ta416", "reddelta", "red delta",
+                      "bronze president", "stately taurus", "fireant", "camaro dragon",
+                      "earth preta", "twill typhoon", "tantalum", "temp.hex"],
+    "Naikon":   ["naikon"],
+    "Patchwork": ["patchwork", "hangover group", "dropping elephant", "monsoon",
+                  "operation hangover"],
+    "Salt Typhoon": ["salt typhoon", "salttyphoon"],
+    "Tonto Team": ["tonto team", "tontoteam", "earth akhlut", "bronze huntley",
+                   "cactuspete"],
+    "ToddyCat": ["toddycat", "toddy cat"],
+    "Tropic Trooper": ["tropic trooper", "tropictrooper", "pirate panda", "keyboy"],
+    "Aquatic Panda": ["aquatic panda", "aquaticpanda"],
+    "BackdoorDiplomacy": ["backdoordiplomacy", "backdoor diplomacy"],
+    "LuminousMoth": ["luminousmoth", "lumious moth"],
 
-    # ── Iranian nation-state (medical research, universities, pharma) ─────────
-    "APT33":    ["apt33", "apt-33", "elfin", "refined kitten", "magnallium", "holmium"],
-    "APT34":    ["apt34", "apt-34", "oilrig", "helix kitten", "crambus", "iridium", "hazel sandstorm"],
+    # ── Iranian nation-state ──────────────────────────────────────────────────
+    "APT33":    ["apt33", "apt-33", "elfin", "refined kitten", "magnallium", "holmium",
+                 "peach sandstorm"],
+    "APT34":    ["apt34", "apt-34", "oilrig", "helix kitten", "crambus", "hazel sandstorm",
+                 "cobalt gypsy", "irn2", "evasive serpens", "europium", "itg13",
+                 "earth simnavaz", "ta452"],
     "APT35":    ["apt35", "apt-35", "charming kitten", "charmingkitten", "phosphorus",
-                 "mint sandstorm", "newscaster", "ta453", "ballistic bobcat"],  # targets universities, hospitals
-    "APT42":    ["apt42", "apt-42", "damselfly", "calanque"],      # IRGC, academia / ngo / healthcare-adjacent
+                 "mint sandstorm", "newscaster", "ta453", "ballistic bobcat",
+                 "cobalt illusion", "itg18", "magic hound"],
+    "APT39":    ["apt39", "apt-39", "itg07", "chafer", "remix kitten"],
+    "APT42":    ["apt42", "apt-42", "damselfly", "calanque"],
     "MuddyWater": ["muddywater", "muddy water", "static kitten", "seedworm",
-                   "mercury", "mango sandstorm", "ta450"],         # health sector campaigns in ME
+                   "mercury", "mango sandstorm", "ta450", "earth vetala",
+                   "temp.zagros", "muddykrill"],
+    "Fox Kitten": ["fox kitten", "foxkitten", "unc757", "parisite", "pioneer kitten",
+                   "rubidium", "lemon sandstorm"],
+    "HEXANE":   ["hexane", "lyceum", "siamesekitten", "spirlin"],
+    "CURIUM":   ["curium", "crimson sandstorm", "ta456", "tortoise shell", "yellow liderc"],
+    "Agrius":   ["agrius", "pink sandstorm", "americium", "agonizing serpens",
+                 "blackshadow", "black shadow"],
+    "Ajax Security Team": ["ajax security team", "rocket kitten", "flying kitten",
+                            "operation saffron rose"],
+    "CyberAv3ngers": ["cyberav3ngers", "cyber av3ngers", "soldiers of soloman"],
+    "VOID MANTICORE": ["void manticore", "cobalt mystique", "handala hack",
+                        "homeland justice", "banished kitten", "red sandstorm"],
+    "Moses Staff": ["moses staff", "mosesstaff", "dev-0500", "marigold sandstorm"],
+    "POLONIUM": ["polonium", "plaid rain"],
+    "CopyKittens": ["copykittens", "copy kittens"],
+    "Molerats": ["molerats", "operation molerats", "gaza cybergang"],
 
-    # ── Russian nation-state (hospitals, pharma, research) ───────────────────
+    # ── Russian nation-state ──────────────────────────────────────────────────
     "APT28":    ["apt28", "apt-28", "fancy bear", "fancybear", "sofacy", "pawn storm",
-                 "sednit", "strontium", "forest blizzard"],
-    "Sandworm": ["sandworm", "sand worm", "apt44", "apt-44", "voodoo bear", "seashell blizzard",
-                 "iridium", "electrum", "telebots"],               # disrupted hospitals in Ukraine/EU
+                 "sednit", "strontium", "forest blizzard", "iron twilight", "snakemackerel",
+                 "swallowtail", "group 74", "tsar team", "threat group-4127", "tg-4127",
+                 "frozenlake", "gruesomelarch"],
+    "Sandworm": ["sandworm", "sand worm", "apt44", "apt-44", "voodoo bear",
+                 "seashell blizzard", "iridium", "electrum", "telebots", "iron viking",
+                 "blackenergy", "quedagh", "frozenbarents"],
     "Turla":    ["turla", "snake", "venomous bear", "waterbug", "secret blizzard",
-                 "uroboros", "penquin"],                            # academic / research espionage
+                 "uroboros", "penquin", "iron hunter", "group 88", "whitebear",
+                 "krypton", "belugasturgeon"],
+    "Gamaredon": ["gamaredon", "iron tilden", "primitive bear", "actinium", "armageddon",
+                  "shuckworm", "dev-0157", "aqua blizzard", "nastyshrew"],
+    "Ember Bear": ["ember bear", "emberbear", "unc2589", "bleeding bear", "dev-0586",
+                   "cadet blizzard", "frozenvista"],
+    "Dragonfly": ["dragonfly", "temp.isotope", "dymalloy", "berserk bear", "tg-4192",
+                  "crouching yeti", "iron liberty", "energetic bear", "ghost blizzard",
+                  "bromine"],
+    "Star Blizzard": ["star blizzard", "starblizzard", "seaborgium", "callisto group",
+                      "ta446", "coldriver"],
+    "Indrik Spider": ["indrik spider", "indrikspider", "evil corp", "manatee tempest",
+                      "dev-0243", "unc2165"],
+    "Winter Vivern": ["winter vivern", "wintervivern", "ta473", "uac-0114"],
+    "Inception": ["inception", "inception framework", "cloud atlas"],
+    "TEMP.Veles": ["temp.veles", "xenotime"],
+    "Strider":  ["strider", "projectsauron"],
 
-    # ── North Korean (hospitals, pharma, medical device ransomware) ───────────
+    # ── North Korean ──────────────────────────────────────────────────────────
+    "APT37":    ["apt37", "apt-37", "inkysquid", "scarcruft", "reaper", "group123",
+                 "temp.reaper", "ricochet chollima"],
     "APT43":    ["apt43", "apt-43", "kimsuky", "thallium", "velvet chollima",
-                 "babyshark", "golddragon", "black banshee", "emerald sleet"],
+                 "babyshark", "golddragon", "black banshee", "emerald sleet",
+                 "ta427", "springtail", "earth kumiho", "patheticslug"],
     "Andariel": ["andariel", "silent chollima", "stonefly", "onyx sleet",
-                 "apt45", "apt-45", "guardians of peace"],          # ransomware against hospitals, biotech
+                 "apt45", "apt-45", "guardians of peace", "plutonium"],
+    "Moonstone Sleet": ["moonstone sleet", "moonstonesleet", "storm-1789"],
+    "AppleJeus": ["applejeus", "gleaming pisces", "citrine sleet", "unc1720", "unc4736"],
+    "Contagious Interview": ["contagious interview", "deceptivedevelopment",
+                              "dev#popper", "purplebravo", "tag-121"],
 
-    # ── Other nation-state ────────────────────────────────────────────────────
-    "APT32":    ["apt32", "apt-32", "ocean lotus", "oceanlotus", "cobalt kitty", "canvas cyclone"],
-    "SideWinder": ["sidewinder", "rattlesnake", "apt-c-17", "hardcore nationalist"],  # targets health orgs in South Asia
+    # ── Other nation-state / regional ─────────────────────────────────────────
+    "APT32":    ["apt32", "apt-32", "ocean lotus", "oceanlotus", "cobalt kitty",
+                 "canvas cyclone", "sealotus", "apt-c-00", "bismuth"],
+    "SideWinder": ["sidewinder", "rattlesnake", "apt-c-17", "t-apt-04",
+                   "hardcore nationalist"],
+    "Transparent Tribe": ["transparent tribe", "copper fieldstone", "apt36", "apt-36",
+                           "mythic leopard", "projectm"],
+    "Arid Viper": ["arid viper", "desert falcon", "apt-c-23", "mantis", "tag-63",
+                   "two-tailed scorpion"],
+    "Blind Eagle": ["blind eagle", "apt-c-36", "aguilaciega"],
+    "BITTER":   ["bitter", "t-apt-17"],
+    "Sea Turtle": ["sea turtle", "seaturtle", "teal kurma", "marbled dust", "cosmic wolf"],
+    "ALLANITE": ["allanite", "palmetto fusion"],
+    "Silent Librarian": ["silent librarian", "ta407", "cobalt dickens"],
+    "Bahamut":  ["bahamut", "windshift"],
+    "LAPSUS$":  ["lapsus$", "lapsus", "dev-0537", "strawberry tempest"],
+    "Scattered Spider": ["scattered spider", "roasted 0ktapus", "octo tempest",
+                          "storm-0875", "unc3944"],
 
-    # ── Financially motivated / ransomware (heavy hospital targeting) ─────────
-    "ALPHV":    ["alphv", "blackcat", "black cat", "noberus"],     # Change Healthcare, hospital chains
-    "LockBit":  ["lockbit", "lock bit", "abcd ransomware"],        # NHS, hospital systems worldwide
-    "Clop":     ["clop", "cl0p", "ta505", "fin11"],                # NHS via MOVEit, pharma
-    "Hive":     ["hive ransomware", "hiveransom"],                  # FBI-disrupted; hit 1500+ orgs incl. hospitals
-    "Medusa":   ["medusa ransomware", "medusalocker", "medusa blog"],  # active hospital targeting
-    "RansomHub": ["ransomhub", "ransom hub"],                       # successors to ALPHV, targeting healthcare
-    "BlackBasta": ["black basta", "blackbasta"],                    # Ascension Health, NHS Scotland
-    "WizardSpider": ["wizard spider", "wizardspider", "trickbot", "ryuk",
-                     "conti", "team9"],                             # hospital ransomware wave 2020-2022
+    # ── Financially motivated / ransomware ────────────────────────────────────
+    "ALPHV":    ["alphv", "blackcat", "black cat", "noberus"],
+    "LockBit":  ["lockbit", "lock bit", "abcd ransomware"],
+    "Clop":     ["clop", "cl0p", "ta505", "fin11", "hive0065", "spandex tempest",
+                 "chimborazo"],
+    "Hive":     ["hive ransomware", "hiveransom"],
+    "Medusa":   ["medusa ransomware", "medusalocker", "medusa blog"],
+    "RansomHub": ["ransomhub", "ransom hub"],
+    "BlackBasta": ["black basta", "blackbasta"],
+    "WizardSpider": ["wizard spider", "wizardspider", "trickbot", "ryuk", "conti",
+                     "team9", "unc1878", "temp.mixmaster", "grim spider", "fin12",
+                     "gold blackburn", "itg23", "periwinkle tempest", "dev-0193",
+                     "pistachio tempest", "dev-0237"],
+    "Carbanak": ["carbanak", "anunak"],
+    "Cobalt Group": ["cobalt group", "cobaltgroup", "gold kingswood", "cobalt gang",
+                     "cobalt spider"],
+    "FIN6":     ["fin6", "magecart group 6", "itg08", "skeleton spider", "taal",
+                 "camouflage tempest"],
+    "FIN7":     ["fin7", "gold niagara", "itg14", "carbon spider", "elbrus",
+                 "sangria tempest"],
+    "FIN8":     ["fin8", "syssphinx"],
+    "FIN13":    ["fin13", "elephant beetle"],
+    "REvil":    ["revil", "sodinokibi", "gold southfield", "pinchy spider"],
+    "Akira":    ["akira ransomware", "gold sahara", "punk spider", "howling scorpius"],
+    "Play":     ["play ransomware"],
+    "INC Ransom": ["inc ransom", "gold ionic"],
+    "BlackByte": ["blackbyte", "black byte", "hecamede"],
+    "Cinnamon Tempest": ["cinnamon tempest", "dev-0401", "emperor dragonfly",
+                          "bronze starlight"],
+    "ShinyHunters": ["shinyhunters", "shiny hunters", "unc6240", "bling libra"],
+    "Silence":  ["silence group", "whisper spider"],
+    "TeamTNT":  ["teamtnt", "team tnt"],
 }
 
 
@@ -166,6 +300,7 @@ def detect_apt(text: str) -> str | None:
     lower = text.lower()
     for apt, aliases in APT_ALIASES.items():
         for alias in aliases:
-            if alias in lower:
+            # Use word boundaries so e.g. "apt3" doesn't match inside "apt37"
+            if re.search(r'(?<![a-z0-9])' + re.escape(alias) + r'(?![a-z0-9])', lower):
                 return apt
     return None
