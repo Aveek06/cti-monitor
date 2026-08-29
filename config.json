@@ -12,14 +12,12 @@
     },
     {
       "name": "Arctic Wolf",
-      "type": "feed",
-      "url": "https://arcticwolf.com/feed/",
-      "path_exclude": [
-        "/resources/datasheet",
-        "/datasheet-de/",
-        "/resources/upcoming-events-and-webinars-uk/",
-        "/resources/guide/"
-      ]
+      "type": "html",
+      "url": "https://arcticwolf.com/resources/blog/",
+      "post_container": "article.elementor-grid-item",
+      "link_selector": ".elementor-post__title a",
+      "date_selector": ".elementor-post__meta-data",
+      "link_path_prefix": "/resources/blog/"
     },
     {
       "name": "BitSight",
