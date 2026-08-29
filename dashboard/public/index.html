@@ -2171,7 +2171,6 @@ async function refreshData(force = false) {
 /* ── Init ──────────────────────────────────────────────────────────────────── */
 /* ── Tab switching ─────────────────────────────────────────────────────────── */
 function switchTab(name) {
-  if (name !== "iocs" && _activeTacticFilter) _activeTacticFilter = null;
   ["sources", "iocs", "ttps", "graph"].forEach(t => {
     document.getElementById(`tab-${t}`).style.display      = t === name ? "" : "none";
     const btn = document.getElementById(`tab-btn-${t}`);
