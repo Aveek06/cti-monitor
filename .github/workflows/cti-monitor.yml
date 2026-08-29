@@ -78,6 +78,7 @@ jobs:
             last_active.json
             prev_run_links.json
             ioc_export.json
+            ttp_export.json
           key: cti-state-${{ github.run_id }}
           restore-keys: |
             cti-state-
@@ -138,6 +139,7 @@ jobs:
             last_active.json
             prev_run_links.json
             ioc_export.json
+            ttp_export.json
           retention-days: 7
 
       - name: Save state
@@ -149,4 +151,5 @@ jobs:
             last_active.json
             prev_run_links.json
             ioc_export.json
+            ttp_export.json
           key: cti-state-${{ github.run_id }}

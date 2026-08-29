@@ -7,6 +7,7 @@ import ioc_scorer
 import stix_converter
 import ioc_db
 import vt_enricher
+import ttp_extractor
 
 
 def run(new_items: list[dict]) -> dict:
@@ -24,6 +25,7 @@ def run(new_items: list[dict]) -> dict:
 
     try:
         ioc_db.init_schema(conn)
+        ioc_db.init_ttp_schema(conn)
     except Exception as e:
         print(f"IOC pipeline: schema init failed: {e}")
         conn.close()
@@ -43,8 +45,11 @@ def run(new_items: list[dict]) -> dict:
     except Exception as e:
         print(f"IOC pipeline: FP domain cleanup failed: {e}")
 
-    today      = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    total_iocs = 0
+    today          = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    total_iocs     = 0
+    total_ttps     = 0
+    anthropic_key  = os.environ.get("ANTHROPIC_API_KEY", "")
+    ttp_ai_budget  = ttp_extractor.MAX_ARTICLES_PER_RUN  # cost guard
 
     for item in new_items:
         text = ioc_extractor.fetch_article_text(item["link"]) or ""
@@ -52,8 +57,7 @@ def run(new_items: list[dict]) -> dict:
             continue
         apt  = ioc_extractor.detect_apt(item["site"] + " " + text)
         iocs = ioc_extractor.extract_iocs(text)
-        if not iocs:
-            continue
+
         for ioc in iocs:
             ltv      = ioc_scorer.get_ltv(apt, ioc["type"])
             tau      = ioc_scorer.TAU_DEFAULT[ioc_scorer.ioc_group(ioc["type"])]
@@ -75,7 +79,25 @@ def run(new_items: list[dict]) -> dict:
                 print(f"IOC upsert failed ({ioc['value'][:20]}...): {e}")
                 conn.rollback()
 
+        # TTP extraction — use AI budget for semantic extraction, always do regex
+        use_ai = anthropic_key and ttp_ai_budget > 0
+        ttps = ttp_extractor.extract_ttps(text, anthropic_key if use_ai else "")
+        if use_ai and ttps:
+            ttp_ai_budget -= 1
+        for ttp in ttps:
+            try:
+                ioc_db.upsert_ttp(
+                    conn,
+                    ttp["technique_id"], ttp["technique_name"], ttp["tactic"],
+                    item["link"], item["site"], apt, item["date"],
+                )
+                total_ttps += 1
+            except Exception as e:
+                print(f"TTP upsert failed ({ttp['technique_id']}): {e}")
+                conn.rollback()
+
     print(f"IOC pipeline: {total_iocs} IOC(s) upserted from {len(new_items)} article(s).")
+    print(f"IOC pipeline: {total_ttps} TTP(s) upserted.")
 
     vt_api_key = os.environ.get("VT_API_KEY", "")
     if vt_api_key:
@@ -114,6 +136,25 @@ def run(new_items: list[dict]) -> dict:
         with open("ioc_export.json", "w", encoding="utf-8") as f:
             json.dump(export, f, indent=2, default=str)
         print(f"IOC pipeline: exported {len(export)} active IOC(s) to ioc_export.json")
+
+        # Export TTP aggregates for the dashboard heat map
+        raw_ttps = ioc_db.get_all_ttps(conn)
+        ttp_export = [
+            {
+                "technique_id":        r["technique_id"],
+                "technique_name":      r["technique_name"],
+                "tactic":              r["tactic"],
+                "article_count":       r["article_count"],
+                "total_observations":  r["total_observations"],
+                "last_seen":           r["last_seen"],
+                "apts":                r["apts"] or [],
+                "sources":             r["sources"] or [],
+            }
+            for r in raw_ttps
+        ]
+        with open("ttp_export.json", "w", encoding="utf-8") as f:
+            json.dump(ttp_export, f, indent=2, default=str)
+        print(f"IOC pipeline: exported {len(ttp_export)} TTP(s) to ttp_export.json")
 
         pruned = ioc_db.prune_expired(conn, grace_days=90)
         if pruned:
