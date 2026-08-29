@@ -1145,6 +1145,145 @@
       line-height: 2;
     }
 
+    /* ── TTP Heat Map ───────────────────────────────────────────────────────── */
+    .ttp-summary {
+      display: flex;
+      gap: 28px;
+      margin-bottom: 20px;
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .ttp-summary strong {
+      display: block;
+      font-size: 22px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      color: var(--text-hi);
+      margin-bottom: 2px;
+    }
+    .ttp-map-wrap {
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-hi) transparent;
+      padding-bottom: 8px;
+    }
+    .ttp-map-wrap::-webkit-scrollbar { height: 3px; }
+    .ttp-map-wrap::-webkit-scrollbar-thumb { background: var(--border-hi); }
+    .ttp-map {
+      display: flex;
+      gap: 2px;
+      min-width: max-content;
+    }
+    .ttp-col {
+      width: 96px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .ttp-tactic-hd {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 7px 5px 5px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ttp-tactic-count {
+      color: var(--green);
+      margin-left: 3px;
+      font-size: 8px;
+    }
+    .ttp-cell {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 5px 5px 4px;
+      cursor: default;
+      line-height: 1.3;
+      transition: border-color 0.1s, background 0.1s;
+    }
+    .ttp-cell:hover { border-color: var(--border-hi); z-index: 2; position: relative; }
+    .ttp-cell[data-heat="1"] {
+      background: rgba(255,149,0,0.10);
+      border-color: rgba(255,149,0,0.22);
+    }
+    .ttp-cell[data-heat="2"] {
+      background: rgba(255,149,0,0.24);
+      border-color: rgba(255,149,0,0.45);
+    }
+    .ttp-cell[data-heat="3"] {
+      background: rgba(255,59,48,0.24);
+      border-color: rgba(255,59,48,0.45);
+    }
+    .ttp-cell[data-heat="1"]:hover { border-color: var(--amber); }
+    .ttp-cell[data-heat="2"]:hover { border-color: var(--amber); }
+    .ttp-cell[data-heat="3"]:hover { border-color: var(--red); }
+    .ttp-cell-id {
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+    .ttp-cell[data-heat="1"] .ttp-cell-id { color: rgba(255,149,0,0.7); }
+    .ttp-cell[data-heat="2"] .ttp-cell-id { color: var(--amber); }
+    .ttp-cell[data-heat="3"] .ttp-cell-id { color: var(--red); }
+    .ttp-cell-name {
+      font-size: 8.5px;
+      color: var(--text-dim);
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .ttp-cell[data-heat="2"] .ttp-cell-name,
+    .ttp-cell[data-heat="3"] .ttp-cell-name { color: var(--text); }
+    .ttp-cell-empty {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 6px 5px;
+      text-align: center;
+      font-size: 10px;
+      color: var(--border-hi);
+    }
+    .ttp-legend {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 14px;
+      font-size: 9px;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .ttp-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .ttp-legend-dot {
+      width: 10px;
+      height: 10px;
+      border: 1px solid;
+      flex-shrink: 0;
+    }
+    .ttp-none {
+      text-align: center;
+      padding: 60px 0;
+      color: var(--text-muted);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      line-height: 2;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *, .panel, .drawer, .stat-card, .cursor, .status-dot, .spark-fill,
         .lm-modal, .lm-backdrop
@@ -1193,6 +1332,7 @@
       <nav class="tab-bar" role="tablist">
         <button class="tab-btn active" id="tab-btn-sources" role="tab" aria-selected="true"  onclick="switchTab('sources')">[ Sources ]</button>
         <button class="tab-btn"        id="tab-btn-iocs"    role="tab" aria-selected="false" onclick="switchTab('iocs')"   >[ IOCs ]</button>
+        <button class="tab-btn"        id="tab-btn-ttps"    role="tab" aria-selected="false" onclick="switchTab('ttps')"   >[ TTP Map ]</button>
       </nav>
 
       <!-- Sources tab -->
@@ -1293,6 +1433,37 @@
           <span style="color:var(--text-muted);font-size:10px">IOCs are extracted from articles on each daily run.</span>
         </p>
       </div><!-- /tab-iocs -->
+
+      <!-- TTP Heat Map tab -->
+      <div id="tab-ttps" class="tab-pane" style="display:none">
+        <div class="ttp-summary">
+          <div><strong id="ttp-total">—</strong>Techniques</div>
+          <div><strong id="ttp-tactics">—</strong>Tactics Active</div>
+          <div><strong id="ttp-obs">—</strong>Observations</div>
+        </div>
+        <div class="ttp-map-wrap">
+          <div class="ttp-map" id="ttp-map"></div>
+        </div>
+        <div class="ttp-legend" id="ttp-legend" style="display:none">
+          <span>Heat:</span>
+          <div class="ttp-legend-item">
+            <div class="ttp-legend-dot" style="background:rgba(255,149,0,0.10);border-color:rgba(255,149,0,0.22)"></div>
+            1 article
+          </div>
+          <div class="ttp-legend-item">
+            <div class="ttp-legend-dot" style="background:rgba(255,149,0,0.24);border-color:rgba(255,149,0,0.45)"></div>
+            2&ndash;4 articles
+          </div>
+          <div class="ttp-legend-item">
+            <div class="ttp-legend-dot" style="background:rgba(255,59,48,0.24);border-color:rgba(255,59,48,0.45)"></div>
+            5+ articles
+          </div>
+        </div>
+        <p class="ttp-none" id="ttp-none" style="display:none">
+          No TTP data yet.<br>
+          <span style="color:var(--text-muted);font-size:10px">ATT&amp;CK techniques are extracted from articles on each daily run.</span>
+        </p>
+      </div><!-- /tab-ttps -->
 
     </div>
   </div>
@@ -1401,7 +1572,7 @@ async function loadData(bust = false) {
   return res.json();
 }
 
-function derive({ config, state, lastActive, prevRunLinks, iocExport, updatedAt }) {
+function derive({ config, state, lastActive, prevRunLinks, iocExport, ttpExport, updatedAt }) {
   const cutoff    = new Date(Date.now() - STALE_DAYS * 86_400_000);
   const cutoffStr = cutoff.toISOString().slice(0, 10);
   const failing   = new Set(lastActive._currently_failing || []);
@@ -1445,7 +1616,7 @@ function derive({ config, state, lastActive, prevRunLinks, iocExport, updatedAt 
     count: sites.reduce((sum, s) => sum + (sevenDay[s.name]?.[date] || 0), 0),
   }));
 
-  return { sites, activeSites, quietSites, failingSites, weekTotal, sparkData, state, sevenDay, prevRunLinks: prevRunLinks || [], iocExport: iocExport || [], updatedAt };
+  return { sites, activeSites, quietSites, failingSites, weekTotal, sparkData, state, sevenDay, prevRunLinks: prevRunLinks || [], iocExport: iocExport || [], ttpExport: ttpExport || [], updatedAt };
 }
 
 /* ── Render panels ─────────────────────────────────────────────────────────── */
@@ -1803,7 +1974,7 @@ function closeDrawer() {
 }
 
 /* ── Update dashboard ──────────────────────────────────────────────────────── */
-function updateDashboard({ sites, activeSites, quietSites, failingSites, weekTotal, sparkData, state, sevenDay, prevRunLinks, iocExport, updatedAt }) {
+function updateDashboard({ sites, activeSites, quietSites, failingSites, weekTotal, sparkData, state, sevenDay, prevRunLinks, iocExport, ttpExport, updatedAt }) {
   lastSevenDay     = sevenDay;
   lastState        = state;
   lastPrevRunLinks = prevRunLinks || [];
@@ -1819,6 +1990,7 @@ function updateDashboard({ sites, activeSites, quietSites, failingSites, weekTot
   renderFailing(failingSites, state);
   renderSparkline(sparkData);
   renderIocs(iocExport || []);
+  renderTtpMap(ttpExport || []);
 }
 
 function flashUpdated(updatedAt) {
@@ -1864,7 +2036,7 @@ async function refreshData(force = false) {
 /* ── Init ──────────────────────────────────────────────────────────────────── */
 /* ── Tab switching ─────────────────────────────────────────────────────────── */
 function switchTab(name) {
-  ["sources", "iocs"].forEach(t => {
+  ["sources", "iocs", "ttps"].forEach(t => {
     document.getElementById(`tab-${t}`).style.display      = t === name ? "" : "none";
     const btn = document.getElementById(`tab-btn-${t}`);
     btn.classList.toggle("active", t === name);
@@ -1973,6 +2145,101 @@ function filterIocs(q) {
         <span style="font-size:9px;color:var(--text-muted);letter-spacing:.04em">${r.last_seen||""}</span>
       </td>
     </tr>`;
+  }).join("");
+}
+
+/* ── TTP Heat Map ──────────────────────────────────────────────────────────── */
+const TACTIC_ORDER = [
+  "reconnaissance", "resource-development", "initial-access",
+  "execution", "persistence", "privilege-escalation",
+  "defense-evasion", "credential-access", "discovery",
+  "lateral-movement", "collection", "command-and-control",
+  "exfiltration", "impact",
+];
+const TACTIC_LABELS = {
+  "reconnaissance":       "Recon",
+  "resource-development": "Resource Dev",
+  "initial-access":       "Initial Access",
+  "execution":            "Execution",
+  "persistence":          "Persistence",
+  "privilege-escalation": "Priv. Esc.",
+  "defense-evasion":      "Defense Eva.",
+  "credential-access":    "Cred. Access",
+  "discovery":            "Discovery",
+  "lateral-movement":     "Lateral Mvmt",
+  "collection":           "Collection",
+  "command-and-control":  "C2",
+  "exfiltration":         "Exfil",
+  "impact":               "Impact",
+};
+
+function heatLevel(count) {
+  if (count >= 5) return 3;
+  if (count >= 2) return 2;
+  return 1;
+}
+
+function renderTtpMap(data) {
+  const noneEl   = document.getElementById("ttp-none");
+  const mapEl    = document.getElementById("ttp-map");
+  const legendEl = document.getElementById("ttp-legend");
+
+  if (!data || !data.length) {
+    noneEl.style.display   = "block";
+    mapEl.style.display    = "none";
+    legendEl.style.display = "none";
+    document.getElementById("ttp-total").textContent   = "0";
+    document.getElementById("ttp-tactics").textContent = "0";
+    document.getElementById("ttp-obs").textContent     = "0";
+    return;
+  }
+
+  noneEl.style.display   = "none";
+  mapEl.style.display    = "flex";
+  legendEl.style.display = "flex";
+
+  // Group by tactic
+  const byTactic = {};
+  for (const t of data) {
+    const tac = (t.tactic || "").toLowerCase() || "unknown";
+    if (!byTactic[tac]) byTactic[tac] = [];
+    byTactic[tac].push(t);
+  }
+  for (const tac of Object.keys(byTactic)) {
+    byTactic[tac].sort((a, b) => b.article_count - a.article_count);
+  }
+
+  const totalObs   = data.reduce((s, t) => s + (t.total_observations || 1), 0);
+  const tacticsSeen = TACTIC_ORDER.filter(t => (byTactic[t] || []).length > 0).length;
+
+  document.getElementById("ttp-total").textContent   = data.length;
+  document.getElementById("ttp-tactics").textContent = tacticsSeen;
+  document.getElementById("ttp-obs").textContent     = totalObs;
+
+  mapEl.innerHTML = TACTIC_ORDER.map(tac => {
+    const techs = byTactic[tac] || [];
+    const label = TACTIC_LABELS[tac] || tac;
+    const cnt   = techs.length;
+
+    const hd = `<div class="ttp-tactic-hd" title="${tac}">${label}${cnt ? `<span class="ttp-tactic-count">${cnt}</span>` : ""}</div>`;
+
+    if (!cnt) {
+      return `<div class="ttp-col">${hd}<div class="ttp-cell-empty">—</div></div>`;
+    }
+
+    const cells = techs.map(t => {
+      const heat  = heatLevel(t.article_count);
+      const name  = t.technique_name || t.technique_id;
+      const short = name.length > 15 ? name.slice(0, 13) + "…" : name;
+      const apts  = t.apts && t.apts.length ? t.apts.join(", ") : "—";
+      const tip   = `${t.technique_id} · ${name} · ${t.article_count} article${t.article_count !== 1 ? "s" : ""} · Last seen: ${t.last_seen || "—"} · APT: ${apts}`;
+      return `<div class="ttp-cell" data-heat="${heat}" title="${esc(tip)}">
+        <div class="ttp-cell-id">${esc(t.technique_id)}</div>
+        <div class="ttp-cell-name">${esc(short)}</div>
+      </div>`;
+    }).join("");
+
+    return `<div class="ttp-col">${hd}${cells}</div>`;
   }).join("");
 }
 
