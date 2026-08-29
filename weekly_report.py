@@ -8,6 +8,7 @@ Usage:
 """
 
 import os
+import re
 import sys
 import json
 import smtplib
@@ -461,7 +462,7 @@ def send_stale_email(stale_sites, active_sites, total_active, report_date,
     if ioc_stats and ioc_stats["total"] > 0:
         subject_plain += f", {ioc_stats['total']} active IOCs"
 
-    recipients = [r.strip() for r in EMAIL_TO.split(",") if r.strip()]
+    recipients = [r for r in re.split(r'[,\s]+', EMAIL_TO.strip()) if r]
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject_plain
     msg["From"]    = EMAIL_FROM
