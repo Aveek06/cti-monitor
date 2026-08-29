@@ -687,6 +687,8 @@ def check_html_auto_site(site, browser):
             url_occurrence[clean] = url_occurrence.get(clean, 0) + 1
             candidates.append((clean, parts, text))
 
+        page_date = _extract_date_from_soup(BeautifulSoup(page.content(), "html.parser"))
+
         # Second pass: apply per-link filters and deduplicate
         seen_links = set()
         for clean, parts, text in candidates:
@@ -702,7 +704,7 @@ def check_html_auto_site(site, browser):
             if max_occurrences and url_occurrence.get(clean, 0) > max_occurrences:
                 continue
             seen_links.add(clean)
-            entries.append((clean, ""))
+            entries.append((clean, page_date))
 
         context.close()
     except Exception as ex:
@@ -740,6 +742,9 @@ def check_html_site(site, browser):
             return entries, None
         wait_for_stable_post_count(page, site["post_container"])
 
+        page_soup = BeautifulSoup(page.content(), "html.parser")
+        page_date = _extract_date_from_soup(page_soup)
+
         containers = page.query_selector_all(site["post_container"])
         for c in containers:
             link_el = c if site.get("link_selector") == "self" else c.query_selector(site.get("link_selector", "a"))
@@ -762,6 +767,8 @@ def check_html_site(site, browser):
                 date_el = c.query_selector(site["date_selector"])
                 if date_el:
                     date_str = (date_el.get_attribute("datetime") or date_el.inner_text() or "").strip()
+            if not date_str:
+                date_str = _extract_date_from_soup(BeautifulSoup(c.inner_html(), "html.parser")) or page_date
 
             entries.append((full_link, date_str))
 
