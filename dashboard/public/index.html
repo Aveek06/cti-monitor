@@ -1079,14 +1079,22 @@
     .ioc-table tr:last-child td { border-bottom: none; }
     .ioc-table tr:hover td { background: rgba(255,255,255,0.02); }
     .ioc-val {
-      font-family: inherit;
-      font-size: 11px;
+      font-family: "SF Mono", "Fira Mono", "Consolas", monospace;
+      font-size: 10.5px;
       color: var(--text-hi);
-      max-width: 200px;
-      overflow: hidden;
-      text-overflow: ellipsis;
       white-space: nowrap;
+      cursor: pointer;
+      user-select: all;
     }
+    .ioc-val:hover { color: var(--green); }
+    .ioc-copied {
+      font-size: 9px;
+      color: var(--green);
+      margin-left: 6px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .ioc-copied.show { opacity: 1; }
     .ioc-badge {
       font-size: 9px;
       font-weight: 700;
@@ -1879,9 +1887,12 @@ function scoreColor(s) {
   return "var(--red)";
 }
 
-function truncIoc(v) {
-  if (v.length <= 20) return v;
-  return v.slice(0, 12) + "…" + v.slice(-8);
+function copyIoc(td, value) {
+  navigator.clipboard.writeText(value).catch(() => {});
+  const tag = td.querySelector(".ioc-copied");
+  if (!tag) return;
+  tag.classList.add("show");
+  setTimeout(() => tag.classList.remove("show"), 1400);
 }
 
 function renderIocs(data) {
@@ -1943,7 +1954,7 @@ function filterIocs(q) {
       ? `<span style="color:var(--red);font-size:10px">${r.vt_malicious} engines</span>`
       : "";
     return `<tr>
-      <td class="ioc-val" title="${esc(r.value)}">${truncIoc(r.value)}</td>
+      <td onclick="copyIoc(this,'${esc(r.value)}')" title="Click to copy"><span class="ioc-val">${esc(r.value)}</span><span class="ioc-copied">Copied</span></td>
       <td><span class="ioc-badge">${esc(r.type)}</span></td>
       <td class="ioc-site" title="${esc(r.source_blog||'')}">
         ${r.source_article
