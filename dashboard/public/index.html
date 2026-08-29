@@ -1283,6 +1283,53 @@
       letter-spacing: 0.08em;
       line-height: 2;
     }
+    .apt-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+      align-items: center;
+    }
+    .apt-chip-label {
+      font-size: 9px;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-right: 2px;
+    }
+    .apt-chip {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+    .apt-chip:hover { border-color: var(--border-hi); color: var(--text); }
+    .apt-chip.active { border-color: var(--amber); color: var(--amber); background: rgba(255,149,0,0.08); }
+    .ttp-cell.dimmed { opacity: 0.12; filter: saturate(0.1); pointer-events: none; }
+    .ttp-cell[data-stale="true"] { filter: saturate(0.3); opacity: 0.55; }
+    .ttp-cell[data-stale="true"].dimmed { opacity: 0.05; }
+    .ttp-tactic-hd.clickable { cursor: pointer; }
+    .ttp-tactic-hd.clickable:hover { background: var(--surface2); color: var(--text); border-color: var(--border-hi); }
+    .ttp-export-btn {
+      margin-left: auto;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+    .ttp-export-btn:hover { border-color: var(--border-hi); color: var(--text); }
 
     @media (prefers-reduced-motion: reduce) {
       *, .panel, .drawer, .stat-card, .cursor, .status-dot, .spark-fill,
@@ -1402,7 +1449,7 @@
       <!-- IOCs tab -->
       <div id="tab-iocs" class="tab-pane" style="display:none">
         <div class="ioc-toolbar">
-          <input id="ioc-search" class="ioc-search" type="text" placeholder="Filter by indicator, type, site, APT…" oninput="filterIocs(this.value)">
+          <input id="ioc-search" class="ioc-search" type="text" placeholder="Filter by indicator, type, site, APT…" oninput="_activeTacticFilter=null;filterIocs(this.value)">
           <div class="ioc-type-filters">
             <button class="ioc-type-btn active" data-type="" onclick="setIocType(this)">All</button>
             <button class="ioc-type-btn" data-type="domain" onclick="setIocType(this)">Domain</button>
@@ -1441,6 +1488,7 @@
           <div><strong id="ttp-tactics">—</strong>Tactics Active</div>
           <div><strong id="ttp-obs">—</strong>Observations</div>
         </div>
+        <div class="apt-chips" id="apt-chips" style="display:none"></div>
         <div class="ttp-map-wrap">
           <div class="ttp-map" id="ttp-map"></div>
         </div>
@@ -1458,6 +1506,11 @@
             <div class="ttp-legend-dot" style="background:rgba(255,59,48,0.24);border-color:rgba(255,59,48,0.45)"></div>
             5+ articles
           </div>
+          <div class="ttp-legend-item" style="color:var(--text-muted)">
+            <div class="ttp-legend-dot" style="background:var(--surface);border-color:var(--border);filter:saturate(0.3);opacity:0.55"></div>
+            30+ days stale
+          </div>
+          <button class="ttp-export-btn" onclick="exportTtpCsv()">Export CSV</button>
         </div>
         <p class="ttp-none" id="ttp-none" style="display:none">
           No TTP data yet.<br>
@@ -2036,6 +2089,10 @@ async function refreshData(force = false) {
 /* ── Init ──────────────────────────────────────────────────────────────────── */
 /* ── Tab switching ─────────────────────────────────────────────────────────── */
 function switchTab(name) {
+  // Switching away from IOC tab via tab bar (not via ttpTacticClick) clears the tactic filter
+  if (name !== "iocs" && _activeTacticFilter) {
+    _activeTacticFilter = null;
+  }
   ["sources", "iocs", "ttps"].forEach(t => {
     document.getElementById(`tab-${t}`).style.display      = t === name ? "" : "none";
     const btn = document.getElementById(`tab-btn-${t}`);
@@ -2093,9 +2150,11 @@ function setIocType(btn) {
 
 function filterIocs(q) {
   const lq = (q || "").toLowerCase();
+  const tacUrls = _activeTacticFilter ? (_tacticSourceUrls[_activeTacticFilter] || new Set()) : null;
   const rows = (_allIocs
     .filter(r => {
       if (_activeTypeFilter && r.type !== _activeTypeFilter) return false;
+      if (tacUrls && !tacUrls.has(r.source_article)) return false;
       return !lq ||
         r.value.toLowerCase().includes(lq) ||
         (r.type || "").includes(lq) ||
@@ -2149,6 +2208,11 @@ function filterIocs(q) {
 }
 
 /* ── TTP Heat Map ──────────────────────────────────────────────────────────── */
+let _ttpData = [];
+let _aptFilter = null;
+let _tacticSourceUrls = {};   // tactic -> Set of source_article URLs
+let _activeTacticFilter = null;
+
 const TACTIC_ORDER = [
   "reconnaissance", "resource-development", "initial-access",
   "execution", "persistence", "privilege-escalation",
@@ -2180,14 +2244,17 @@ function heatLevel(count) {
 }
 
 function renderTtpMap(data) {
+  _ttpData = data || [];
   const noneEl   = document.getElementById("ttp-none");
   const mapEl    = document.getElementById("ttp-map");
   const legendEl = document.getElementById("ttp-legend");
+  const chipsEl  = document.getElementById("apt-chips");
 
-  if (!data || !data.length) {
+  if (!_ttpData.length) {
     noneEl.style.display   = "block";
     mapEl.style.display    = "none";
     legendEl.style.display = "none";
+    chipsEl.style.display  = "none";
     document.getElementById("ttp-total").textContent   = "0";
     document.getElementById("ttp-tactics").textContent = "0";
     document.getElementById("ttp-obs").textContent     = "0";
@@ -2198,9 +2265,17 @@ function renderTtpMap(data) {
   mapEl.style.display    = "flex";
   legendEl.style.display = "flex";
 
+  // Build tactic -> source URLs map for click-through to IOC tab
+  _tacticSourceUrls = {};
+  for (const t of _ttpData) {
+    const tac = (t.tactic || "").toLowerCase() || "unknown";
+    if (!_tacticSourceUrls[tac]) _tacticSourceUrls[tac] = new Set();
+    (t.sources || []).forEach(u => _tacticSourceUrls[tac].add(u));
+  }
+
   // Group by tactic
   const byTactic = {};
-  for (const t of data) {
+  for (const t of _ttpData) {
     const tac = (t.tactic || "").toLowerCase() || "unknown";
     if (!byTactic[tac]) byTactic[tac] = [];
     byTactic[tac].push(t);
@@ -2209,19 +2284,24 @@ function renderTtpMap(data) {
     byTactic[tac].sort((a, b) => b.article_count - a.article_count);
   }
 
-  const totalObs   = data.reduce((s, t) => s + (t.total_observations || 1), 0);
+  const totalObs    = _ttpData.reduce((s, t) => s + (t.total_observations || 1), 0);
   const tacticsSeen = TACTIC_ORDER.filter(t => (byTactic[t] || []).length > 0).length;
 
-  document.getElementById("ttp-total").textContent   = data.length;
+  document.getElementById("ttp-total").textContent   = _ttpData.length;
   document.getElementById("ttp-tactics").textContent = tacticsSeen;
   document.getElementById("ttp-obs").textContent     = totalObs;
+
+  const staleThreshold = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
   mapEl.innerHTML = TACTIC_ORDER.map(tac => {
     const techs = byTactic[tac] || [];
     const label = TACTIC_LABELS[tac] || tac;
     const cnt   = techs.length;
+    const hasSources = (_tacticSourceUrls[tac] || new Set()).size > 0;
 
-    const hd = `<div class="ttp-tactic-hd" title="${tac}">${label}${cnt ? `<span class="ttp-tactic-count">${cnt}</span>` : ""}</div>`;
+    const hdClass = hasSources ? "ttp-tactic-hd clickable" : "ttp-tactic-hd";
+    const hdClick = hasSources ? `onclick="ttpTacticClick('${tac}')"` : "";
+    const hd = `<div class="${hdClass}" data-tac="${tac}" title="${hasSources ? 'Click to filter IOCs by this tactic' : tac}" ${hdClick}>${label}${cnt ? `<span class="ttp-tactic-count">${cnt}</span>` : ""}</div>`;
 
     if (!cnt) {
       return `<div class="ttp-col">${hd}<div class="ttp-cell-empty">—</div></div>`;
@@ -2233,7 +2313,9 @@ function renderTtpMap(data) {
       const short = name.length > 15 ? name.slice(0, 13) + "…" : name;
       const apts  = t.apts && t.apts.length ? t.apts.join(", ") : "—";
       const tip   = `${t.technique_id} · ${name} · ${t.article_count} article${t.article_count !== 1 ? "s" : ""} · Last seen: ${t.last_seen || "—"} · APT: ${apts}`;
-      return `<div class="ttp-cell" data-heat="${heat}" title="${esc(tip)}">
+      const stale = t.last_seen && new Date(t.last_seen) < staleThreshold ? "true" : "false";
+      const aptsAttr = (t.apts || []).join(",");
+      return `<div class="ttp-cell" data-heat="${heat}" data-stale="${stale}" data-apts="${esc(aptsAttr)}" title="${esc(tip)}">
         <div class="ttp-cell-id">${esc(t.technique_id)}</div>
         <div class="ttp-cell-name">${esc(short)}</div>
       </div>`;
@@ -2241,6 +2323,67 @@ function renderTtpMap(data) {
 
     return `<div class="ttp-col">${hd}${cells}</div>`;
   }).join("");
+
+  renderAptChips(_ttpData);
+}
+
+function renderAptChips(data) {
+  const el = document.getElementById("apt-chips");
+  const apts = new Set();
+  for (const t of data) {
+    (t.apts || []).forEach(a => { if (a) apts.add(a); });
+  }
+  if (!apts.size) { el.style.display = "none"; return; }
+  el.style.display = "flex";
+  const sorted = [...apts].sort();
+  el.innerHTML = `<span class="apt-chip-label">APT:</span>` +
+    sorted.map(a => `<button class="apt-chip" data-apt="${esc(a)}">${esc(a)}</button>`).join("");
+  el.querySelectorAll(".apt-chip").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const apt = btn.dataset.apt;
+      if (_aptFilter === apt) {
+        _aptFilter = null;
+        el.querySelectorAll(".apt-chip").forEach(b => b.classList.remove("active"));
+      } else {
+        _aptFilter = apt;
+        el.querySelectorAll(".apt-chip").forEach(b => b.classList.toggle("active", b.dataset.apt === apt));
+      }
+      applyAptFilter();
+    });
+  });
+}
+
+function applyAptFilter() {
+  document.querySelectorAll(".ttp-cell").forEach(cell => {
+    if (!_aptFilter) { cell.classList.remove("dimmed"); return; }
+    const cellApts = (cell.dataset.apts || "").split(",").map(s => s.trim()).filter(Boolean);
+    cell.classList.toggle("dimmed", !cellApts.includes(_aptFilter));
+  });
+}
+
+function ttpTacticClick(tac) {
+  _activeTacticFilter = tac;
+  switchTab("iocs");
+  const srch = document.getElementById("ioc-search");
+  if (srch) srch.value = "";
+  filterIocs("");
+}
+
+function exportTtpCsv() {
+  if (!_ttpData.length) return;
+  const headers = ["technique_id","technique_name","tactic","article_count","total_observations","last_seen","apts","sources"];
+  const rows = _ttpData.map(t => [
+    t.technique_id, t.technique_name, t.tactic,
+    t.article_count, t.total_observations, t.last_seen,
+    (t.apts || []).join("|"),
+    (t.sources || []).join("|"),
+  ].map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(","));
+  const csv = [headers.join(","), ...rows].join("\r\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement("a"), { href: url, download: "ttp_export.csv" });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 async function init() {
