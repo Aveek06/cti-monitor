@@ -1028,6 +1028,31 @@
       text-transform: uppercase;
       white-space: nowrap;
     }
+    .ioc-type-filters {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .ioc-type-btn {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s, border-color 0.12s;
+      white-space: nowrap;
+    }
+    .ioc-type-btn:hover { border-color: var(--green); color: var(--text); }
+    .ioc-type-btn.active {
+      background: var(--green);
+      border-color: var(--green);
+      color: #000;
+    }
     .ioc-table-wrap { overflow-x: auto; }
     .ioc-table {
       width: 100%;
@@ -1230,6 +1255,13 @@
       <div id="tab-iocs" class="tab-pane" style="display:none">
         <div class="ioc-toolbar">
           <input id="ioc-search" class="ioc-search" type="text" placeholder="Filter by indicator, type, site, APT…" oninput="filterIocs(this.value)">
+          <div class="ioc-type-filters">
+            <button class="ioc-type-btn active" data-type="" onclick="setIocType(this)">All</button>
+            <button class="ioc-type-btn" data-type="domain" onclick="setIocType(this)">Domain</button>
+            <button class="ioc-type-btn" data-type="sha256" onclick="setIocType(this)">SHA256</button>
+            <button class="ioc-type-btn" data-type="sha1" onclick="setIocType(this)">SHA1</button>
+            <button class="ioc-type-btn" data-type="md5" onclick="setIocType(this)">MD5</button>
+          </div>
           <span class="ioc-count" id="ioc-count">— IOCs</span>
         </div>
         <div class="ioc-table-wrap">
@@ -1867,15 +1899,26 @@ function renderIocs(data) {
   filterIocs(document.getElementById("ioc-search")?.value || "");
 }
 
+let _activeTypeFilter = "";
+
+function setIocType(btn) {
+  document.querySelectorAll(".ioc-type-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  _activeTypeFilter = btn.dataset.type;
+  filterIocs(document.getElementById("ioc-search")?.value || "");
+}
+
 function filterIocs(q) {
   const lq = (q || "").toLowerCase();
   const rows = (_allIocs
-    .filter(r => !lq ||
+    .filter(r => {
+      if (_activeTypeFilter && r.type !== _activeTypeFilter) return false;
+      return !lq ||
         r.value.toLowerCase().includes(lq) ||
         (r.type || "").includes(lq) ||
         (r.source_blog || "").toLowerCase().includes(lq) ||
-        (r.apt || "").toLowerCase().includes(lq)
-    )
+        (r.apt || "").toLowerCase().includes(lq);
+    })
     .map(r => ({ ...r, _live: liveScore(r.last_seen, r.tau, r.ltv) }))
     .sort((a, b) => b._live - a._live));
 
