@@ -1207,7 +1207,7 @@
       background: var(--surface);
       border: 1px solid var(--border);
       padding: 5px 5px 4px;
-      cursor: default;
+      cursor: pointer;
       line-height: 1.3;
       transition: border-color 0.1s, background 0.1s;
     }
@@ -1283,6 +1283,66 @@
       letter-spacing: 0.08em;
       line-height: 2;
     }
+
+    /* ── TTP Drawer ────────────────────────────────────────────────────────── */
+    .ttp-d-meta {
+      border: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+    .ttp-d-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+    }
+    .ttp-d-row:last-child { border-bottom: none; }
+    .ttp-d-lbl { color: var(--text-muted); letter-spacing: 0.06em; font-size: 10px; text-transform: uppercase; }
+    .ttp-d-val { color: var(--text); text-align: right; }
+    .ttp-d-section { margin-bottom: 14px; }
+    .ttp-d-section-hd {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0 0 6px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 6px;
+    }
+    .ttp-d-chips { display: flex; flex-wrap: wrap; gap: 5px; padding: 4px 0; }
+    .ttp-d-chip {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--amber);
+      border-color: rgba(255,149,0,0.35);
+    }
+    .ttp-d-link {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 10px;
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: background 0.1s, border-color 0.1s;
+    }
+    .ttp-d-link:hover { background: var(--surface2); border-left-color: var(--green); }
+    .ttp-d-link-txt {
+      font-size: 9px;
+      color: var(--text-muted);
+      word-break: break-all;
+      line-height: 1.5;
+      letter-spacing: 0.02em;
+    }
+    .ttp-d-link:hover .ttp-d-link-txt { color: var(--text-dim); }
+    .ttp-d-link svg { flex-shrink: 0; margin-top: 2px; color: var(--text-muted); }
 
     /* ── IOC Graph ─────────────────────────────────────────────────────────── */
     .graph-toolbar {
@@ -2087,8 +2147,13 @@ function openDrawer(name, sites, state, isFailing = false) {
     domainTxt.textContent = "";
   }
 
-  document.getElementById("d-total").textContent = links.length.toLocaleString();
-  document.getElementById("d-week").textContent  = site?.count ? site.count : "—";
+  const d1 = document.getElementById("d-total");
+  d1.previousElementSibling.textContent = "Total Captured";
+  d1.textContent = links.length.toLocaleString();
+  const d2 = document.getElementById("d-week");
+  d2.previousElementSibling.textContent = "This Week";
+  d2.classList.add("green");
+  d2.textContent = site?.count ? site.count : "—";
 
   renderGroupedLinks(links, name);
 
@@ -2105,6 +2170,68 @@ function closeDrawer() {
     document.querySelectorAll(".link-item").forEach(li => li.classList.remove("show")),
     420
   );
+}
+
+function openTtpDrawer(tid) {
+  const t = _ttpById[tid];
+  if (!t) return;
+
+  const eyebrow = document.getElementById("drawer-eyebrow");
+  eyebrow.textContent = "// ATT&CK Technique";
+  eyebrow.classList.remove("red");
+
+  document.getElementById("drawer-name").textContent =
+    `${t.technique_id} · ${t.technique_name || t.technique_id}`;
+
+  const mitreUrl = `https://attack.mitre.org/techniques/${t.technique_id}/`;
+  const domainEl  = document.getElementById("drawer-domain");
+  const domainTxt = document.getElementById("drawer-domain-txt");
+  domainTxt.textContent = "attack.mitre.org";
+  domainEl.href = mitreUrl;
+
+  const d1 = document.getElementById("d-total");
+  d1.previousElementSibling.textContent = "Articles";
+  d1.textContent = t.article_count;
+
+  const d2 = document.getElementById("d-week");
+  d2.previousElementSibling.textContent = "Observations";
+  d2.classList.remove("green");
+  d2.textContent = t.total_observations || "—";
+
+  const tacticLabel = (t.tactic || "")
+    .split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  const apts    = (t.apts    || []).filter(Boolean);
+  const sources = (t.sources || []).filter(Boolean);
+
+  let html = `<div class="ttp-d-meta">
+    <div class="ttp-d-row"><span class="ttp-d-lbl">Tactic</span><span class="ttp-d-val">${esc(tacticLabel || "—")}</span></div>
+    <div class="ttp-d-row"><span class="ttp-d-lbl">Last seen</span><span class="ttp-d-val">${esc(t.last_seen || "—")}</span></div>
+    <div class="ttp-d-row"><span class="ttp-d-lbl">MITRE Link</span><span class="ttp-d-val"><a href="${esc(mitreUrl)}" target="_blank" rel="noopener noreferrer" style="color:var(--green)">${esc(t.technique_id)}</a></span></div>
+  </div>`;
+
+  if (apts.length) {
+    html += `<div class="ttp-d-section">
+      <div class="ttp-d-section-hd">APT Groups</div>
+      <div class="ttp-d-chips">${apts.map(a => `<span class="ttp-d-chip">${esc(a)}</span>`).join("")}</div>
+    </div>`;
+  }
+
+  if (sources.length) {
+    const extIcon = `<svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M3.5 2H2C1.45 2 1 2.45 1 3V8C1 8.55 1.45 9 2 9H7C7.55 9 8 8.55 8 8V6.5M6 1H9M9 1V4M9 1L4.5 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    html += `<div class="ttp-d-section">
+      <div class="ttp-d-section-hd">${sources.length} Source Article${sources.length !== 1 ? "s" : ""}</div>
+      ${sources.map(url => `<a class="ttp-d-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">
+        <span class="ttp-d-link-txt">${esc(url)}</span>${extIcon}
+      </a>`).join("")}
+    </div>`;
+  } else {
+    html += `<div class="ttp-d-section"><div class="no-links">No source articles recorded.</div></div>`;
+  }
+
+  document.getElementById("links-list").innerHTML = html;
+  document.getElementById("drawer").classList.add("open");
+  document.getElementById("backdrop").classList.add("visible");
+  document.body.style.overflow = "hidden";
 }
 
 /* ── Update dashboard ──────────────────────────────────────────────────────── */
@@ -2286,6 +2413,8 @@ function filterIocs(q) {
 }
 
 /* ── TTP Heat Map ──────────────────────────────────────────────────────────── */
+let _ttpById = {};  // technique_id -> full data row, for drawer lookup
+
 const TACTIC_ORDER = [
   "reconnaissance", "resource-development", "initial-access",
   "execution", "persistence", "privilege-escalation",
@@ -2317,6 +2446,9 @@ function heatLevel(count) {
 }
 
 function renderTtpMap(data) {
+  _ttpById = {};
+  for (const t of (data || [])) _ttpById[t.technique_id] = t;
+
   const noneEl   = document.getElementById("ttp-none");
   const mapEl    = document.getElementById("ttp-map");
   const legendEl = document.getElementById("ttp-legend");
@@ -2370,7 +2502,7 @@ function renderTtpMap(data) {
       const short = name.length > 15 ? name.slice(0, 13) + "…" : name;
       const apts  = t.apts && t.apts.length ? t.apts.join(", ") : "—";
       const tip   = `${t.technique_id} · ${name} · ${t.article_count} article${t.article_count !== 1 ? "s" : ""} · Last seen: ${t.last_seen || "—"} · APT: ${apts}`;
-      return `<div class="ttp-cell" data-heat="${heat}" title="${esc(tip)}">
+      return `<div class="ttp-cell" data-heat="${heat}" title="${esc(tip)}" onclick="openTtpDrawer('${esc(t.technique_id)}')">
         <div class="ttp-cell-id">${esc(t.technique_id)}</div>
         <div class="ttp-cell-name">${esc(short)}</div>
       </div>`;
