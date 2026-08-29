@@ -1,16 +1,10 @@
 import re
 import requests
 from bs4 import BeautifulSoup
+from iocsearcher.searcher import Searcher as _IocSearcher
 
-SHA256_RE = re.compile(r'\b[0-9a-fA-F]{64}\b')
-SHA1_RE   = re.compile(r'\b[0-9a-fA-F]{40}\b')
-MD5_RE    = re.compile(r'\b[0-9a-fA-F]{32}\b')
-DOMAIN_RE = re.compile(
-    r'\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)'
-    r'+(?:com|net|org|io|gov|edu|co|uk|de|ru|cn|kr|jp|in|au|fr|nl|br|pl|it|es|se|no|ch|fi|'
-    r'info|biz|xyz|top|online|site|tech|app|cloud|live|space|store|shop|club|pro|me|cc|tv)\b',
-    re.IGNORECASE,
-)
+_searcher = _IocSearcher()
+_TYPE_MAP = {"fqdn": "domain", "ip4": "ip", "ip6": "ip"}
 
 _FP_DOMAINS = {
     # Infrastructure / CDN
@@ -293,35 +287,19 @@ def undefang(text: str) -> str:
 
 
 def extract_iocs(text: str) -> list[dict]:
-    clean = undefang(text)
-    seen  = set()
+    seen = set()
     results = []
-
-    for m in SHA256_RE.finditer(clean):
-        v = m.group().lower()
-        if v not in seen:
-            seen.add(v)
-            results.append({"value": v, "type": "sha256"})
-
-    for m in SHA1_RE.finditer(clean):
-        v = m.group().lower()
-        # SHA256 contains runs of 64 chars; a 40-char match inside one is still blocked by \b
-        if v not in seen:
-            seen.add(v)
-            results.append({"value": v, "type": "sha1"})
-
-    for m in MD5_RE.finditer(clean):
-        v = m.group().lower()
-        if v not in seen:
-            seen.add(v)
-            results.append({"value": v, "type": "md5"})
-
-    for m in DOMAIN_RE.finditer(clean):
-        v = m.group().lower()
-        if v not in seen and not _is_fp(v):
-            seen.add(v)
-            results.append({"value": v, "type": "domain"})
-
+    for ioc in _searcher.search_data(
+        text, targets=["fqdn", "ip4", "ip6", "sha256", "sha1", "md5"], no_overlaps=True
+    ):
+        t = _TYPE_MAP.get(ioc.name, ioc.name)
+        v = ioc.value
+        if t == "domain" and _is_fp(v):
+            continue
+        k = (t, v)
+        if k not in seen:
+            seen.add(k)
+            results.append({"value": v, "type": t})
     return results
 
 
