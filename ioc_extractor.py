@@ -24,20 +24,49 @@ _FP_DOMAINS = {
     "facebook.com", "instagram.com", "whatsapp.com", "meta.com",
     "twitter.com", "x.com",
     "linkedin.com", "youtube.com", "tiktok.com",
-    # AI / security vendors (commonly cited in CTI articles)
+    # AI / LLM vendors
     "anthropic.com", "claude.com",
     "openai.com", "openai.azure.com",
+    # Dev platforms & source hosting
     "github.com", "githubusercontent.com", "githubassets.com",
+    "gitlab.com", "bitbucket.org",
+    "npmjs.com", "pypi.org", "rubygems.org", "crates.io", "pkg.go.dev",
+    "nuget.org", "maven.org", "mvnrepository.com",
+    "stackoverflow.com", "stackexchange.com",
+    "golang.org", "python.org", "nodejs.org", "rust-lang.org", "mozilla.org",
+    # Container / cloud-native platforms
+    "docker.com", "docker.io", "hub.docker.com",
+    "kubernetes.io", "k8s.io", "helm.sh",
+    "quay.io", "gcr.io", "registry.k8s.io",
+    # Security analysis tools / sandboxes (cited as references, not IOCs)
     "virustotal.com", "shodan.io", "censys.io", "greynoise.io", "alienvault.com",
+    "hybrid-analysis.com", "any.run", "polyswarm.io", "intezer.com",
+    "joesandbox.com", "app.any.run", "triage.abuse.ch", "urlscan.io",
+    "malwarebazaar.abuse.ch", "bazaar.abuse.ch", "threatfox.abuse.ch", "abuse.ch",
+    "otx.alienvault.com", "exchange.xforce.ibmcloud.com",
+    # Security vendors (named in articles as tools/vendors, not as C2s)
+    "crowdstrike.com", "sentinelone.com", "mandiant.com",
+    "paloaltonetworks.com", "unit42.paloaltonetworks.com",
+    "checkpoint.com", "research.checkpoint.com",
+    "fortinet.com", "symantec.com", "broadcom.com",
+    "cisco.com", "talos-intelligence.com",
+    "sophos.com", "news.sophos.com",
+    "eset.com", "welivesecurity.com",
+    "kaspersky.com", "securelist.com",
+    "trendmicro.com", "mcafee.com", "trellix.com",
+    "malwarebytes.com", "elastic.co", "microsoft.com",
+    "recordedfuture.com", "anomali.com", "threatconnect.com",
+    "aikido.io", "snyk.io", "semgrep.io",
     # Threat intel / govt / standards bodies
     "mitre.org", "nist.gov", "cisa.gov", "us-cert.gov", "cert.org",
-    "nvd.nist.gov", "cve.org",
-    "sans.org", "owasp.org",
+    "nvd.nist.gov", "cve.org", "first.org",
+    "sans.org", "owasp.org", "attack.mitre.org",
     # News / research (appear as references, not IOCs)
     "bleepingcomputer.com", "krebsonsecurity.com",
     "therecord.media", "darkreading.com", "securityweek.com",
     "wired.com", "techcrunch.com",
     "arstechnica.com", "thehackernews.com",
+    "threatpost.com", "helpnetsecurity.com", "cyberscoop.com",
 }
 
 
