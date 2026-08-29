@@ -1,5 +1,6 @@
 import json
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 
 import ioc_extractor
@@ -51,8 +52,21 @@ def run(new_items: list[dict]) -> dict:
     anthropic_key  = os.environ.get("ANTHROPIC_API_KEY", "")
     ttp_ai_budget  = ttp_extractor.MAX_ARTICLES_PER_RUN  # cost guard
 
-    for item in new_items:
-        text = ioc_extractor.fetch_article_text(item["link"]) or ""
+    # Phase 1: fetch all article texts in parallel (requests.get is thread-safe)
+    def _fetch_text(item):
+        return item, ioc_extractor.fetch_article_text(item["link"]) or ""
+
+    fetched_items: list[tuple] = []
+    n_workers = min(10, len(new_items)) if new_items else 0
+    if n_workers:
+        with ThreadPoolExecutor(max_workers=n_workers) as pool:
+            futs = {pool.submit(_fetch_text, it): it for it in new_items}
+            for fut in as_completed(futs):
+                fetched_items.append(fut.result())
+    print(f"IOC pipeline: fetched {len(fetched_items)} article text(s) in parallel.")
+
+    # Phase 2: sequential IOC/TTP extraction + DB writes (psycopg2 is not thread-safe)
+    for item, text in fetched_items:
         if not text:
             continue
         apt  = ioc_extractor.detect_apt(item["site"] + " " + text)
@@ -96,7 +110,7 @@ def run(new_items: list[dict]) -> dict:
                 print(f"TTP upsert failed ({ttp['technique_id']}): {e}")
                 conn.rollback()
 
-    print(f"IOC pipeline: {total_iocs} IOC(s) upserted from {len(new_items)} article(s).")
+    print(f"IOC pipeline: {total_iocs} IOC(s) upserted from {len(fetched_items)} article(s).")
     print(f"IOC pipeline: {total_ttps} TTP(s) upserted.")
 
     vt_api_key = os.environ.get("VT_API_KEY", "")

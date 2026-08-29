@@ -1066,84 +1066,121 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
     failures = []
     failing_names = []
 
+    # ── Phase 1: Parallel / batch fetch ──────────────────────────────────────
+    # Sites are grouped by execution model so we can maximise concurrency
+    # without hitting thread-safety limits.
+    _PARALLEL_HTTP = {
+        "feed", "api", "nextjs",
+        "scrapling_fetcher", "scrapling_feed", "scrapling_stealthy",
+    }
+    _BROWSER_TYPES = {"playwright_api", "html_auto", "html"}
+
+    active_sites  = [s for s in config["sites"] if s["type"] not in ("skip", "html_TODO")]
+    http_batch    = [s for s in active_sites if s["type"] in _PARALLEL_HTTP]
+    c4ai_batch    = [s for s in active_sites if s["type"] == "crawl4ai"]
+    browser_batch = [s for s in active_sites if s["type"] in _BROWSER_TYPES]
+
+    site_results: dict[str, tuple] = {}  # name -> (entries, err)
+
+    def _call_http(site):
+        t = site["type"]
+        try:
+            if t == "feed":               return check_feed_site(site)
+            if t == "api":                return check_api_site(site)
+            if t == "nextjs":             return check_nextjs_site(site)
+            if t == "scrapling_fetcher":  return check_scrapling_fetcher_site(site)
+            if t == "scrapling_feed":     return check_scrapling_feed_site(site)
+            if t == "scrapling_stealthy": return check_scrapling_stealthy_site(site)
+        except Exception as ex:
+            return [], str(ex)
+
+    # HTTP-only sites: up to 15 run in parallel (thread-safe, no shared state)
+    print(f"Fetching {len(http_batch)} HTTP sites in parallel, "
+          f"{len(c4ai_batch)} crawl4ai in batch, "
+          f"{len(browser_batch)} browser sites sequentially…")
+    with concurrent.futures.ThreadPoolExecutor(max_workers=15) as pool:
+        futs = {pool.submit(_call_http, s): s for s in http_batch}
+        for fut in concurrent.futures.as_completed(futs):
+            s = futs[fut]
+            try:
+                site_results[s["name"]] = fut.result() or ([], "no result")
+            except Exception as ex:
+                site_results[s["name"]] = ([], str(ex))
+
+    # crawl4ai sites: one async batch (6 concurrent tabs, single browser session)
+    if c4ai_batch:
+        htmls = _run_async(_crawl4ai_batch_fetch(c4ai_batch))
+        for s, h in zip(c4ai_batch, htmls):
+            site_results[s["name"]] = _parse_crawl4ai_html(s, h)
+
+    # Browser-rendered sites: sequential (Playwright browser is not thread-safe)
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True, args=["--disable-http2"])
-
-        for site in config["sites"]:
-            name = site["name"]
-            if site["type"] == "skip":
-                continue
-            if site["type"] == "html_TODO":
-                failures.append(f"{name}: config not filled in yet, skipping")
-                continue
-
-            if site["type"] == "feed":
-                entries, err = check_feed_site(site)
-            elif site["type"] == "api":
-                entries, err = check_api_site(site)
-            elif site["type"] == "nextjs":
-                entries, err = check_nextjs_site(site)
-            elif site["type"] == "playwright_api":
-                entries, err = check_playwright_api_site(site, browser)
-            elif site["type"] == "html_auto":
-                entries, err = check_html_auto_site(site, browser)
-            elif site["type"] == "crawl4ai":
-                entries, err = check_crawl4ai_site(site)
-            elif site["type"] == "scrapling_fetcher":
-                entries, err = check_scrapling_fetcher_site(site)
-            elif site["type"] == "scrapling_feed":
-                entries, err = check_scrapling_feed_site(site)
-            elif site["type"] == "scrapling_stealthy":
-                entries, err = check_scrapling_stealthy_site(site)
-            else:
-                entries, err = check_html_site(site, browser)
-
-            if err:
-                failures.append(f"{name}: {err}")
-                failing_names.append(name)
-                print(f"  [{site['type'].upper()}] {name} ... FAIL")
-                continue
-
-            is_first_run_for_site = name not in state
-            old_order = state.get(name, [])
-            seen = set(old_order)
-            new_links = [(link, date_str) for link, date_str in entries if link not in seen]
-
-            if is_first_run_for_site:
-                # First time we've ever checked this site: just seed state with
-                # everything found. Reporting all of it as "new" would flood the
-                # digest (some feeds return hundreds of historical entries).
-                # Only genuinely new posts on later runs get emailed.
-                last_active[name] = now_iso
-                print(f"  [{site['type'].upper()}] {name} ... seeding {len(new_links)} (not emailed)")
-            else:
-                # Flood guard: if apparent-new links >= current state size (and state
-                # isn't trivially small), it almost certainly means a cache reset or
-                # full-page re-scrape, not real activity. Re-seed silently.
-                if len(new_links) >= len(old_order) >= 5:
-                    last_active[name] = now_iso
-                    state[name] = [link for link, _ in entries][:MAX_SEEN_PER_SITE]
-                    print(f"  [{site['type'].upper()}] {name} ... flood guard: {len(new_links)} apparent-new >= {len(old_order)} in state, re-seeding silently")
-                    continue
-                if new_links:
-                    last_active[name] = now_iso
-                for link, date_str in new_links:
-                    if not date_str:
-                        date_str = fetch_post_date(link)
-                    date_norm, date_source = normalize_date(date_str)
-                    new_items.append({
-                        "site": name, "link": link,
-                        "date": date_norm, "date_source": date_source,
-                    })
-
-            # newest entries go to the front, old order is preserved untouched behind them,
-            # only the tail (oldest) gets trimmed if the list grows past the cap
-            updated_order = [link for link, _ in new_links] + old_order
-            state[name] = updated_order[:MAX_SEEN_PER_SITE]
-            if not is_first_run_for_site:
-                print(f"{name}: {len(new_links)} new / {len(updated_order)} total")
-
+        for s in browser_batch:
+            t = s["type"]
+            try:
+                if t == "playwright_api": site_results[s["name"]] = check_playwright_api_site(s, browser)
+                elif t == "html_auto":    site_results[s["name"]] = check_html_auto_site(s, browser)
+                else:                     site_results[s["name"]] = check_html_site(s, browser)
+            except Exception as ex:
+                site_results[s["name"]] = ([], str(ex))
         browser.close()
+
+    # ── Phase 2: Sequential state processing (logic unchanged) ───────────────
+    for site in config["sites"]:
+        name = site["name"]
+        if site["type"] == "skip":
+            continue
+        if site["type"] == "html_TODO":
+            failures.append(f"{name}: config not filled in yet, skipping")
+            continue
+
+        entries, err = site_results.get(name, ([], "not processed"))
+
+        if err:
+            failures.append(f"{name}: {err}")
+            failing_names.append(name)
+            print(f"  [{site['type'].upper()}] {name} ... FAIL")
+            continue
+
+        is_first_run_for_site = name not in state
+        old_order = state.get(name, [])
+        seen = set(old_order)
+        new_links = [(link, date_str) for link, date_str in entries if link not in seen]
+
+        if is_first_run_for_site:
+            # First time we've ever checked this site: just seed state with
+            # everything found. Reporting all of it as "new" would flood the
+            # digest (some feeds return hundreds of historical entries).
+            # Only genuinely new posts on later runs get emailed.
+            last_active[name] = now_iso
+            print(f"  [{site['type'].upper()}] {name} ... seeding {len(new_links)} (not emailed)")
+        else:
+            # Flood guard: if apparent-new links >= current state size (and state
+            # isn't trivially small), it almost certainly means a cache reset or
+            # full-page re-scrape, not real activity. Re-seed silently.
+            if len(new_links) >= len(old_order) >= 5:
+                last_active[name] = now_iso
+                state[name] = [link for link, _ in entries][:MAX_SEEN_PER_SITE]
+                print(f"  [{site['type'].upper()}] {name} ... flood guard: {len(new_links)} apparent-new >= {len(old_order)} in state, re-seeding silently")
+                continue
+            if new_links:
+                last_active[name] = now_iso
+            for link, date_str in new_links:
+                if not date_str:
+                    date_str = fetch_post_date(link)
+                date_norm, date_source = normalize_date(date_str)
+                new_items.append({
+                    "site": name, "link": link,
+                    "date": date_norm, "date_source": date_source,
+                })
+
+        # newest entries go to the front, old order is preserved untouched behind them,
+        # only the tail (oldest) gets trimmed if the list grows past the cap
+        updated_order = [link for link, _ in new_links] + old_order
+        state[name] = updated_order[:MAX_SEEN_PER_SITE]
+        if not is_first_run_for_site:
+            print(f"{name}: {len(new_links)} new / {len(updated_order)} total")
 
     save_json(state_path, state)
 
