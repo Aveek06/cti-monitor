@@ -215,11 +215,7 @@
     .ttp-export-btn{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;transition:background .1s,color .1s,border-color .1s;white-space:nowrap;margin-left:auto;}
     .ttp-export-btn:hover{border-color:var(--green);color:var(--green);}
     .ttp-export-btn:active{transform:scale(.95);}
-    .ttp-trend{font-size:8px;line-height:1;display:block;text-align:center;margin-top:1px;}
-    .ttp-trend.up{color:var(--green);}
-    .ttp-trend.flat{color:var(--amber);}
-    .ttp-trend.down{color:var(--text-muted);}
-    .ttp-d-src-host{color:var(--text);font-size:9px;}
+.ttp-d-src-host{color:var(--text);font-size:9px;}
     .ttp-d-src-path{color:var(--text-muted);font-size:8px;margin-left:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px;display:inline-block;vertical-align:middle;}
     .ttp-cell[data-heat="1"]{background:rgba(255,149,0,.09);border-color:rgba(255,149,0,.2);}
     .ttp-cell[data-heat="2"]{background:rgba(255,149,0,.22);border-color:rgba(255,149,0,.42);}
@@ -1091,7 +1087,7 @@ function openTtpDrawer(tid){
   const d1=document.getElementById("d-total");d1.previousElementSibling.textContent="Articles";d1.textContent=t.article_count;
   const d2=document.getElementById("d-week");d2.previousElementSibling.textContent="Observations";d2.classList.remove("green");d2.textContent=t.total_observations||"—";
   const tacticLabel=(t.tactic||"").split("-").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" ");
-  const apts=(t.apts||[]).filter(Boolean),sources=(t.sources||[]).filter(Boolean);
+  const apts=(t.apts||[]).filter(Boolean),sources=(t.sources||[]).filter(u=>typeof u==="string"&&/^https?:\/\//.test(u));
   const extIcon=`<svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M3.5 2H2C1.45 2 1 2.45 1 3V8C1 8.55 1.45 9 2 9H7C7.55 9 8 8.55 8 8V6.5M6 1H9M9 1V4M9 1L4.5 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   let html=`<div class="ttp-d-meta"><div class="ttp-d-row"><span class="ttp-d-lbl">Tactic</span><span class="ttp-d-val">${esc(tacticLabel||"—")}</span></div><div class="ttp-d-row"><span class="ttp-d-lbl">Last seen</span><span class="ttp-d-val">${esc(t.last_seen||"—")}</span></div><div class="ttp-d-row"><span class="ttp-d-lbl">MITRE</span><span class="ttp-d-val"><a href="${esc(mitreUrl)}" target="_blank" rel="noopener" style="color:var(--green)">${esc(t.technique_id)}</a></span></div></div>`;
   if(apts.length)html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">APT Groups</div><div class="ttp-d-chips">${apts.map(a=>`<span class="ttp-d-chip">${esc(a)}</span>`).join("")}</div></div>`;
@@ -1136,8 +1132,6 @@ function filterIocs(q){
 let _ttpById={},_ttpExport=[],_ttpDays=0;
 const TACTIC_LABELS={"reconnaissance":"Recon","resource-development":"Resource Dev","initial-access":"Initial Access","execution":"Execution","persistence":"Persistence","privilege-escalation":"Priv. Esc.","defense-evasion":"Defense Eva.","credential-access":"Cred. Access","discovery":"Discovery","lateral-movement":"Lateral Mvmt","collection":"Collection","command-and-control":"C2","exfiltration":"Exfil","impact":"Impact"};
 function heatLevel(count){return count>=5?3:count>=2?2:1;}
-function ttpDaysSince(dateStr){if(!dateStr)return 9999;return Math.floor((Date.now()-new Date(dateStr+"T00:00:00Z"))/86400000);}
-function ttpTrend(t){const d=ttpDaysSince(t.last_seen);return d<=7?"up":d<=21?"flat":"down";}
 function getTtpFiltered(){
   if(!_ttpDays)return _ttpExport;
   const cutoff=new Date(Date.now()-_ttpDays*86400000);
@@ -1195,7 +1189,7 @@ function renderTtpMap(data){
     const techs=byTactic[tac]||[],label=TACTIC_LABELS[tac]||tac,cnt=techs.length;
     const hd=`<div class="ttp-tactic-hd" title="${tac}">${label}${cnt?`<span class="ttp-tactic-count">${cnt}</span>`:""}</div>`;
     if(!cnt)return`<div class="ttp-col">${hd}<div class="ttp-cell-empty">—</div></div>`;
-    return`<div class="ttp-col">${hd}${techs.map(t=>{const heat=heatLevel(t.article_count),name=t.technique_name||t.technique_id,short=name.length>15?name.slice(0,13)+"…":name,apts=t.apts?.length?t.apts.join(", "):"",trend=ttpTrend(t);return`<div class="ttp-cell" data-heat="${heat}" data-id="${esc(t.technique_id)}" data-name="${esc(name)}" data-count="${t.article_count}" data-obs="${t.total_observations||t.article_count}" data-last="${esc(t.last_seen||"")}" data-apts="${esc(apts)}" onclick="openTtpDrawer('${esc(t.technique_id)}')"><div class="ttp-cell-id">${esc(t.technique_id)}</div><div class="ttp-cell-name">${esc(short)}</div><span class="ttp-trend ${trend}">${trend==="up"?"↑":trend==="flat"?"→":"↓"}</span></div>`;}).join("")}</div>`;
+    return`<div class="ttp-col">${hd}${techs.map(t=>{const heat=heatLevel(t.article_count),name=t.technique_name||t.technique_id,short=name.length>15?name.slice(0,13)+"…":name,apts=t.apts?.length?t.apts.join(", "):"";return`<div class="ttp-cell" data-heat="${heat}" data-id="${esc(t.technique_id)}" data-name="${esc(name)}" data-count="${t.article_count}" data-obs="${t.total_observations||t.article_count}" data-last="${esc(t.last_seen||"")}" data-apts="${esc(apts)}" onclick="openTtpDrawer('${esc(t.technique_id)}')"><div class="ttp-cell-id">${esc(t.technique_id)}</div><div class="ttp-cell-name">${esc(short)}</div></div>`;}).join("")}</div>`;
   }).join("");
 }
 
