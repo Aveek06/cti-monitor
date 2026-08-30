@@ -8,11 +8,15 @@ LTV = {
     ("APT38", "domain"): 0.83,
     ("APT38", "hash"):   0.77,
 }
-TAU_DEFAULT = {"domain": 30, "hash": 60}
+TAU_DEFAULT = {"domain": 30, "hash": 60, "url": 7}
 
 
 def ioc_group(ioc_type: str) -> str:
-    return "hash" if ioc_type in ("sha256", "sha1", "md5") else "domain"
+    if ioc_type in ("sha256", "sha1", "md5"):
+        return "hash"
+    if ioc_type == "url":
+        return "url"
+    return "domain"
 
 
 def get_ltv(apt: str | None, ioc_type: str) -> float:

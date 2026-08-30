@@ -111,6 +111,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           VT_API_KEY:        ${{ secrets.VT_API_KEY }}
           SHODAN_API_KEY:    ${{ secrets.SHODAN_API_KEY }}
+          URLHAUS_API_KEY:   ${{ secrets.URLHAUS_API_KEY }}
           DATABASE_URL:      ${{ secrets.DATABASE_URL }}
         run: python run_check.py config.json state.json last_active.json prev_run_links.json
 

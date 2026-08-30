@@ -10,6 +10,7 @@ import ioc_db
 import vt_enricher
 import shodan_enricher
 import ttp_extractor
+import urlhaus_fetcher
 
 
 def run(new_items: list[dict]) -> dict:
@@ -165,6 +166,17 @@ def run(new_items: list[dict]) -> dict:
             }
             for r in all_active
         ], key=lambda x: x["score"], reverse=True)
+        # Merge URLhaus online URLs into the export
+        urlhaus_key = os.environ.get("URLHAUS_API_KEY", "")
+        if urlhaus_key:
+            url_iocs = urlhaus_fetcher.fetch_url_iocs(urlhaus_key)
+            if url_iocs:
+                export.extend(url_iocs)
+                export.sort(key=lambda x: x["score"], reverse=True)
+                print(f"IOC pipeline: merged {len(url_iocs)} URLhaus URL(s).")
+        else:
+            print("URLHAUS_API_KEY not set — skipping URLhaus URL enrichment.")
+
         with open("ioc_export.json", "w", encoding="utf-8") as f:
             json.dump(export, f, indent=2, default=str)
         print(f"IOC pipeline: exported {len(export)} active IOC(s) to ioc_export.json")
