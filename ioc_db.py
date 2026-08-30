@@ -34,6 +34,10 @@ def get_connection():
 def init_schema(conn):
     with conn.cursor() as cur:
         cur.execute(SCHEMA)
+        # Additive migrations — safe to run on existing tables
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS shodan_checked BOOLEAN DEFAULT FALSE")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS shodan_tags   JSONB")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS shodan_ports  JSONB")
     conn.commit()
 
 

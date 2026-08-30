@@ -8,6 +8,7 @@ import ioc_scorer
 import stix_converter
 import ioc_db
 import vt_enricher
+import shodan_enricher
 import ttp_extractor
 
 
@@ -128,6 +129,16 @@ def run(new_items: list[dict]) -> dict:
     else:
         print("VT_API_KEY not set — skipping VirusTotal enrichment.")
 
+    shodan_key = os.environ.get("SHODAN_API_KEY", "")
+    if shodan_key:
+        print("Running Shodan IP enrichment (up to 20 IPs, 1s between calls)...")
+        try:
+            shodan_enricher.enrich_pending_ips(conn, shodan_key)
+        except Exception as e:
+            print(f"Shodan enrichment error: {e}")
+    else:
+        print("SHODAN_API_KEY not set — skipping Shodan enrichment.")
+
     try:
         results["new"]      = ioc_db.get_new_iocs_since(conn, today)
         all_active          = ioc_db.get_active_iocs(conn, min_score=1)
@@ -149,6 +160,8 @@ def run(new_items: list[dict]) -> dict:
                 "last_seen":      str(r["last_seen"]),
                 "vt_malicious":   r.get("vt_malicious"),
                 "vt_verified":    r.get("vt_verified", False),
+                "shodan_tags":    r.get("shodan_tags") or [],
+                "shodan_ports":   r.get("shodan_ports") or [],
             }
             for r in all_active
         ], key=lambda x: x["score"], reverse=True)
