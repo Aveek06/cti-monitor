@@ -90,8 +90,83 @@ def _compute_ioc_stats(ioc_export, cutoff_str):
     }
 
 
+def _build_ioc_by_site(ioc_export):
+    result = {}
+    for ioc in (ioc_export or []):
+        b = ioc.get("source_blog")
+        if not b:
+            continue
+        if b not in result:
+            result[b] = {"count": 0, "vt_verified": False, "has_apt": False}
+        result[b]["count"] += 1
+        if ioc.get("vt_verified"):
+            result[b]["vt_verified"] = True
+        if ioc.get("apt"):
+            result[b]["has_apt"] = True
+    return result
+
+
+def _fetch_ratings():
+    db_url = os.environ.get("DATABASE_URL", "")
+    if not db_url:
+        return {}
+    try:
+        import psycopg2
+        import psycopg2.extras
+        conn = psycopg2.connect(db_url)
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute("""
+                SELECT site_name,
+                       ROUND(AVG(rating)::numeric, 1) AS avg,
+                       COUNT(*)::int AS count
+                FROM site_ratings GROUP BY site_name
+            """)
+            rows = cur.fetchall()
+        conn.close()
+        return {r["site_name"]: {"avg": float(r["avg"]), "count": r["count"]} for r in rows}
+    except Exception as e:
+        print(f"weekly_report: could not fetch ratings: {e}")
+        return {}
+
+
+def _compute_reliability(name, week_count, last_ts_str, is_failing, ioc_by_site, ratings):
+    avail = 0
+    if not is_failing:
+        avail += 20
+    if week_count > 0:
+        avail += 15
+    if last_ts_str:
+        avail += 5
+        try:
+            last_ts = datetime.fromisoformat(last_ts_str)
+            if last_ts.tzinfo is None:
+                last_ts = last_ts.replace(tzinfo=timezone.utc)
+            days = (datetime.now(timezone.utc) - last_ts).days
+            if days > 7:
+                avail = max(0, avail - (days - 7) * 2)
+        except Exception:
+            pass
+    avail = min(40, max(0, avail))
+
+    ioc = ioc_by_site.get(name, {"count": 0, "vt_verified": False, "has_apt": False})
+    content = min(25, round((ioc["count"] / max(1, week_count)) * 25))
+    if ioc.get("vt_verified"):
+        content += 5
+    if ioc.get("has_apt"):
+        content += 5
+    content = min(40, content)
+
+    feedback = 0
+    r = ratings.get(name)
+    if r and r["count"] > 0:
+        feedback = round(((r["avg"] - 1) / 4) * 20)
+
+    return avail + content + feedback
+
+
 def send_stale_email(stale_sites, active_sites, total_active, report_date,
-                     ai_weekly_cost=0.0, ioc_stats=None):
+                     ai_weekly_cost=0.0, ioc_stats=None,
+                     ioc_by_site=None, ratings=None, last_active_raw=None, failing_set=None):
     # palette (dark theme, inline styles for email compatibility)
     BG       = "#0d1117"
     SURFACE  = "#161b22"
@@ -155,16 +230,31 @@ def send_stale_email(stale_sites, active_sites, total_active, report_date,
         )
 
     # activity rows
+    _ioc_by_site = ioc_by_site or {}
+    _ratings     = ratings or {}
+    _la_raw      = last_active_raw or {}
+    _failing     = failing_set or set()
+
     activity_rows = ""
     if active_sites:
         for s in active_sites:
             fill  = max(2, int(BAR_PX * s["count"] / max_count))
             empty = BAR_PX - fill
+            rel   = _compute_reliability(
+                s["name"], s["count"], _la_raw.get(s["name"]),
+                s["name"] in _failing, _ioc_by_site, _ratings,
+            )
+            if rel >= 70:
+                rel_col, rel_bg, rel_bd = GREEN, "#0d1f0e", "#2d5e30"
+            elif rel >= 40:
+                rel_col, rel_bg, rel_bd = AMBER, "#1f150a", "#5e3a1a"
+            else:
+                rel_col, rel_bg, rel_bd = CRIT, "#1f0a0a", "#5e1a1a"
             activity_rows += (
                 f'<tr>'
                 f'<td style="padding:10px 16px 10px 20px;border-bottom:1px solid {BORDER};'
                 f'font-size:13px;color:{TEXT};">{s["name"]}</td>'
-                f'<td style="padding:10px 20px 10px 8px;border-bottom:1px solid {BORDER};">'
+                f'<td style="padding:10px 16px 10px 8px;border-bottom:1px solid {BORDER};">'
                 f'<table cellpadding="0" cellspacing="0" style="display:inline-table;'
                 f'vertical-align:middle;margin-right:10px;">'
                 f'<tr>'
@@ -173,6 +263,12 @@ def send_stale_email(stale_sites, active_sites, total_active, report_date,
                 f'</tr></table>'
                 f'<span style="font-family:monospace;font-size:12px;font-weight:600;'
                 f'color:{CYAN};vertical-align:middle;">{s["count"]}</span>'
+                f'</td>'
+                f'<td style="padding:10px 20px 10px 8px;border-bottom:1px solid {BORDER};white-space:nowrap;">'
+                f'<span style="font-family:monospace;font-size:12px;font-weight:700;'
+                f'color:{rel_col};background:{rel_bg};border:1px solid {rel_bd};'
+                f'border-radius:3px;padding:2px 7px;">{rel}</span>'
+                f'<span style="font-size:10px;color:{DIM};margin-left:4px;">/100</span>'
                 f'</td>'
                 f'</tr>'
             )
@@ -425,9 +521,12 @@ def send_stale_email(stale_sites, active_sites, total_active, report_date,
       <th style="padding:9px 16px 9px 20px;font-size:11px;font-weight:600;
         text-transform:uppercase;letter-spacing:.07em;color:{DIM};
         text-align:left;border-bottom:1px solid {BORDER};">Site</th>
-      <th style="padding:9px 20px 9px 8px;font-size:11px;font-weight:600;
+      <th style="padding:9px 16px 9px 8px;font-size:11px;font-weight:600;
         text-transform:uppercase;letter-spacing:.07em;color:{DIM};
         text-align:left;border-bottom:1px solid {BORDER};">Unique Links (7 days)</th>
+      <th style="padding:9px 20px 9px 8px;font-size:11px;font-weight:600;
+        text-transform:uppercase;letter-spacing:.07em;color:{DIM};
+        text-align:left;border-bottom:1px solid {BORDER};">Reliability</th>
     </tr>
     {activity_rows}
     </table>
@@ -540,8 +639,10 @@ def main(config_path, last_active_path, ioc_export_path=None):
     ai_cost_by_day = last_active.get("_ai_cost", {})
     ai_weekly_cost = sum(v for k, v in ai_cost_by_day.items() if k >= cutoff_str)
 
-    ioc_export = load_json(ioc_export_path or "ioc_export.json", [])
-    ioc_stats  = _compute_ioc_stats(ioc_export, cutoff_str)
+    ioc_export  = load_json(ioc_export_path or "ioc_export.json", [])
+    ioc_stats   = _compute_ioc_stats(ioc_export, cutoff_str)
+    ioc_by_site = _build_ioc_by_site(ioc_export)
+    ratings     = _fetch_ratings()
 
     stale_label = f"{len(stale_sites)} stale" if stale_sites else "all clear"
     ioc_label   = f", {ioc_stats['total']} active IOCs" if ioc_stats else ""
@@ -553,6 +654,10 @@ def main(config_path, last_active_path, ioc_export_path=None):
         stale_sites, active_sites, total_active, report_date,
         ai_weekly_cost=ai_weekly_cost,
         ioc_stats=ioc_stats,
+        ioc_by_site=ioc_by_site,
+        ratings=ratings,
+        last_active_raw=last_active,
+        failing_set=currently_failing,
     )
 
 
