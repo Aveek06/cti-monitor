@@ -64,7 +64,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install feedparser requests playwright beautifulsoup4 crawl4ai "scrapling[fetchers]" anthropic psycopg2-binary htmldate
+          pip install feedparser requests playwright beautifulsoup4 crawl4ai "scrapling[fetchers]" anthropic psycopg2-binary htmldate iocsearcher openpyxl
           playwright install chromium
           crawl4ai-setup
           scrapling install
