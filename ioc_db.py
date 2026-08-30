@@ -163,8 +163,8 @@ def get_all_ttps(conn) -> list[dict]:
                 MAX(last_seen::text)                         AS last_seen,
                 array_agg(DISTINCT attributed_apt)
                     FILTER (WHERE attributed_apt IS NOT NULL) AS apts,
-                array_agg(DISTINCT source_blog)
-                    FILTER (WHERE source_blog IS NOT NULL)    AS sources
+                array_agg(DISTINCT source_article)
+                    FILTER (WHERE source_article IS NOT NULL) AS sources
             FROM ttp_observations
             GROUP BY technique_id
             ORDER BY total_observations DESC, last_seen DESC
