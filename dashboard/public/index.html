@@ -170,6 +170,16 @@
     .ioc-type-btn{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;transition:background .1s,color .1s,border-color .1s;white-space:nowrap;font-family:var(--font-ui);}
     .ioc-type-btn:hover{border-color:var(--green);color:var(--text);}
     .ioc-type-btn.active{background:var(--green);border-color:var(--green);color:#000;}
+    .ioc-export-wrap{position:relative;margin-left:auto;}
+    .ioc-export-btn{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;gap:5px;transition:border-color .1s,color .1s;white-space:nowrap;font-family:var(--font-ui);}
+    .ioc-export-btn:hover{border-color:var(--green);color:var(--green);}
+    .ioc-export-btn:active{transform:scale(.95);}
+    .ioc-export-menu{position:absolute;right:0;top:calc(100% + 4px);background:var(--surface2);border:1px solid var(--border-hi);min-width:160px;z-index:50;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5);}
+    .ioc-export-menu.open{display:block;}
+    .ioc-export-opt{display:block;width:100%;text-align:left;padding:8px 12px;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);background:none;border:none;border-bottom:1px solid var(--border);cursor:pointer;font-family:var(--font-ui);transition:background .1s,color .1s;}
+    .ioc-export-opt:last-child{border-bottom:none;}
+    .ioc-export-opt:hover{background:var(--surface3);color:var(--text);}
+    .ioc-export-opt-desc{display:block;font-size:8px;font-weight:400;color:var(--text-muted);letter-spacing:.04em;text-transform:none;margin-top:1px;}
     .ioc-table-wrap{overflow-x:auto;}
     .ioc-table{width:100%;border-collapse:collapse;font-size:10px;}
     .ioc-table th{text-align:left;font-size:8px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);padding:0 12px 8px 0;border-bottom:1px solid var(--border);white-space:nowrap;}
@@ -661,6 +671,18 @@
               <button class="ioc-type-btn" data-type="md5" onclick="setIocType(this)">MD5</button>
             </div>
             <span class="ioc-count" id="ioc-count">— IOCs</span>
+            <div class="ioc-export-wrap">
+              <button class="ioc-export-btn" id="ioc-export-btn" onclick="toggleExportMenu()">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export
+              </button>
+              <div class="ioc-export-menu" id="ioc-export-menu">
+                <button class="ioc-export-opt" onclick="exportIocs('csv')">CSV<span class="ioc-export-opt-desc">Excel &amp; SIEM-ready, all fields</span></button>
+                <button class="ioc-export-opt" onclick="exportIocs('txt')">TXT — Values only<span class="ioc-export-opt-desc">One indicator per line</span></button>
+                <button class="ioc-export-opt" onclick="exportIocs('json')">JSON<span class="ioc-export-opt-desc">Full data with all fields</span></button>
+                <button class="ioc-export-opt" onclick="exportIocs('urls')">URLs only<span class="ioc-export-opt-desc">Extract URL indicators</span></button>
+              </div>
+            </div>
           </div>
           <div class="ioc-table-wrap">
             <table class="ioc-table" id="ioc-table">
@@ -1269,6 +1291,45 @@ function filterIocs(q){
     :`<td class="ioc-site" title="${esc(r.source_blog||'')}">${r.source_article?`<a href="${esc(r.source_article)}" target="_blank" rel="noopener">${esc(r.source_blog||'—')}</a>`:esc(r.source_blog||'—')}</td>`;
   const clipSvg=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M17 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>`;
   return`<tr><td onclick="copyIoc(this,'${esc(r.value)}')" title="${isUrl?esc(r.value):'Click to copy'}" style="white-space:nowrap"><span class="ioc-val">${esc(displayVal)}</span><button class="ioc-copy-btn" onclick="event.stopPropagation();copyIoc(this,'${esc(r.value)}')" title="Copy to clipboard">${clipSvg}</button><span class="ioc-copied">✓</span></td><td><span class="ioc-badge">${esc(r.type)}</span></td>${sourceCell}<td>${apt}</td><td><span style="font-variant-numeric:tabular-nums;color:${col}">${s.toFixed(1)}</span>${vt?`<br>${vt}`:""}</td><td><div class="ioc-decay-track"><div class="ioc-decay-fill" style="width:${bar}%;background:${col}"></div></div><span style="font-size:8px;color:var(--text-muted)">${r.last_seen||""}</span></td></tr>`;}).join("");
+}
+
+/* ── IOC Export ── */
+function _getFilteredIocRows(){
+  const q=(document.getElementById("ioc-search")?.value||"").toLowerCase();
+  return _allIocs.filter(r=>{
+    if(_activeTypeFilter&&r.type!==_activeTypeFilter)return false;
+    return !q||r.value.toLowerCase().includes(q)||(r.type||"").includes(q)||(r.source_blog||"").toLowerCase().includes(q)||(r.apt||"").toLowerCase().includes(q)||(r.url_threat||"").toLowerCase().includes(q)||((r.url_tags||[]).join(" ").toLowerCase().includes(q));
+  }).map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((a,b)=>b._live-a._live);
+}
+function toggleExportMenu(){
+  const m=document.getElementById("ioc-export-menu");
+  m.classList.toggle("open");
+  if(m.classList.contains("open")){
+    const close=e=>{if(!document.getElementById("ioc-export-btn").contains(e.target)&&!m.contains(e.target)){m.classList.remove("open");document.removeEventListener("click",close);}};
+    setTimeout(()=>document.addEventListener("click",close),0);
+  }
+}
+function exportIocs(fmt){
+  document.getElementById("ioc-export-menu").classList.remove("open");
+  const rows=_getFilteredIocRows();
+  const ts=new Date().toISOString().slice(0,10);
+  let content,mime,filename;
+  if(fmt==="csv"){
+    const hdr="value,type,score,apt,source_blog,source_article,first_seen,last_seen,vt_malicious,url_threat,url_tags";
+    const esc_csv=v=>`"${String(v==null?"":v).replace(/"/g,'""')}"`;
+    const body=rows.map(r=>[r.value,r.type,(r._live||0).toFixed(1),r.apt||"",r.source_blog||"",r.source_article||"",r.first_seen||"",r.last_seen||"",r.vt_malicious!=null?r.vt_malicious:"",r.url_threat||"",(r.url_tags||[]).join("|")].map(esc_csv).join(",")).join("\n");
+    content=hdr+"\n"+body;mime="text/csv";filename=`iocs_${ts}.csv`;
+  }else if(fmt==="txt"){
+    content=rows.map(r=>r.value).join("\n");mime="text/plain";filename=`iocs_${ts}.txt`;
+  }else if(fmt==="json"){
+    content=JSON.stringify(rows.map(({_live,...r})=>r),null,2);mime="application/json";filename=`iocs_${ts}.json`;
+  }else if(fmt==="urls"){
+    const urls=rows.filter(r=>r.type==="url").map(r=>r.value);
+    if(!urls.length){alert("No URL indicators in the current view.\n\nUse the URL filter button or clear your search to include URLs.");return;}
+    content=urls.join("\n");mime="text/plain";filename=`urls_${ts}.txt`;
+  }
+  const blob=new Blob([content],{type:mime});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);
 }
 
 /* ── TTP Heat Map ── */
