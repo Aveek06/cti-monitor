@@ -947,7 +947,7 @@ function renderDonut(iocExport){
   const svg=document.getElementById("donut-svg"),leg=document.getElementById("donut-legend");
   if(!svg)return;
   const COLS={domain:"#00ff41",url:"#ff9f0a",sha256:"#bf5fff",sha1:"#ff9500",md5:"#67e8f9",ip:"#ff3b30",other:"#444"};
-  const counts={};for(const ioc of(iocExport||[])){const t=ioc.type||"other";counts[t]=(counts[t]||0)+1;}
+  const counts={};for(const ioc of(iocExport||[])){const t=ioc.type||"other";const grp=(t==="ipv4"||t==="ipv6")?"ip":t;counts[grp]=(counts[grp]||0)+1;}
   const total=Object.values(counts).reduce((s,v)=>s+v,0);
   if(!total){svg.innerHTML="";leg.innerHTML="";return;}
   const entries=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
