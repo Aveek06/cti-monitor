@@ -79,6 +79,7 @@ jobs:
             prev_run_links.json
             ioc_export.json
             ttp_export.json
+            .tranco_cache.txt
           key: cti-state-${{ github.run_id }}
           restore-keys: |
             cti-state-
@@ -154,4 +155,5 @@ jobs:
             prev_run_links.json
             ioc_export.json
             ttp_export.json
+            .tranco_cache.txt
           key: cti-state-${{ github.run_id }}

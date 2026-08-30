@@ -14,7 +14,7 @@ _TYPE_MAP = {"fqdn": "domain", "ip4": "ipv4", "ip6": "ipv6"}
 
 _TRANCO_URL        = "https://tranco-list.eu/top-1m.csv.zip"
 _TRANCO_CACHE      = Path(__file__).parent / ".tranco_cache.txt"
-_TRANCO_CACHE_DAYS = 7
+_TRANCO_CACHE_DAYS = 30
 _TRANCO_TOP_N      = 100_000
 _tranco_domains: set[str] = set()
 
