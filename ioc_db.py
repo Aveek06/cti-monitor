@@ -41,6 +41,22 @@ def init_schema(conn):
     conn.commit()
 
 
+def init_ratings_schema(conn):
+    with conn.cursor() as cur:
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS site_ratings (
+                id        SERIAL PRIMARY KEY,
+                site_name TEXT NOT NULL,
+                rating    INT  NOT NULL CHECK (rating BETWEEN 1 AND 5),
+                note      TEXT,
+                rater     TEXT,
+                rated_at  TIMESTAMPTZ DEFAULT NOW()
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_site_ratings_name ON site_ratings(site_name)")
+    conn.commit()
+
+
 def upsert_ioc(conn, stix_obj, value, ioc_type, first_seen, last_seen,
                apt, ltv, tau, source_article, source_blog):
     with conn.cursor() as cur:

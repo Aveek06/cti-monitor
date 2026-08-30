@@ -181,6 +181,31 @@
     .ioc-badge{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;border:1px solid var(--border-hi);color:var(--text-dim);white-space:nowrap;}
     .ioc-apt{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;background:rgba(0,255,65,.06);border:1px solid rgba(0,255,65,.2);color:var(--green);white-space:nowrap;}
     .ioc-site{color:var(--text-dim);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    /* Reliability score */
+    .rel-badge{font-size:8px;font-weight:700;letter-spacing:.08em;padding:2px 6px;border:1px solid;white-space:nowrap;flex-shrink:0;}
+    .rel-green{color:var(--green);border-color:rgba(0,255,65,.3);}
+    .rel-amber{color:var(--amber);border-color:rgba(255,149,0,.3);}
+    .rel-red{color:var(--red);border-color:rgba(255,59,48,.3);}
+    .rel-none{color:var(--text-muted);border-color:var(--border);}
+    #rel-section{padding:10px 10px 0;border-bottom:1px solid var(--border);}
+    .rel-breakdown{display:flex;flex-direction:column;gap:5px;margin:6px 0 10px;}
+    .rel-row{display:flex;align-items:center;gap:6px;font-size:8px;color:var(--text-dim);}
+    .rel-lbl{width:72px;flex-shrink:0;letter-spacing:.06em;text-transform:uppercase;}
+    .rel-track{flex:1;height:3px;background:var(--surface2);}
+    .rel-fill{height:3px;transition:width .4s;}
+    .rel-pts{width:24px;text-align:right;font-variant-numeric:tabular-nums;color:var(--text);}
+    .rel-section-hd{font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);padding-bottom:5px;border-bottom:1px solid var(--border);margin-bottom:6px;}
+    .rel-stars{display:flex;gap:5px;margin:5px 0;}
+    .rel-star{font-size:18px;color:var(--border-hi);cursor:pointer;transition:color .1s;line-height:1;user-select:none;}
+    .rel-star.on{color:var(--amber);}
+    .rel-star:hover{color:var(--amber);}
+    .rel-fields{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+    .rel-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:9px;padding:5px 8px;outline:none;flex:1;min-width:80px;}
+    .rel-input:focus{border-color:var(--border-hi);}
+    .rel-submit{font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border:1px solid var(--green);background:transparent;color:var(--green);cursor:pointer;white-space:nowrap;transition:background .1s,color .1s;}
+    .rel-submit:hover{background:var(--green);color:#000;}
+    .rel-submit:active{transform:scale(.95);}
+    .rel-team-avg{font-size:8px;color:var(--text-muted);margin-top:4px;margin-bottom:8px;}
     .ioc-threat{font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:1px 5px;border:1px solid rgba(255,59,48,.35);color:var(--red);white-space:nowrap;}
     .ioc-online{font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:1px 5px;border:1px solid rgba(0,255,65,.35);color:var(--green);white-space:nowrap;}
     .ioc-tag{font-size:7px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:1px 4px;border:1px solid var(--border);color:var(--text-muted);white-space:nowrap;margin-left:2px;}
@@ -816,6 +841,7 @@
     <div class="d-stat"><div class="d-stat-label">Total Captured</div><div class="d-stat-num" id="d-total">—</div></div>
     <div class="d-stat"><div class="d-stat-label">This Week</div><div class="d-stat-num green" id="d-week">—</div></div>
   </div>
+  <div id="rel-section" style="display:none"></div>
   <div class="drawer-body"><div id="links-list"></div></div>
 </div>
 
@@ -837,6 +863,7 @@
 /* ── Constants ── */
 const STALE_DAYS=7,SKIP_TYPES=new Set(["skip","html_TODO"]),REFRESH_MS=15*60*1000;
 let lastUpdatedAt=null,lastSevenDay={},lastState={},lastPrevRunLinks=[],_lmAllLinks=[];
+let _ratings={},_iocBySite={},_ttpSiteSet=new Set(),_lastDerived=null,_lastActive={},_pendingRating=0,_openSiteName=null;
 
 /* ── Clock ── */
 function tickClock(){const el=document.getElementById("sys-clock");if(!el)return;const n=new Date();el.textContent=n.toUTCString().slice(17,25)+" UTC";}
@@ -878,16 +905,120 @@ function derive({config,state,lastActive,prevRunLinks,iocExport,ttpExport,update
   return{sites,activeSites,quietSites,failingSites,weekTotal,sparkData,state,sevenDay,prevRunLinks:prevRunLinks||[],iocExport:iocExport||[],ttpExport:ttpExport||[],updatedAt};
 }
 
+/* ── Reliability Score ── */
+function buildIocBySite(iocExport){
+  const map={};
+  for(const ioc of iocExport){
+    const b=ioc.source_blog;if(!b)continue;
+    if(!map[b])map[b]={count:0,vtVerified:false,hasApt:false};
+    map[b].count++;
+    if(ioc.vt_verified)map[b].vtVerified=true;
+    if(ioc.apt)map[b].hasApt=true;
+  }
+  return map;
+}
+function buildTtpSiteSet(ttpExport,sites){
+  const hostMap={};
+  for(const s of sites){try{hostMap[new URL(s.url).hostname.replace(/^www\./,"")]=s.name;}catch{}}
+  const set=new Set();
+  for(const t of ttpExport){for(const url of(t.sources||[])){try{const h=new URL(url).hostname.replace(/^www\./,"");if(hostMap[h])set.add(hostMap[h]);}catch{}}}
+  return set;
+}
+function computeReliability(name,weekCount,lastTs,isFailing){
+  let avail=0;
+  if(!isFailing)avail+=20;
+  if(weekCount>0)avail+=15;
+  if(lastTs)avail+=5;
+  const d=daysSince(lastTs);
+  if(d>7)avail=Math.max(0,avail-(d-7)*2);
+  avail=Math.min(40,Math.max(0,avail));
+  const ioc=_iocBySite[name]||{count:0,vtVerified:false,hasApt:false};
+  let content=0;
+  content+=Math.min(25,Math.round((ioc.count/Math.max(1,weekCount))*25));
+  if(ioc.vtVerified)content+=5;
+  if(_ttpSiteSet.has(name))content+=5;
+  if(ioc.hasApt)content+=5;
+  content=Math.min(40,content);
+  let feedback=0;
+  const r=_ratings[name];
+  if(r&&r.count>0)feedback=Math.round(((r.avg-1)/4)*20);
+  return{score:avail+content+feedback,avail,content,feedback};
+}
+function relClass(score){return score>=70?"rel-green":score>=40?"rel-amber":"rel-red";}
+async function loadRatings(){
+  try{const res=await fetch("/api/ratings");if(res.ok)_ratings=await res.json();}catch{}
+  applyReliabilityBadges();
+}
+function applyReliabilityBadges(){
+  if(!_lastDerived)return;
+  const{activeSites,quietSites,failingSites}=_lastDerived;
+  const failSet=new Set(failingSites.map(s=>s.name));
+  document.querySelectorAll("[data-rel]").forEach(el=>{
+    const name=el.dataset.rel;
+    const active=activeSites.find(s=>s.name===name);
+    const quiet=quietSites.find(s=>s.name===name);
+    const weekCount=active?.count||0;
+    const lastTs=_lastActive[name];
+    const{score}=computeReliability(name,weekCount,lastTs,failSet.has(name));
+    el.className=`rel-badge ${relClass(score)}`;
+    el.textContent=score;
+  });
+}
+function renderRelSection(name,weekCount,lastTs,isFailing){
+  const{score,avail,content,feedback}=computeReliability(name,weekCount,lastTs,isFailing);
+  const col=score>=70?"var(--green)":score>=40?"var(--amber)":"var(--red)";
+  const r=_ratings[name];
+  const avgStr=r?`Team avg: ${r.avg.toFixed(1)} ★ (${r.count} rating${r.count!==1?"s":""})`:"No ratings yet";
+  const bar=(pts,max,clr)=>`<div class="rel-track"><div class="rel-fill" style="width:${Math.round((pts/max)*100)}%;background:${clr}"></div></div>`;
+  const stars=[1,2,3,4,5].map(i=>`<span class="rel-star${i<=_pendingRating?" on":""}" onclick="setRelStar(${i})">★</span>`).join("");
+  return`<div class="rel-section-hd">Reliability <span style="color:${col};font-size:15px;font-weight:700;margin-left:4px">${score}</span><span style="color:var(--text-muted);font-size:8px">/100</span></div>
+<div class="rel-breakdown">
+  <div class="rel-row"><span class="rel-lbl">Availability</span>${bar(avail,40,"var(--green)")}<span class="rel-pts">${avail}/40</span></div>
+  <div class="rel-row"><span class="rel-lbl">Content</span>${bar(content,40,"var(--amber)")}<span class="rel-pts">${content}/40</span></div>
+  <div class="rel-row"><span class="rel-lbl">Feedback</span>${bar(feedback,20,"rgba(0,255,65,.6)")}<span class="rel-pts">${feedback}/20</span></div>
+</div>
+<div class="rel-section-hd">Rate This Source</div>
+<div class="rel-stars">${stars}</div>
+<div class="rel-team-avg">${avgStr}</div>
+<div class="rel-fields">
+  <input class="rel-input" id="rel-rater" placeholder="Your name (optional)" maxlength="60">
+  <input class="rel-input" id="rel-note" placeholder="Note (optional)" maxlength="200">
+  <button class="rel-submit" onclick="submitRating('${esc(name)}')">Submit</button>
+</div>`;
+}
+function setRelStar(v){
+  _pendingRating=v;
+  document.querySelectorAll(".rel-star").forEach((el,i)=>el.classList.toggle("on",i<v));
+}
+async function submitRating(name){
+  if(!_pendingRating)return;
+  const rater=document.getElementById("rel-rater")?.value.trim()||null;
+  const note=document.getElementById("rel-note")?.value.trim()||null;
+  const btn=document.querySelector(".rel-submit");
+  if(btn){btn.disabled=true;btn.textContent="...";}
+  try{
+    const r=await fetch("/api/ratings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({site_name:name,rating:_pendingRating,rater,note})});
+    if(!r.ok)throw new Error();
+    await loadRatings();
+    _pendingRating=0;
+    // Refresh rel section
+    const active=_lastDerived?.activeSites?.find(s=>s.name===name);
+    const quiet=_lastDerived?.quietSites?.find(s=>s.name===name);
+    const failSet=new Set((_lastDerived?.failingSites||[]).map(s=>s.name));
+    document.getElementById("rel-section").innerHTML=renderRelSection(name,active?.count||0,_lastActive[name],failSet.has(name));
+  }catch{if(btn){btn.disabled=false;btn.textContent="Submit";}}
+}
+
 /* ── Panel row renderers ── */
 function renderActive(sites,state){
   const max=sites[0]?.count||1;
   const el=document.getElementById("content-active");
-  el.innerHTML=sites.map((s,i)=>{const pct=Math.round((s.count/max)*100);return`<div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i,9)}"><span class="site-prefix">&gt;</span><span class="site-name">${s.name}</span><div class="site-meta"><div class="bar-wrap"><div class="bar-track"><div class="bar-fill" data-w="${pct}%"></div></div><span class="count-val">${s.count}</span></div><span class="chevron">›</span></div></div>`;}).join("")+(sites.length>12?`<div class="panel-footer">// ${sites.length} Sources Total</div>`:"");
+  el.innerHTML=sites.map((s,i)=>{const pct=Math.round((s.count/max)*100);return`<div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i,9)}"><span class="site-prefix">&gt;</span><span class="site-name">${s.name}</span><div class="site-meta"><div class="bar-wrap"><div class="bar-track"><div class="bar-fill" data-w="${pct}%"></div></div><span class="count-val">${s.count}</span></div><span class="rel-badge rel-none" data-rel="${esc(s.name)}">—</span><span class="chevron">›</span></div></div>`;}).join("")+(sites.length>12?`<div class="panel-footer">// ${sites.length} Sources Total</div>`:"");
   el.querySelectorAll(".site-row").forEach(row=>row.addEventListener("click",()=>openDrawer(row.dataset.name,sites,state)));
 }
 function renderQuiet(sites,state){
   const el=document.getElementById("content-quiet");
-  el.innerHTML=sites.map((s,i)=>{const cls=s.days>=14?"badge-red":"badge-amber";return`<div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i,9)}"><span class="site-prefix">&gt;</span><span class="site-name">${s.name}</span><div class="site-meta"><span class="last-date">${fmtDate(s.lastActive)}</span><span class="badge ${cls}">${s.days}D Quiet</span><span class="chevron">›</span></div></div>`;}).join("")+(sites.length>8?`<div class="panel-footer">// ${sites.length} Quiet Sites Total</div>`:"");
+  el.innerHTML=sites.map((s,i)=>{const cls=s.days>=14?"badge-red":"badge-amber";return`<div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i,9)}"><span class="site-prefix">&gt;</span><span class="site-name">${s.name}</span><div class="site-meta"><span class="last-date">${fmtDate(s.lastActive)}</span><span class="badge ${cls}">${s.days}D Quiet</span><span class="rel-badge rel-none" data-rel="${esc(s.name)}">—</span><span class="chevron">›</span></div></div>`;}).join("")+(sites.length>8?`<div class="panel-footer">// ${sites.length} Quiet Sites Total</div>`:"");
   el.querySelectorAll(".site-row").forEach(row=>row.addEventListener("click",()=>openDrawer(row.dataset.name,sites,state)));
 }
 function renderFailing(sites,state){
@@ -1074,6 +1205,10 @@ function openDrawer(name,sites,state,isFailing=false){
   const d1=document.getElementById("d-total");d1.previousElementSibling.textContent="Total Captured";d1.textContent=links.length.toLocaleString();
   const d2=document.getElementById("d-week");d2.previousElementSibling.textContent="This Week";d2.classList.add("green");d2.textContent=site?.count||"—";
   renderGroupedLinks(links,name);
+  _openSiteName=name;_pendingRating=0;
+  const relEl=document.getElementById("rel-section");
+  relEl.style.display="block";
+  relEl.innerHTML=renderRelSection(name,site?.count||0,_lastActive[name],isFailing);
   animateDrawer(true);document.getElementById("backdrop").classList.add("visible");document.body.style.overflow="hidden";
 }
 function closeDrawer(){animateDrawer(false);document.getElementById("backdrop").classList.remove("visible");document.body.style.overflow="";setTimeout(()=>document.querySelectorAll(".link-item").forEach(li=>li.classList.remove("show")),420);}
@@ -1094,6 +1229,7 @@ function openTtpDrawer(tid){
   if(sources.length)html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${sources.length} Source Article${sources.length!==1?"s":""}</div>${sources.map(url=>`<a class="ttp-d-link" href="${esc(url)}" target="_blank" rel="noopener"><span class="ttp-d-src-host">${esc(urlHost(url))}</span><span class="ttp-d-src-path">${esc(urlPath(url))}</span>${extIcon}</a>`).join("")}</div>`;
   else html+=`<div class="ttp-d-section"><div class="no-links">No source articles recorded.</div></div>`;
   document.getElementById("links-list").innerHTML=html;
+  document.getElementById("rel-section").style.display="none";
   animateDrawer(true);document.getElementById("backdrop").classList.add("visible");document.body.style.overflow="hidden";
 }
 
@@ -1212,6 +1348,11 @@ function updateDashboard({sites,activeSites,quietSites,failingSites,weekTotal,sp
   renderIocs(iocExport||[]);renderDonut(iocExport||[]);
   _ttpExport=ttpExport||[];renderTtpMap(getTtpFiltered());renderRadar(getTtpFiltered());
   renderGraph(iocExport||[]);
+  _lastDerived={activeSites,quietSites,failingSites};
+  for(const s of activeSites)_lastActive[s.name]=s.lastActive||null;
+  _iocBySite=buildIocBySite(iocExport||[]);
+  _ttpSiteSet=buildTtpSiteSet(ttpExport||[],sites);
+  loadRatings();
 }
 
 function flashUpdated(updatedAt){const el=document.getElementById("hdr-updated");el.textContent="[ Sync Complete ]";el.style.color="var(--green)";setTimeout(()=>{el.textContent=updatedAt?`Sync: ${relTime(updatedAt)}`:"";el.style.color="";},2400);}
@@ -1413,6 +1554,7 @@ ${cvss?`<div class="vm-drawer-field"><div class="lbl">CVSS Version</div><div cla
 </div>
 <div class="vm-drawer-block"><div class="vm-drawer-section-hd">Description</div><div class="vm-drawer-body-text">${esc(e.shortDescription||"No description available.")}</div>
 <div class="vm-drawer-section-hd">Required Action</div><div class="vm-drawer-action">${esc(e.requiredAction||"No action specified.")}</div></div>`;
+  document.getElementById("rel-section").style.display="none";
   animateDrawer(true);document.getElementById("backdrop").classList.add("visible");document.body.style.overflow="hidden";
 }
 

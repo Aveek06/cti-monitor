@@ -29,6 +29,7 @@ def run(new_items: list[dict]) -> dict:
     try:
         ioc_db.init_schema(conn)
         ioc_db.init_ttp_schema(conn)
+        ioc_db.init_ratings_schema(conn)
     except Exception as e:
         print(f"IOC pipeline: schema init failed: {e}")
         conn.close()
