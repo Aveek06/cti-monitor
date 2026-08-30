@@ -52,6 +52,76 @@ HAIKU_COST_PER_INPUT  = 1.0 / 1_000_000   # $1.00 per 1M input tokens
 HAIKU_COST_PER_OUTPUT = 5.0 / 1_000_000   # $5.00 per 1M output tokens
 
 
+def _digest_build_ioc_by_site(active_iocs):
+    result = {}
+    for ioc in (active_iocs or []):
+        b = ioc.get("source_blog")
+        if not b:
+            continue
+        if b not in result:
+            result[b] = {"count": 0, "vt_verified": False, "has_apt": False}
+        result[b]["count"] += 1
+        if ioc.get("vt_verified"):
+            result[b]["vt_verified"] = True
+        if ioc.get("apt"):
+            result[b]["has_apt"] = True
+    return result
+
+
+def _digest_fetch_ratings():
+    db_url = os.environ.get("DATABASE_URL", "")
+    if not db_url:
+        return {}
+    try:
+        import psycopg2
+        import psycopg2.extras
+        conn = psycopg2.connect(db_url)
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute("""
+                SELECT site_name, ROUND(AVG(rating)::numeric,1) AS avg,
+                       COUNT(*)::int AS count
+                FROM site_ratings GROUP BY site_name
+            """)
+            rows = cur.fetchall()
+        conn.close()
+        return {r["site_name"]: {"avg": float(r["avg"]), "count": r["count"]} for r in rows}
+    except Exception as e:
+        print(f"digest: could not fetch ratings: {e}")
+        return {}
+
+
+def _digest_compute_reliability(name, week_count, last_ts_str, is_failing, ioc_by_site, ratings):
+    avail = 0
+    if not is_failing:
+        avail += 20
+    if week_count > 0:
+        avail += 15
+    if last_ts_str:
+        avail += 5
+        try:
+            last_ts = datetime.fromisoformat(last_ts_str)
+            if last_ts.tzinfo is None:
+                last_ts = last_ts.replace(tzinfo=timezone.utc)
+            days = (datetime.now(timezone.utc) - last_ts).days
+            if days > 7:
+                avail = max(0, avail - (days - 7) * 2)
+        except Exception:
+            pass
+    avail = min(40, max(0, avail))
+    ioc = ioc_by_site.get(name, {"count": 0, "vt_verified": False, "has_apt": False})
+    content = min(25, round((ioc["count"] / max(1, week_count)) * 25))
+    if ioc.get("vt_verified"):
+        content += 5
+    if ioc.get("has_apt"):
+        content += 5
+    content = min(40, content)
+    feedback = 0
+    r = ratings.get(name)
+    if r and r["count"] > 0:
+        feedback = round(((r["avg"] - 1) / 4) * 20)
+    return avail + content + feedback
+
+
 def summarize_article(url, client):
     """Fetch article and return (summary, input_tokens, output_tokens). Summary is '' on failure."""
     try:
@@ -934,7 +1004,8 @@ def normalize_date(date_str):
     return datetime.now(timezone.utc).strftime("%Y-%m-%d"), "detected"
 
 
-def send_digest_email(new_items, failures, duplicate_links=None, ai_run_cost=0.0, ioc_results=None, ai_status=""):
+def send_digest_email(new_items, failures, duplicate_links=None, ai_run_cost=0.0, ioc_results=None, ai_status="",
+                      last_active=None, config_sites=None):
     rows_html = ""
     for item in new_items:
         summary_html = (f"<br><span style='color:#888;font-size:11px;font-style:italic'>"
@@ -1002,6 +1073,64 @@ def send_digest_email(new_items, failures, duplicate_links=None, ai_run_cost=0.0
         f"AI (Claude Haiku 4.5): {ai_status or 'no status'}</p>"
     )
 
+    # Site reliability snapshot
+    rel_html = ""
+    if last_active and config_sites:
+        try:
+            la = last_active if isinstance(last_active, dict) else {}
+            failing_set = set(la.get("_currently_failing", []))
+            seven_day   = la.get("_seven_day_counts", {})
+            cutoff      = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d")
+            ioc_by_site = _digest_build_ioc_by_site((ioc_results or {}).get("active", []))
+            ratings     = _digest_fetch_ratings()
+
+            # show sites that posted this run + failing sites
+            relevant = {item["site"] for item in new_items}
+            for f in failures:
+                name = f.split(":")[0].strip()
+                relevant.add(name)
+
+            rows_rel = ""
+            for site in config_sites:
+                name = site.get("name", "")
+                if name not in relevant:
+                    continue
+                counts     = seven_day.get(name, {})
+                week_count = sum(v for k, v in counts.items() if k >= cutoff)
+                is_failing = name in failing_set
+                score      = _digest_compute_reliability(name, week_count, la.get(name), is_failing, ioc_by_site, ratings)
+                if score >= 70:
+                    col, bg, bd = "#1a7f37", "#d4f7dc", "#82e09a"
+                elif score >= 40:
+                    col, bg, bd = "#9a5c00", "#fff3cd", "#ffc107"
+                else:
+                    col, bg, bd = "#b91c1c", "#fee2e2", "#f87171"
+                status_str = "Failing" if is_failing else f"{week_count} links/7d"
+                rows_rel += (
+                    f"<tr>"
+                    f"<td style='padding:6px 12px;border-bottom:1px solid #eee;font-size:12px'>{name}</td>"
+                    f"<td style='padding:6px 12px;border-bottom:1px solid #eee;font-size:11px;color:#888'>{status_str}</td>"
+                    f"<td style='padding:6px 12px;border-bottom:1px solid #eee;text-align:center'>"
+                    f"<span style='font-family:monospace;font-size:12px;font-weight:700;"
+                    f"color:{col};background:{bg};border:1px solid {bd};"
+                    f"border-radius:3px;padding:2px 8px'>{score}</span>"
+                    f"<span style='font-size:10px;color:#aaa;margin-left:3px'>/100</span></td>"
+                    f"</tr>"
+                )
+            if rows_rel:
+                rel_html = (
+                    f"<hr><h3 style='font-size:13px;margin-bottom:8px'>Source Reliability — This Run</h3>"
+                    f"<table border='0' cellpadding='0' cellspacing='0' style='font-size:12px;border-collapse:collapse;border:1px solid #eee'>"
+                    f"<tr style='background:#f5f5f5'>"
+                    f"<th style='padding:6px 12px;text-align:left;font-size:11px;border-bottom:1px solid #ddd'>Site</th>"
+                    f"<th style='padding:6px 12px;text-align:left;font-size:11px;border-bottom:1px solid #ddd'>Activity</th>"
+                    f"<th style='padding:6px 12px;text-align:center;font-size:11px;border-bottom:1px solid #ddd'>Score</th>"
+                    f"</tr>{rows_rel}</table>"
+                    f"<p style='color:#aaa;font-size:10px;margin-top:4px'>Availability (0-40) + Content Quality (0-40) + Analyst Feedback (0-20)</p>"
+                )
+        except Exception as e:
+            print(f"digest: reliability section failed: {e}")
+
     html = f"""
     <html><body>
     <h2>CTI Source Monitor - New Posts ({len(new_items)})</h2>
@@ -1009,6 +1138,7 @@ def send_digest_email(new_items, failures, duplicate_links=None, ai_run_cost=0.0
     {failures_html}
     {duplicates_html}
     {ioc_html}
+    {rel_html}
     {ai_cost_html}
     </body></html>
     """
@@ -1276,7 +1406,8 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
             print(f"IOC pipeline skipped: {e}")
 
     print(f"Run complete: {len(fresh_items)} new post(s) in digest ({len(stale_items)} stale suppressed), {len(failures)} site(s) failed.")
-    send_digest_email(fresh_items, failures, duplicate_links or None, ai_run_cost, ioc_results, ai_status)
+    send_digest_email(fresh_items, failures, duplicate_links or None, ai_run_cost, ioc_results, ai_status,
+                      last_active=last_active, config_sites=config["sites"])
 
 
 if __name__ == "__main__":
