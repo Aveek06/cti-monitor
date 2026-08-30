@@ -362,11 +362,85 @@
       .lm-modal{transition:opacity 180ms ease!important;}
     }
 
+    /* VM TAB */
+    .stat-num.amber{color:var(--amber);}
+    .vm-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+    .vm-days-toggle{display:flex;border:1px solid var(--border);overflow:hidden;flex-shrink:0;}
+    .vm-days-btn{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:5px 11px;border:none;border-right:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;transition:background .1s,color .1s;}
+    .vm-days-btn:last-child{border-right:none;}
+    .vm-days-btn.active{background:var(--green-dim);color:var(--green);}
+    .vm-days-btn:active{transform:scale(.95);}
+    .vm-search-wrap{display:flex;align-items:center;gap:6px;border:1px solid var(--border);padding:4px 10px;background:var(--surface);flex:1;min-width:140px;max-width:280px;}
+    .vm-search-wrap span{color:var(--green);font-size:10px;}
+    .vm-search-wrap input{background:none;border:none;outline:none;color:var(--text);font:inherit;font-size:9px;width:100%;}
+    .vm-sev-filter{font-size:8px;font-weight:600;letter-spacing:.06em;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);padding:5px 8px;cursor:pointer;outline:none;}
+    .vm-sev-filter option{background:#111;}
+    .vm-ransomware-lbl{display:flex;align-items:center;gap:5px;font-size:8px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);cursor:pointer;user-select:none;white-space:nowrap;}
+    .vm-ransomware-lbl input{accent-color:var(--amber);cursor:pointer;}
+    .vm-charts{display:grid;grid-template-columns:170px 200px 1fr;gap:10px;margin-bottom:14px;}
+    .vm-chart-panel{background:var(--surface);border:1px solid var(--border);padding:12px 14px;}
+    .vm-chart-lbl{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;}
+    .vm-donut-wrap{display:flex;justify-content:center;}
+    .vm-donut-legend{display:flex;flex-direction:column;gap:3px;margin-top:6px;}
+    .vm-legend-row{display:flex;align-items:center;gap:6px;font-size:8px;}
+    .vm-legend-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+    .vm-legend-lbl{color:var(--text-dim);flex:1;letter-spacing:.04em;}
+    .vm-legend-val{color:var(--text);font-variant-numeric:tabular-nums;font-weight:600;}
+    .vm-vendor-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+    .vm-vendor-name{font-size:8px;color:var(--text-dim);width:80px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .vm-vendor-bar-wrap{flex:1;height:5px;background:var(--surface3);overflow:hidden;}
+    .vm-vendor-bar-fill{height:100%;width:100%;transform:scaleX(0);transform-origin:left;transition:transform .7s cubic-bezier(.16,1,.3,1);}
+    .vm-vendor-count{font-size:8px;color:var(--text-muted);font-variant-numeric:tabular-nums;min-width:18px;text-align:right;}
+    .vm-table-section{border:1px solid var(--border);}
+    .vm-table-hd{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface2);border-bottom:1px solid var(--border);}
+    .vm-count-badge{font-size:7.5px;color:var(--text-muted);letter-spacing:.06em;}
+    .vm-table-wrap{overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent;}
+    .vm-table-wrap::-webkit-scrollbar{height:3px;}
+    .vm-table-wrap::-webkit-scrollbar-thumb{background:var(--border-hi);}
+    .vm-table{width:100%;border-collapse:collapse;font-size:8.5px;}
+    .vm-table th{font-size:7px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);padding:8px 10px;text-align:left;background:var(--surface);border-bottom:1px solid var(--border);white-space:nowrap;}
+    .vm-table td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle;line-height:1.4;}
+    .vm-table tr{cursor:pointer;}
+    .vm-table tr:hover td{background:rgba(0,255,65,.05);}
+    .vm-table tr:active td{background:rgba(0,255,65,.08);}
+    .vm-cve-id{font-family:monospace;font-size:9px;font-weight:700;color:var(--cyan);letter-spacing:.04em;}
+    .vm-product-cell .vendor{font-weight:600;color:var(--text);}
+    .vm-product-cell .product{font-size:8px;color:var(--text-dim);margin-top:1px;}
+    .vm-date{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--text-dim);font-size:8px;}
+    .vm-due{font-variant-numeric:tabular-nums;white-space:nowrap;font-size:8px;color:var(--text-dim);}
+    .vm-due.overdue{color:var(--red);}
+    .vm-due.warn{color:var(--amber);}
+    .vm-cvss-badge{display:inline-block;font-size:8px;font-weight:700;letter-spacing:.06em;padding:2px 6px;border:1px solid;white-space:nowrap;}
+    .vm-cvss-badge.CRITICAL{color:var(--red);border-color:rgba(255,59,48,.4);background:rgba(255,59,48,.08);}
+    .vm-cvss-badge.HIGH{color:var(--amber);border-color:rgba(255,149,0,.4);background:rgba(255,149,0,.08);}
+    .vm-cvss-badge.MEDIUM{color:#f5c518;border-color:rgba(245,197,24,.35);background:rgba(245,197,24,.07);}
+    .vm-cvss-badge.LOW{color:var(--text-dim);border-color:var(--border);background:var(--surface2);}
+    .vm-cvss-badge.UNKNOWN{color:var(--text-muted);border-color:var(--border);background:none;}
+    .vm-sev-text.CRITICAL{color:var(--red);}
+    .vm-sev-text.HIGH{color:var(--amber);}
+    .vm-sev-text.MEDIUM{color:#f5c518;}
+    .vm-sev-text.LOW{color:var(--text-dim);}
+    .vm-sev-text.UNKNOWN{color:var(--text-muted);}
+    .vm-ransom-known{font-size:7.5px;font-weight:700;letter-spacing:.08em;padding:2px 6px;border:1px solid rgba(255,149,0,.35);background:rgba(255,149,0,.08);color:var(--amber);}
+    .vm-action-cell{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-muted);font-size:8px;}
+    .vm-empty{text-align:center;padding:32px;color:var(--text-muted);font-size:9px;letter-spacing:.08em;}
+    .vm-loading{text-align:center;padding:32px;color:var(--text-muted);font-size:9px;letter-spacing:.08em;}
+    /* VM detail drawer overrides */
+    .vm-drawer-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px;}
+    .vm-drawer-field .lbl{font-size:7px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px;}
+    .vm-drawer-field .val{font-size:10px;color:var(--text);line-height:1.4;}
+    .vm-drawer-field.full{grid-column:1/-1;}
+    .vm-drawer-block{padding:0 14px 14px;}
+    .vm-drawer-section-hd{font-size:7px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;}
+    .vm-drawer-body-text{font-size:9px;color:var(--text);line-height:1.7;margin-bottom:12px;}
+    .vm-drawer-action{font-size:9px;color:var(--amber);line-height:1.7;background:rgba(255,149,0,.05);border:1px solid rgba(255,149,0,.18);padding:8px 10px;}
+
     /* RESPONSIVE */
     @media(max-width:1000px){
       .sources-grid{grid-template-columns:1fr;}
       .ioc-layout{grid-template-columns:1fr;}
       .ttp-layout{grid-template-columns:1fr;}
+      .vm-charts{grid-template-columns:1fr 1fr;}
       .kpi-row{grid-template-columns:repeat(2,1fr);}
       .sources-right{position:static;}
       .ioc-left,.ttp-left{position:static;}
@@ -423,6 +497,13 @@
     </svg>
     <span class="nav-label">Graph</span>
   </button>
+  <button class="nav-btn" id="tab-btn-vm" onclick="switchTab('vm')" title="Vulnerability Management">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      <line x1="9" y1="12" x2="11" y2="14"/><line x1="15" y1="10" x2="11" y2="14"/>
+    </svg>
+    <span class="nav-label">Vuln</span>
+  </button>
   <div class="sidebar-divider"></div>
   <div class="sidebar-footer">
     <div class="sidebar-kpi">
@@ -432,6 +513,10 @@
     <div class="sidebar-kpi">
       <span class="sidebar-kpi-num" id="sb-ttps">—</span>
       <span class="sidebar-kpi-lbl">TTPs</span>
+    </div>
+    <div class="sidebar-kpi">
+      <span class="sidebar-kpi-num" id="sb-kevs">—</span>
+      <span class="sidebar-kpi-lbl">KEVs</span>
     </div>
   </div>
 </nav>
@@ -597,6 +682,91 @@
         <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#a78bfa"></div>Hash IOC</div>
         <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#67e8f9"></div>IP IOC</div>
         <span style="margin-left:auto;color:var(--text-muted);font-size:8px">Drag nodes &middot; scroll to zoom &middot; click to highlight cluster</span>
+      </div>
+    </div>
+
+    <!-- VM TAB -->
+    <div id="tab-vm" class="tab-pane">
+      <!-- KPI row -->
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <span class="stat-num green" id="vm-num-total">—</span>
+          <span class="stat-label">KEVs in Window</span>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="vm-bar-total" style="background:var(--green)"></div></div>
+        </div>
+        <div class="kpi-card">
+          <span class="stat-num cyan" id="vm-num-7d">—</span>
+          <span class="stat-label">Added Last 7 Days</span>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="vm-bar-7d" style="background:var(--cyan)"></div></div>
+        </div>
+        <div class="kpi-card">
+          <span class="stat-num red" id="vm-num-critical">—</span>
+          <span class="stat-label">CVSS Critical</span>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="vm-bar-critical" style="background:var(--red)"></div></div>
+        </div>
+        <div class="kpi-card">
+          <span class="stat-num amber" id="vm-num-ransom">—</span>
+          <span class="stat-label">Ransomware Linked</span>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="vm-bar-ransom" style="background:var(--amber)"></div></div>
+        </div>
+      </div>
+      <!-- Toolbar -->
+      <div class="vm-toolbar">
+        <div class="vm-days-toggle">
+          <button class="vm-days-btn active" data-days="30" onclick="setVmDays(30)">30d</button>
+          <button class="vm-days-btn" data-days="60" onclick="setVmDays(60)">60d</button>
+          <button class="vm-days-btn" data-days="90" onclick="setVmDays(90)">90d</button>
+          <button class="vm-days-btn" data-days="0" onclick="setVmDays(0)">All</button>
+        </div>
+        <div class="vm-search-wrap">
+          <span>&gt;</span>
+          <input type="text" id="vm-search" placeholder="CVE ID, vendor, product..." autocomplete="off" spellcheck="false">
+        </div>
+        <select id="vm-sev-filter" class="vm-sev-filter">
+          <option value="">All Severities</option>
+          <option value="CRITICAL">Critical</option>
+          <option value="HIGH">High</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="LOW">Low</option>
+        </select>
+        <label class="vm-ransomware-lbl">
+          <input type="checkbox" id="vm-ransomware-only"> Ransomware Only
+        </label>
+      </div>
+      <!-- Charts -->
+      <div class="vm-charts">
+        <div class="vm-chart-panel">
+          <div class="vm-chart-lbl">// Severity Breakdown</div>
+          <div class="vm-donut-wrap" id="vm-sev-donut"></div>
+          <div class="vm-donut-legend" id="vm-sev-legend"></div>
+        </div>
+        <div class="vm-chart-panel">
+          <div class="vm-chart-lbl">// Top Vendors</div>
+          <div id="vm-vendor-bars" style="margin-top:4px"></div>
+        </div>
+        <div class="vm-chart-panel">
+          <div class="vm-chart-lbl">// Weekly KEV Additions <span style="color:var(--text-muted);font-size:7px">(26 weeks)</span></div>
+          <div id="vm-timeline" style="margin-top:4px"></div>
+        </div>
+      </div>
+      <!-- Table -->
+      <div class="vm-table-section">
+        <div class="vm-table-hd">
+          <span class="vm-chart-lbl" style="margin-bottom:0">// CISA KEV Feed</span>
+          <span class="vm-count-badge" id="vm-count"></span>
+        </div>
+        <div class="vm-table-wrap">
+          <table class="vm-table">
+            <thead><tr>
+              <th>CVE ID</th><th>Vendor / Product</th><th>Date Added</th>
+              <th>Due Date</th><th>CVSS</th><th>Severity</th>
+              <th>Ransomware</th><th>Required Action</th>
+            </tr></thead>
+            <tbody id="vm-tbody">
+              <tr><td colspan="8" class="vm-loading">// Loading vulnerability data from CISA KEV + NVD...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -975,6 +1145,205 @@ function updateDashboard({sites,activeSites,quietSites,failingSites,weekTotal,sp
 function flashUpdated(updatedAt){const el=document.getElementById("hdr-updated");el.textContent="[ Sync Complete ]";el.style.color="var(--green)";setTimeout(()=>{el.textContent=updatedAt?`Sync: ${relTime(updatedAt)}`:"";el.style.color="";},2400);}
 function resetUI(){closeDrawer();ALL_PANELS.forEach(id=>{const p=document.getElementById(id);p.classList.remove("open");p.querySelectorAll(".bar-fill").forEach(b=>b.style.width="0%");});ALL_CARDS.forEach(id=>document.getElementById(id).setAttribute("aria-expanded","false"));}
 
+/* ── VM Tab ── */
+let vmData=null,vmDays=30,_vmLoaded=false;
+
+async function loadVmData(){
+  if(vmData)return vmData;
+  try{
+    const r=await fetch("/api/vm");
+    if(!r.ok)throw new Error(`VM API ${r.status}`);
+    vmData=await r.json();
+    document.getElementById("sb-kevs").textContent=vmData.totalKev||"—";
+  }catch(e){
+    vmData={kevEntries:[],cvssMap:{},totalKev:0,error:e.message};
+  }
+  return vmData;
+}
+
+function setVmDays(d){
+  vmDays=d;
+  document.querySelectorAll(".vm-days-btn").forEach(b=>b.classList.toggle("active",+b.dataset.days===d));
+  renderVmTable(getVmFiltered(),vmData?.cvssMap||{});
+  renderVmKpis(getVmFiltered(),vmData?.kevEntries||[],vmData?.cvssMap||{});
+  renderVmSeverityDonut(getVmFiltered(),vmData?.cvssMap||{});
+  renderVmVendorBars(getVmFiltered());
+}
+
+function getVmFiltered(){
+  if(!vmData)return[];
+  const{kevEntries,cvssMap}=vmData;
+  const cutoff=vmDays?new Date(Date.now()-vmDays*864e5):null;
+  const q=(document.getElementById("vm-search")?.value||"").toLowerCase().trim();
+  const sev=document.getElementById("vm-sev-filter")?.value||"";
+  const ransomOnly=document.getElementById("vm-ransomware-only")?.checked||false;
+  return kevEntries.filter(e=>{
+    if(cutoff&&new Date(e.dateAdded)<cutoff)return false;
+    if(sev&&vmCvssSev(e.cveID,cvssMap)!==sev)return false;
+    if(ransomOnly&&e.knownRansomwareCampaignUse!=="Known")return false;
+    if(q&&!e.cveID.toLowerCase().includes(q)&&!(e.vendorProject||"").toLowerCase().includes(q)&&!(e.product||"").toLowerCase().includes(q)&&!(e.vulnerabilityName||"").toLowerCase().includes(q))return false;
+    return true;
+  });
+}
+
+function vmCvssSev(id,map){return map[id]?.severity||"UNKNOWN";}
+function vmCvssScore(id,map){const c=map[id];return c?c.score:null;}
+
+async function renderVmTab(){
+  if(_vmLoaded)return;
+  _vmLoaded=true;
+  const data=await loadVmData();
+  if(data.error&&!data.kevEntries.length){
+    document.getElementById("vm-tbody").innerHTML=`<tr><td colspan="8" class="vm-empty">// Error: ${esc(data.error)}</td></tr>`;
+    return;
+  }
+  const f=getVmFiltered();
+  renderVmKpis(f,data.kevEntries,data.cvssMap);
+  renderVmSeverityDonut(f,data.cvssMap);
+  renderVmVendorBars(f);
+  renderVmTimeline(data.kevEntries);
+  renderVmTable(f,data.cvssMap);
+}
+
+function renderVmKpis(f,all,cvssMap){
+  const now=Date.now();
+  const w7=all.filter(e=>new Date(e.dateAdded)>new Date(now-7*864e5)).length;
+  const crit=f.filter(e=>vmCvssSev(e.cveID,cvssMap)==="CRITICAL").length;
+  const ran=f.filter(e=>e.knownRansomwareCampaignUse==="Known").length;
+  document.getElementById("vm-num-total").textContent=f.length;
+  document.getElementById("vm-num-7d").textContent=w7;
+  document.getElementById("vm-num-critical").textContent=crit;
+  document.getElementById("vm-num-ransom").textContent=ran;
+  requestAnimationFrame(()=>setTimeout(()=>{
+    const sb=(id,p)=>{const el=document.getElementById(id);if(el)el.style.transform=`scaleX(${Math.min(p,100)/100})`;};
+    sb("vm-bar-total",Math.round((f.length/Math.max(all.length,1))*100));
+    sb("vm-bar-7d",Math.min(100,Math.round((w7/30)*100)));
+    sb("vm-bar-critical",Math.round((crit/Math.max(f.length,1))*100));
+    sb("vm-bar-ransom",Math.round((ran/Math.max(f.length,1))*100));
+  },80));
+}
+
+function renderVmSeverityDonut(f,cvssMap){
+  const wrap=document.getElementById("vm-sev-donut");const leg=document.getElementById("vm-sev-legend");
+  if(!wrap)return;
+  const W=130,CX=65,CY=65,R=52,RI=33;
+  const cols={CRITICAL:"var(--red)",HIGH:"var(--amber)",MEDIUM:"#f5c518",LOW:"rgba(0,255,65,.55)",UNKNOWN:"var(--surface3)"};
+  const order=["CRITICAL","HIGH","MEDIUM","LOW","UNKNOWN"];
+  const counts={CRITICAL:0,HIGH:0,MEDIUM:0,LOW:0,UNKNOWN:0};
+  f.forEach(e=>counts[vmCvssSev(e.cveID,cvssMap)]++);
+  const total=f.length||1;
+  let a=-Math.PI/2;
+  const paths=order.map(s=>{
+    const pct=counts[s]/total;if(!pct)return"";
+    const ea=a+pct*2*Math.PI;
+    const x1=CX+R*Math.cos(a),y1=CY+R*Math.sin(a);
+    const x2=CX+R*Math.cos(ea),y2=CY+R*Math.sin(ea);
+    const i1=CX+RI*Math.cos(ea),iy1=CY+RI*Math.sin(ea);
+    const i2=CX+RI*Math.cos(a),iy2=CY+RI*Math.sin(a);
+    const lg=pct>0.5?1:0;
+    const d=`M${x1},${y1}A${R},${R},0,${lg},1,${x2},${y2}L${i1},${iy1}A${RI},${RI},0,${lg},0,${i2},${iy2}Z`;
+    a=ea;
+    return`<path d="${d}" fill="${cols[s]}" opacity=".88"/>`;
+  }).join("");
+  wrap.innerHTML=`<svg width="${W}" height="${W}" viewBox="0 0 ${W} ${W}"><g>${paths}</g><text x="${CX}" y="${CY-4}" text-anchor="middle" fill="var(--text-hi)" font-size="17" font-weight="700" font-family="monospace">${counts.CRITICAL}</text><text x="${CX}" y="${CY+10}" text-anchor="middle" fill="var(--text-muted)" font-size="6.5" letter-spacing=".1em">CRITICAL</text></svg>`;
+  if(leg)leg.innerHTML=order.filter(s=>counts[s]).map(s=>`<div class="vm-legend-row"><span class="vm-legend-dot" style="background:${cols[s]}"></span><span class="vm-legend-lbl">${s}</span><span class="vm-legend-val">${counts[s]}</span></div>`).join("");
+}
+
+function renderVmVendorBars(f){
+  const el=document.getElementById("vm-vendor-bars");if(!el)return;
+  const cnt={};f.forEach(e=>{const v=e.vendorProject||"Unknown";cnt[v]=(cnt[v]||0)+1;});
+  const sorted=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const max=sorted[0]?.[1]||1;
+  el.innerHTML=sorted.map(([v,c],i)=>{
+    const pct=c/max;
+    const col=i===0?"var(--green)":i<3?"rgba(0,255,65,.7)":"rgba(0,255,65,.45)";
+    const short=v.length>13?v.slice(0,11)+"…":v;
+    return`<div class="vm-vendor-row"><span class="vm-vendor-name" title="${esc(v)}">${esc(short)}</span><div class="vm-vendor-bar-wrap"><div class="vm-vendor-bar-fill" style="background:${col};box-shadow:0 0 4px ${col};transform:scaleX(${pct})"></div></div><span class="vm-vendor-count">${c}</span></div>`;
+  }).join("");
+}
+
+function renderVmTimeline(all){
+  const el=document.getElementById("vm-timeline");if(!el)return;
+  const WEEKS=26,H=100;
+  const now=new Date();
+  const bins=Array.from({length:WEEKS},()=>0);
+  all.forEach(e=>{
+    const diff=Math.floor((now-new Date(e.dateAdded))/(7*864e5));
+    if(diff>=0&&diff<WEEKS)bins[WEEKS-1-diff]++;
+  });
+  const max=Math.max(...bins,1);
+  const W=480;
+  const px=i=>Math.round((i/(WEEKS-1))*(W-28)+14);
+  const py=v=>Math.round(H-10-(v/max)*(H-18));
+  const pts=bins.map((b,i)=>`${px(i)},${py(b)}`).join(" ");
+  const area=`M${px(0)},${H-10} `+bins.map((b,i)=>`L${px(i)},${py(b)}`).join(" ")+` L${px(WEEKS-1)},${H-10}Z`;
+  const labels=[];
+  for(let i=0;i<WEEKS;i+=6){
+    const d=new Date(now-((WEEKS-1-i)*7*864e5));
+    labels.push(`<text x="${px(i)}" y="${H+2}" text-anchor="middle" fill="var(--text-muted)" font-size="6">${d.toLocaleDateString("en",{month:"short",day:"numeric"})}</text>`);
+  }
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H+8}" width="100%" preserveAspectRatio="none"><defs><linearGradient id="vm-tl-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#00ff41" stop-opacity=".22"/><stop offset="100%" stop-color="#00ff41" stop-opacity="0"/></linearGradient></defs><path d="${area}" fill="url(#vm-tl-g)"/><polyline points="${pts}" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linejoin="round"/>${labels.join("")}</svg>`;
+}
+
+function renderVmTable(f,cvssMap){
+  const tbody=document.getElementById("vm-tbody");if(!tbody)return;
+  const cntEl=document.getElementById("vm-count");if(cntEl)cntEl.textContent=`${f.length} entries`;
+  if(!f.length){tbody.innerHTML=`<tr><td colspan="8" class="vm-empty">// No vulnerabilities match the current filters</td></tr>`;return;}
+  const now=new Date();
+  tbody.innerHTML=f.map(e=>{
+    const cvss=cvssMap[e.cveID];
+    const sev=cvss?cvss.severity:"UNKNOWN";
+    const score=cvss?cvss.score.toFixed(1):"N/A";
+    const due=e.dueDate?new Date(e.dueDate):null;
+    const di=due?Math.round((due-now)/864e5):null;
+    const dueCls=due?(di<0?"overdue":di<7?"warn":""):"";
+    const ransomCell=e.knownRansomwareCampaignUse==="Known"?`<span class="vm-ransom-known">Known</span>`:`<span style="color:var(--text-muted);font-size:10px">—</span>`;
+    const action=(e.requiredAction||"—").slice(0,65)+(e.requiredAction?.length>65?"…":"");
+    return`<tr onclick="openVmDrawer(${JSON.stringify(e.cveID)})">
+<td><span class="vm-cve-id">${esc(e.cveID)}</span></td>
+<td class="vm-product-cell"><div class="vendor">${esc(e.vendorProject||"—")}</div><div class="product">${esc(e.product||"")}</div></td>
+<td class="vm-date">${e.dateAdded||"—"}</td>
+<td class="vm-due ${dueCls}">${e.dueDate||"—"}</td>
+<td><span class="vm-cvss-badge ${sev}">${score}</span></td>
+<td><span class="vm-sev-text ${sev}" style="font-size:8px;font-weight:700;letter-spacing:.06em">${sev}</span></td>
+<td>${ransomCell}</td>
+<td class="vm-action-cell" title="${esc(e.requiredAction||"")}">${esc(action)}</td>
+</tr>`;
+  }).join("");
+}
+
+function openVmDrawer(cveId){
+  if(!vmData)return;
+  const e=vmData.kevEntries.find(k=>k.cveID===cveId);if(!e)return;
+  const cvss=vmData.cvssMap[cveId];
+  const sev=cvss?cvss.severity:"UNKNOWN";
+  const sevColor={CRITICAL:"var(--red)",HIGH:"var(--amber)",MEDIUM:"#f5c518",LOW:"rgba(0,255,65,.7)",UNKNOWN:"var(--text-muted)"};
+  const due=e.dueDate?new Date(e.dueDate):null;
+  const now=new Date();
+  const di=due?Math.round((due-now)/864e5):null;
+  const dueSuffix=due?(di<0?`<span style="color:var(--red)">&nbsp;(${Math.abs(di)}d overdue)</span>`:di===0?`<span style="color:var(--amber)">&nbsp;(due today)</span>`:`<span style="color:var(--text-muted)">&nbsp;(in ${di}d)</span>`):"";
+  document.getElementById("drawer-eyebrow").textContent="// CVE Detail";
+  document.getElementById("drawer-name").textContent=e.vulnerabilityName||e.cveID;
+  const da=document.getElementById("drawer-domain");const dt=document.getElementById("drawer-domain-txt");
+  da.href=`https://nvd.nist.gov/vuln/detail/${e.cveID}`;dt.textContent=`nvd.nist.gov — ${e.cveID}`;
+  const totEl=document.getElementById("d-total"),totLbl=totEl.previousElementSibling;
+  totLbl.textContent="CVSS Score";totEl.textContent=cvss?cvss.score.toFixed(1):"N/A";totEl.style.color=sevColor[sev];
+  const wkEl=document.getElementById("d-week"),wkLbl=wkEl.previousElementSibling;
+  wkLbl.textContent="Severity";wkEl.textContent=sev;wkEl.style.color=sevColor[sev];wkEl.className="d-stat-num";
+  document.getElementById("links-list").innerHTML=`<div class="vm-drawer-grid">
+<div class="vm-drawer-field"><div class="lbl">Vendor</div><div class="val" style="font-weight:600;color:var(--text-hi)">${esc(e.vendorProject||"—")}</div></div>
+<div class="vm-drawer-field"><div class="lbl">Product</div><div class="val" style="color:var(--text-hi)">${esc(e.product||"—")}</div></div>
+<div class="vm-drawer-field"><div class="lbl">Date Added to KEV</div><div class="val" style="font-variant-numeric:tabular-nums">${e.dateAdded||"—"}</div></div>
+<div class="vm-drawer-field"><div class="lbl">Due Date</div><div class="val">${e.dueDate||"—"}${dueSuffix}</div></div>
+${cvss?`<div class="vm-drawer-field"><div class="lbl">CVSS Version</div><div class="val">${esc(cvss.version)}</div></div>
+<div class="vm-drawer-field"><div class="lbl">Ransomware</div><div class="val" style="color:${e.knownRansomwareCampaignUse==="Known"?"var(--amber)":"var(--text-muted)"}">${e.knownRansomwareCampaignUse==="Known"?"Known campaign":"Not known"}</div></div>
+<div class="vm-drawer-field full"><div class="lbl">CVSS Vector</div><div class="val" style="font-family:monospace;font-size:8px;word-break:break-all;color:var(--text-muted)">${esc(cvss.vector||"—")}</div></div>`:`<div class="vm-drawer-field full"><div class="lbl">Ransomware</div><div class="val" style="color:${e.knownRansomwareCampaignUse==="Known"?"var(--amber)":"var(--text-muted)"}">${e.knownRansomwareCampaignUse==="Known"?"Known campaign":"Not known"}</div></div>`}
+</div>
+<div class="vm-drawer-block"><div class="vm-drawer-section-hd">Description</div><div class="vm-drawer-body-text">${esc(e.shortDescription||"No description available.")}</div>
+<div class="vm-drawer-section-hd">Required Action</div><div class="vm-drawer-action">${esc(e.requiredAction||"No action specified.")}</div></div>`;
+  animateDrawer(true);document.getElementById("backdrop").classList.add("visible");document.body.style.overflow="hidden";
+}
+
 /* ── Refresh ── */
 async function refreshData(force=false){
   const btn=document.getElementById("btn-refresh");if(btn){btn.disabled=true;btn.textContent="[ Syncing... ]";}
@@ -985,8 +1354,9 @@ async function refreshData(force=false){
 
 /* ── Tab switching ── */
 function switchTab(name){
-  ["sources","iocs","ttps","graph"].forEach(t=>{document.getElementById(`tab-${t}`).classList.toggle("active",t===name);const btn=document.getElementById(`tab-btn-${t}`);btn.classList.toggle("active",t===name);btn.setAttribute("aria-selected",t===name);});
+  ["sources","iocs","ttps","graph","vm"].forEach(t=>{document.getElementById(`tab-${t}`).classList.toggle("active",t===name);const btn=document.getElementById(`tab-btn-${t}`);btn.classList.toggle("active",t===name);btn.setAttribute("aria-selected",t===name);});
   if(name==="graph")requestAnimationFrame(rebuildGraph);
+  if(name==="vm")renderVmTab();
 }
 
 /* ── Init ── */
@@ -1003,6 +1373,10 @@ async function init(){
     document.getElementById("lm-backdrop").addEventListener("click",closeLinksModal);
     document.getElementById("lm-search").addEventListener("input",e=>filterLm(e.target.value));
     document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDrawer();closeLinksModal();}});
+    /* VM filters */
+    document.getElementById("vm-search").addEventListener("input",()=>{if(vmData){const f=getVmFiltered();renderVmTable(f,vmData.cvssMap);renderVmKpis(f,vmData.kevEntries,vmData.cvssMap);renderVmSeverityDonut(f,vmData.cvssMap);renderVmVendorBars(f);}});
+    document.getElementById("vm-sev-filter").addEventListener("change",()=>{if(vmData){const f=getVmFiltered();renderVmTable(f,vmData.cvssMap);renderVmKpis(f,vmData.kevEntries,vmData.cvssMap);renderVmSeverityDonut(f,vmData.cvssMap);renderVmVendorBars(f);}});
+    document.getElementById("vm-ransomware-only").addEventListener("change",()=>{if(vmData){const f=getVmFiltered();renderVmTable(f,vmData.cvssMap);renderVmKpis(f,vmData.kevEntries,vmData.cvssMap);renderVmSeverityDonut(f,vmData.cvssMap);renderVmVendorBars(f);}});
     /* TTP hover tooltip */
     const _ttpTip=document.getElementById("ttp-tooltip");
     function _posTtpTip(e){const x=e.clientX+16,y=e.clientY-8,tw=_ttpTip.offsetWidth,th=_ttpTip.offsetHeight;_ttpTip.style.left=(x+tw>window.innerWidth-10?x-tw-24:x)+"px";_ttpTip.style.top=(y+th>window.innerHeight-10?y-th:y)+"px";}
