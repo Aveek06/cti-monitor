@@ -8,7 +8,7 @@ LTV = {
     ("APT38", "domain"): 0.83,
     ("APT38", "hash"):   0.77,
 }
-TAU_DEFAULT = {"domain": 30, "hash": 60, "url": 7, "ip": 14}
+TAU_DEFAULT = {"domain": 30, "hash": 60, "url": 7, "ip": 7}
 
 
 def ioc_group(ioc_type: str) -> str:
