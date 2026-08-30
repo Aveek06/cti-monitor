@@ -1,6 +1,27 @@
 #!/usr/bin/env bash
 set -e
 
+# --- Guard: skip if GitHub Actions ran successfully within the last 10 hours ---
+HOURS_AGO=$(curl -sf \
+  -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+  -H "Accept: application/vnd.github+json" \
+  "https://api.github.com/repos/Aveek06/cti-monitor/actions/workflows/cti-monitor.yml/runs?status=success&per_page=1" \
+  | python3 -c "
+import json, sys
+from datetime import datetime, timezone
+runs = json.load(sys.stdin).get('workflow_runs', [])
+if runs:
+    ts = datetime.fromisoformat(runs[0]['created_at'].replace('Z', '+00:00'))
+    print(f'{(datetime.now(timezone.utc) - ts).total_seconds() / 3600:.1f}')
+" 2>/dev/null || echo "")
+
+if [ -n "$HOURS_AGO" ] && python3 -c "import sys; sys.exit(0 if float('${HOURS_AGO}') < 10 else 1)" 2>/dev/null; then
+  echo "GitHub Actions ran ${HOURS_AGO}h ago — skipping Render backup run."
+  exit 0
+fi
+echo "No recent GitHub Actions run (last: ${HOURS_AGO:-unknown}h ago) — proceeding."
+# --- End guard ---
+
 REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/Aveek06/cti-monitor.git"
 STATE_BRANCH="state"
 STATE_DIR="_state"
