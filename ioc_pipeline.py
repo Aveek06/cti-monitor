@@ -72,7 +72,7 @@ def run(new_items: list[dict]) -> dict:
         if not text:
             continue
         apt  = ioc_extractor.detect_apt(item["site"] + " " + text)
-        iocs = ioc_extractor.extract_iocs(text)
+        iocs = ioc_extractor.extract_iocs(text, item["link"])
 
         for ioc in iocs:
             ltv      = ioc_scorer.get_ltv(apt, ioc["type"])

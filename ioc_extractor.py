@@ -1,10 +1,71 @@
+import io
 import re
+import zipfile
+import urllib.request
 import requests
 from bs4 import BeautifulSoup
+from datetime import datetime, timedelta
+from pathlib import Path
+from urllib.parse import urlparse
 from iocsearcher.searcher import Searcher as _IocSearcher
 
 _searcher = _IocSearcher()
 _TYPE_MAP = {"fqdn": "domain", "ip4": "ipv4", "ip6": "ipv6"}
+
+_TRANCO_URL        = "https://tranco-list.eu/top-1m.csv.zip"
+_TRANCO_CACHE      = Path(__file__).parent / ".tranco_cache.txt"
+_TRANCO_CACHE_DAYS = 7
+_TRANCO_TOP_N      = 100_000
+_tranco_domains: set[str] = set()
+
+
+def _load_tranco() -> None:
+    global _tranco_domains
+    if _TRANCO_CACHE.exists():
+        age = datetime.now() - datetime.fromtimestamp(_TRANCO_CACHE.stat().st_mtime)
+        if age < timedelta(days=_TRANCO_CACHE_DAYS):
+            _tranco_domains = set(_TRANCO_CACHE.read_text().splitlines())
+            print(f"IOC extractor: Tranco cache loaded ({len(_tranco_domains)} domains).")
+            return
+    try:
+        with urllib.request.urlopen(_TRANCO_URL, timeout=30) as resp:
+            data = resp.read()
+        with zipfile.ZipFile(io.BytesIO(data)) as zf:
+            with zf.open(zf.namelist()[0]) as f:
+                domains: set[str] = set()
+                for i, line in enumerate(f):
+                    if i >= _TRANCO_TOP_N:
+                        break
+                    parts = line.decode().strip().split(",")
+                    if len(parts) >= 2:
+                        domains.add(parts[1].lower())
+        _tranco_domains = domains
+        _TRANCO_CACHE.write_text("\n".join(sorted(domains)))
+        print(f"IOC extractor: downloaded Tranco top-{_TRANCO_TOP_N} ({len(domains)} domains).")
+    except Exception as e:
+        print(f"IOC extractor: Tranco load failed ({e}) — skipping popularity filter.")
+
+
+def _in_tranco(domain: str) -> bool:
+    """Return True if domain or any of its parent domains is in the Tranco top-N list."""
+    if not _tranco_domains:
+        return False
+    parts = domain.lower().split(".")
+    for i in range(len(parts) - 1):  # stop before bare TLD
+        if ".".join(parts[i:]) in _tranco_domains:
+            return True
+    return False
+
+
+def _domain_from_url(url: str) -> str | None:
+    try:
+        host = urlparse(url).hostname or ""
+        return host or None
+    except Exception:
+        return None
+
+
+_load_tranco()
 
 _FP_DOMAINS = {
     # Infrastructure / CDN
@@ -286,7 +347,8 @@ def undefang(text: str) -> str:
     return text
 
 
-def extract_iocs(text: str) -> list[dict]:
+def extract_iocs(text: str, source_url: str | None = None) -> list[dict]:
+    src_host = _domain_from_url(source_url) if source_url else None
     seen = set()
     results = []
     for ioc in _searcher.search_data(
@@ -294,8 +356,13 @@ def extract_iocs(text: str) -> list[dict]:
     ):
         t = _TYPE_MAP.get(ioc.name, ioc.name)
         v = ioc.value
-        if t == "domain" and _is_fp(v):
-            continue
+        if t == "domain":
+            if _is_fp(v):
+                continue
+            if src_host and (v == src_host or v.endswith("." + src_host) or src_host.endswith("." + v)):
+                continue
+            if _in_tranco(v):
+                continue
         k = (t, v)
         if k not in seen:
             seen.add(k)

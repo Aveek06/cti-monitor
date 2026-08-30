@@ -31,3 +31,6 @@ CTI_Feed_Check*.xlsx
 # Scratchpad / temp
 *.tmp
 *.log
+
+# Tranco popularity filter cache
+.tranco_cache.txt
