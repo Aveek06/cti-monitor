@@ -107,30 +107,13 @@ cd cti-monitor
 | Shodan | [shodan.io](https://www.shodan.io) → account → API key | Membership plan |
 | URLhaus | [urlhaus-api.abuse.ch](https://urlhaus-api.abuse.ch) | Free |
 
-### 4. GitHub repository secrets
-
-Go to **Settings → Secrets and variables → Actions → New repository secret** and add:
-
-| Secret | Description |
-|---|---|
-| `SMTP_USERNAME` | Gmail address used to send digests |
-| `SMTP_PASSWORD` | Gmail app password (16 chars — not your login password) |
-| `EMAIL_TO` | Comma-separated recipient addresses |
-| `ANTHROPIC_API_KEY` | Anthropic API key for Claude Haiku 4.5 summaries and TTP extraction |
-| `VT_API_KEY` | VirusTotal API key for hash and IP verification |
-| `SHODAN_API_KEY` | Shodan API key for IP tagging |
-| `URLHAUS_API_KEY` | URLhaus API key for malware URL feed |
-| `DATABASE_URL` | Supabase connection string (`postgresql://...`) |
-
-> Gmail app password: Google Account → Security → 2-Step Verification → App passwords
-
-### 5. Dashboard (Vercel)
+### 4. Dashboard (Vercel)
 
 1. Import the repo into [Vercel](https://vercel.com), set **Root Directory** to `dashboard`
 2. Add a `GITHUB_TOKEN` environment variable in Vercel (a GitHub personal access token with `repo` read scope)
 3. Vercel auto-deploys on every push; the dashboard reads the latest GitHub Actions artifact
 
-### 6. Trigger a test run
+### 5. Trigger a test run
 
 Go to **Actions → CTI Monitor → Run workflow** to run manually and confirm you receive an email.
 
