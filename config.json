@@ -22,7 +22,8 @@
     {
       "name": "BitSight",
       "type": "feed",
-      "url": "https://www.bitsight.com/blog/rss.xml"
+      "url": "https://www.bitsight.com/blog/rss.xml",
+      "page_timeout_ms": 60000
     },
     {
       "name": "Aikido Security",
