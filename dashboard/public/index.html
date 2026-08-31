@@ -232,49 +232,69 @@
     .ioc-none{line-height:2;}
 
     /* TTP TAB */
-    .ttp-layout{display:flex;flex-direction:column;gap:24px;}
-    .ttp-left{max-width:420px;width:100%;margin:0 auto;}
-    .ttp-right{min-width:0;}
-    .ttp-summary{display:flex;gap:20px;margin-bottom:14px;flex-wrap:wrap;}
-    .ttp-summary div{font-size:9px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;}
-    .ttp-summary strong{display:block;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--text-hi);margin-bottom:2px;}
+    /* --- stat strip + controls header --- */
+    .ttp-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+    .ttp-kpi-strip{display:flex;align-items:stretch;gap:0;}
+    .ttp-kpi-item{padding-right:28px;margin-right:28px;border-right:1px solid var(--border);}
+    .ttp-kpi-item:last-child{border-right:none;margin-right:0;padding-right:0;}
+    @keyframes ttpKpiIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+    .ttp-kpi-num{font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.04em;color:var(--text-hi);line-height:1;display:block;font-family:var(--font-mono);animation:ttpKpiIn 220ms var(--ease) both;}
+    .ttp-kpi-item:nth-child(2) .ttp-kpi-num{animation-delay:50ms;}
+    .ttp-kpi-item:nth-child(3) .ttp-kpi-num{animation-delay:100ms;}
+    .ttp-kpi-lbl{font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--text-muted);margin-top:5px;display:block;font-family:var(--font-ui);}
+    .ttp-controls{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+    .ttp-days-toggle{display:flex;border:1px solid var(--border);overflow:hidden;flex-shrink:0;}
+    .ttp-days-btn{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:5px 11px;border:none;border-right:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;transition:background .12s var(--ease),color .12s var(--ease);font-family:var(--font-ui);}
+    .ttp-days-btn:last-child{border-right:none;}
+    .ttp-days-btn.active{background:var(--green-dim);color:var(--green);}
+    .ttp-days-btn:hover{color:var(--text-dim);}
+    .ttp-days-btn:active{transform:scale(.95);transition:transform 80ms ease-out;}
+    .ttp-export-btn{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:5px 13px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;transition:background .12s var(--ease),color .12s var(--ease),border-color .12s var(--ease),box-shadow .12s var(--ease);white-space:nowrap;font-family:var(--font-ui);}
+    .ttp-export-btn:hover{border-color:var(--green);color:var(--green);background:var(--green-dim);box-shadow:0 0 8px var(--green-glow);}
+    .ttp-export-btn:active{transform:scale(.96);transition:transform 80ms ease-out;}
+    /* --- radar chart panel --- */
+    .ttp-radar-section{margin-bottom:16px;}
+    .ttp-radar-panel{background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--border-hi);padding:18px 24px 20px;display:flex;flex-direction:column;align-items:center;position:relative;}
+    .ttp-radar-panel::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(0,255,65,.03) 0%,transparent 70%);}
+    .ttp-radar-hd{font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);display:flex;align-items:center;gap:6px;margin-bottom:14px;width:100%;font-family:var(--font-ui);}
+    .ttp-radar-hd::before{content:'';display:block;width:10px;height:1px;background:var(--green);box-shadow:0 0 4px var(--green);}
+    .radar-svg{width:100%;display:block;max-width:360px;margin:0 auto;}
+    /* --- heatmap panel --- */
+    .ttp-map-section{background:var(--surface);border:1px solid var(--border);border-top:2px solid rgba(255,149,0,.6);padding:16px;}
+    .ttp-map-hd{font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);display:flex;align-items:center;gap:6px;margin-bottom:14px;font-family:var(--font-ui);}
+    .ttp-map-hd::before{content:'';display:block;width:10px;height:1px;background:var(--amber);box-shadow:0 0 4px var(--amber);}
     .ttp-map-wrap{overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent;padding-bottom:8px;}
     .ttp-map-wrap::-webkit-scrollbar{height:3px;}
     .ttp-map-wrap::-webkit-scrollbar-thumb{background:var(--border-hi);}
-    .ttp-map{display:flex;gap:2px;min-width:max-content;}
-    .ttp-col{width:90px;flex-shrink:0;display:flex;flex-direction:column;gap:2px;}
-    .ttp-tactic-hd{font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);background:var(--surface2);border:1px solid var(--border);padding:6px 4px 4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--font-ui);}
-    .ttp-tactic-count{color:var(--green);margin-left:2px;font-size:7px;}
-    .ttp-cell{background:var(--surface);border:1px solid var(--border);padding:4px;cursor:pointer;line-height:1.3;transition:border-color .1s,background .1s;}
-    .ttp-cell:hover{border-color:var(--border-hi);z-index:2;position:relative;}
-    .ttp-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
-    .ttp-days-toggle{display:flex;border:1px solid var(--border);overflow:hidden;flex-shrink:0;}
-    .ttp-days-btn{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:5px 11px;border:none;border-right:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;transition:background .1s,color .1s;font-family:var(--font-ui);}
-    .ttp-days-btn:last-child{border-right:none;}
-    .ttp-days-btn.active{background:var(--green-dim);color:var(--green);}
-    .ttp-days-btn:active{transform:scale(.95);}
-    .ttp-export-btn{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;transition:background .1s,color .1s,border-color .1s;white-space:nowrap;margin-left:auto;font-family:var(--font-ui);}
-    .ttp-export-btn:hover{border-color:var(--green);color:var(--green);}
-    .ttp-export-btn:active{transform:scale(.95);}
-.ttp-d-src-host{color:var(--text);font-size:9px;}
-    .ttp-d-src-path{color:var(--text-muted);font-size:8px;margin-left:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px;display:inline-block;vertical-align:middle;}
+    .ttp-map{display:flex;gap:3px;min-width:max-content;}
+    .ttp-col{width:104px;flex-shrink:0;display:flex;flex-direction:column;gap:2px;}
+    .ttp-tactic-hd{font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);background:var(--surface2);border:1px solid var(--border);padding:7px 6px 5px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--font-ui);}
+    .ttp-tactic-count{color:var(--green);margin-left:3px;font-size:7px;}
+    .ttp-cell{background:var(--surface);border:1px solid var(--border);padding:5px 5px 4px;cursor:pointer;line-height:1.3;transition:border-color .12s var(--ease),background .12s var(--ease),transform .12s var(--ease),box-shadow .12s var(--ease);}
+    .ttp-cell:hover{border-color:var(--border-hi);z-index:2;position:relative;transform:scale(1.015);box-shadow:0 3px 10px rgba(0,0,0,.5);}
+    .ttp-cell:active{transform:scale(.97);transition:transform 80ms ease-out;}
+    /* heat levels */
     .ttp-cell[data-heat="1"]{background:rgba(255,149,0,.09);border-color:rgba(255,149,0,.2);}
     .ttp-cell[data-heat="2"]{background:rgba(255,149,0,.22);border-color:rgba(255,149,0,.42);}
     .ttp-cell[data-heat="3"]{background:rgba(255,59,48,.22);border-color:rgba(255,59,48,.42);}
-    .ttp-cell[data-heat="1"]:hover{border-color:var(--amber);}
-    .ttp-cell[data-heat="2"]:hover{border-color:var(--amber);}
-    .ttp-cell[data-heat="3"]:hover{border-color:var(--red);}
-    .ttp-cell-id{font-size:7px;font-weight:600;letter-spacing:.05em;color:var(--text-muted);}
+    .ttp-cell[data-heat="1"]:hover{border-color:var(--amber);box-shadow:0 3px 12px rgba(255,149,0,.18);}
+    .ttp-cell[data-heat="2"]:hover{border-color:var(--amber);box-shadow:0 3px 14px rgba(255,149,0,.24);}
+    .ttp-cell[data-heat="3"]:hover{border-color:var(--red);box-shadow:0 3px 14px rgba(255,59,48,.22);}
+    .ttp-cell-id{font-size:7.5px;font-weight:600;letter-spacing:.05em;color:var(--text-muted);}
     .ttp-cell[data-heat="1"] .ttp-cell-id{color:rgba(255,149,0,.7);}
     .ttp-cell[data-heat="2"] .ttp-cell-id{color:var(--amber);}
     .ttp-cell[data-heat="3"] .ttp-cell-id{color:var(--red);}
-    .ttp-cell-name{font-size:7.5px;color:var(--text-dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .ttp-cell-name{font-size:8px;color:var(--text-dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .ttp-cell[data-heat="2"] .ttp-cell-name,.ttp-cell[data-heat="3"] .ttp-cell-name{color:var(--text);}
-    .ttp-cell-empty{background:var(--surface);border:1px solid var(--border);padding:5px;text-align:center;font-size:9px;color:var(--border-hi);}
-    .ttp-legend{display:flex;align-items:center;gap:14px;margin-top:12px;font-size:8px;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;}
+    .ttp-cell-empty{background:var(--surface);border:1px solid var(--border);padding:6px;text-align:center;font-size:9px;color:var(--border-hi);}
+    /* legend + empty state */
+    .ttp-legend{display:flex;align-items:center;gap:14px;margin-top:14px;font-size:8px;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;}
     .ttp-legend-item{display:flex;align-items:center;gap:4px;}
     .ttp-legend-dot{width:8px;height:8px;border:1px solid;flex-shrink:0;}
     .ttp-none{text-align:center;padding:40px 0;color:var(--text-muted);font-size:10px;letter-spacing:.08em;line-height:2;}
+    /* detail drawer */
+    .ttp-d-src-host{color:var(--text);font-size:9px;}
+    .ttp-d-src-path{color:var(--text-muted);font-size:8px;margin-left:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px;display:inline-block;vertical-align:middle;}
     .ttp-d-meta{border:1px solid var(--border);margin-bottom:12px;}
     .ttp-d-row{display:flex;justify-content:space-between;align-items:baseline;padding:6px 10px;border-bottom:1px solid var(--border);font-size:10px;}
     .ttp-d-row:last-child{border-bottom:none;}
@@ -289,6 +309,7 @@
     .ttp-d-link-txt{font-size:8px;color:var(--text-muted);word-break:break-all;line-height:1.5;letter-spacing:.02em;}
     .ttp-d-link:hover .ttp-d-link-txt{color:var(--text-dim);}
     .ttp-d-link svg{flex-shrink:0;margin-top:2px;color:var(--text-muted);}
+    /* tooltip */
     .ttp-tooltip{position:fixed;background:rgba(8,8,8,.96);backdrop-filter:blur(14px) saturate(160%);border:1px solid var(--border-hi);border-left:2px solid var(--green);padding:9px 13px 10px;pointer-events:none;z-index:600;display:none;min-width:196px;max-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.6);}
     .ttp-tip-id{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);font-family:monospace;}
     .ttp-tip-name{font-size:11px;font-weight:600;color:var(--text-hi);margin:4px 0 8px;line-height:1.35;letter-spacing:-.01em;}
@@ -697,37 +718,50 @@
 
     <!-- TTP TAB -->
     <div id="tab-ttps" class="tab-pane">
-      <div class="ttp-layout">
-        <div class="ttp-left">
-          <div class="chart-panel">
-            <div class="chart-panel-hd"><span class="sec-title">ATT&amp;CK Coverage</span></div>
-            <svg class="radar-svg" viewBox="0 0 280 280" id="radar-svg"></svg>
+      <!-- stat strip + controls -->
+      <div class="ttp-header">
+        <div class="ttp-kpi-strip">
+          <div class="ttp-kpi-item">
+            <strong class="ttp-kpi-num" id="ttp-total">—</strong>
+            <span class="ttp-kpi-lbl">Techniques</span>
+          </div>
+          <div class="ttp-kpi-item">
+            <strong class="ttp-kpi-num" id="ttp-tactics">—</strong>
+            <span class="ttp-kpi-lbl">Tactics Active</span>
+          </div>
+          <div class="ttp-kpi-item">
+            <strong class="ttp-kpi-num" id="ttp-obs">—</strong>
+            <span class="ttp-kpi-lbl">Observations</span>
           </div>
         </div>
-        <div class="ttp-right">
-          <div class="ttp-summary">
-            <div><strong id="ttp-total">—</strong>Techniques</div>
-            <div><strong id="ttp-tactics">—</strong>Tactics Active</div>
-            <div><strong id="ttp-obs">—</strong>Observations</div>
+        <div class="ttp-controls">
+          <div class="ttp-days-toggle">
+            <button class="ttp-days-btn" data-days="7" onclick="setTtpDays(7)">7d</button>
+            <button class="ttp-days-btn" data-days="30" onclick="setTtpDays(30)">30d</button>
+            <button class="ttp-days-btn" data-days="90" onclick="setTtpDays(90)">90d</button>
+            <button class="ttp-days-btn active" data-days="0" onclick="setTtpDays(0)">All</button>
           </div>
-          <div class="ttp-toolbar">
-            <div class="ttp-days-toggle">
-              <button class="ttp-days-btn" data-days="7" onclick="setTtpDays(7)">7d</button>
-              <button class="ttp-days-btn" data-days="30" onclick="setTtpDays(30)">30d</button>
-              <button class="ttp-days-btn" data-days="90" onclick="setTtpDays(90)">90d</button>
-              <button class="ttp-days-btn active" data-days="0" onclick="setTtpDays(0)">All</button>
-            </div>
-            <button class="ttp-export-btn" onclick="exportNavigatorLayer()">↓ ATT&amp;CK Navigator</button>
-          </div>
-          <div class="ttp-map-wrap"><div class="ttp-map" id="ttp-map"></div></div>
-          <div class="ttp-legend" id="ttp-legend" style="display:none">
-            <span>Heat:</span>
-            <div class="ttp-legend-item"><div class="ttp-legend-dot" style="background:rgba(255,149,0,.09);border-color:rgba(255,149,0,.2)"></div>1 article</div>
-            <div class="ttp-legend-item"><div class="ttp-legend-dot" style="background:rgba(255,149,0,.22);border-color:rgba(255,149,0,.42)"></div>2&ndash;4 articles</div>
-            <div class="ttp-legend-item"><div class="ttp-legend-dot" style="background:rgba(255,59,48,.22);border-color:rgba(255,59,48,.42)"></div>5+ articles</div>
-          </div>
-          <p class="ttp-none" id="ttp-none" style="display:none">No TTP data yet.<br><span style="color:var(--text-muted);font-size:9px">ATT&CK techniques are extracted from articles on each daily run.</span></p>
+          <button class="ttp-export-btn" onclick="exportNavigatorLayer()">&#x2193; ATT&amp;CK Navigator</button>
         </div>
+      </div>
+      <!-- radar chart -->
+      <div class="ttp-radar-section">
+        <div class="ttp-radar-panel">
+          <div class="ttp-radar-hd">ATT&amp;CK Coverage</div>
+          <svg class="radar-svg" viewBox="0 0 280 280" id="radar-svg"></svg>
+        </div>
+      </div>
+      <!-- technique heatmap -->
+      <div class="ttp-map-section">
+        <div class="ttp-map-hd">Technique Heatmap</div>
+        <div class="ttp-map-wrap"><div class="ttp-map" id="ttp-map"></div></div>
+        <div class="ttp-legend" id="ttp-legend" style="display:none">
+          <span>Heat:</span>
+          <div class="ttp-legend-item"><div class="ttp-legend-dot" style="background:rgba(255,149,0,.09);border-color:rgba(255,149,0,.2)"></div>1 article</div>
+          <div class="ttp-legend-item"><div class="ttp-legend-dot" style="background:rgba(255,149,0,.22);border-color:rgba(255,149,0,.42)"></div>2&ndash;4 articles</div>
+          <div class="ttp-legend-item"><div class="ttp-legend-dot" style="background:rgba(255,59,48,.22);border-color:rgba(255,59,48,.42)"></div>5+ articles</div>
+        </div>
+        <p class="ttp-none" id="ttp-none" style="display:none">No TTP data yet.<br><span style="color:var(--text-muted);font-size:9px">ATT&amp;CK techniques are extracted from articles on each daily run.</span></p>
       </div>
     </div>
 
