@@ -45,3 +45,7 @@ CTI_Feed_Check*.xlsx
 
 # Tranco popularity filter cache
 .tranco_cache.txt
+
+# Local secrets — never commit
+.env
+.env.*

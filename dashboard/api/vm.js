@@ -100,6 +100,7 @@ module.exports = async function handler(req, res) {
       updatedAt:     new Date().toISOString(),
     });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.error("GET /api/vm error:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };

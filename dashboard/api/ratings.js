@@ -31,7 +31,8 @@ module.exports = async function handler(req, res) {
         out[r.site_name] = { avg: parseFloat(r.avg), count: r.count };
       return res.json(out);
     } catch (e) {
-      return res.status(500).json({ error: e.message });
+      console.error("GET /api/ratings error:", e);
+      return res.status(500).json({ error: "Internal server error" });
     }
   }
 
@@ -59,7 +60,8 @@ module.exports = async function handler(req, res) {
       );
       return res.json({ ok: true });
     } catch (e) {
-      return res.status(500).json({ error: e.message });
+      console.error("POST /api/ratings error:", e);
+      return res.status(500).json({ error: "Internal server error" });
     }
   }
 

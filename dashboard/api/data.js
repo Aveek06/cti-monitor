@@ -96,10 +96,11 @@ module.exports = async function handler(req, res) {
 
     return res.json({ config, state, lastActive, prevRunLinks, iocExport, ttpExport, updatedAt: artifact.updated_at });
   } catch (err) {
+    console.error("GET /api/data error:", err);
     const status =
       typeof err.status === "number" && err.status >= 400 && err.status < 600
         ? Math.min(err.status, 503)
         : 500;
-    return res.status(status).json({ error: err.message });
+    return res.status(status).json({ error: "Internal server error" });
   }
 };
