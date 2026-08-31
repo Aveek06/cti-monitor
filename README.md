@@ -1,6 +1,6 @@
 # CTI Monitor
 
-An automated Cyber Threat Intelligence (CTI) pipeline that monitors **173 security research sources**, sends daily email digests with AI-generated article summaries, extracts IOCs and MITRE ATT&CK techniques from new articles, and surfaces everything on a live dashboard.
+An automated Cyber Threat Intelligence pipeline that monitors **187 security research sources**, sends daily email digests with AI-generated article summaries, extracts IOCs and MITRE ATT&CK techniques with AI, and surfaces everything on a live dashboard.
 
 ---
 
@@ -8,22 +8,27 @@ An automated Cyber Threat Intelligence (CTI) pipeline that monitors **173 securi
 
 | Feature | Detail |
 |---|---|
-| **Source monitoring** | 173 active sources — RSS feeds, JSON APIs, JS-heavy SPAs, WAF-protected blogs |
-| **AI summaries** | 1-2 sentence CTI summary per article via Claude Haiku 4.5 |
-| **IOC extraction** | SHA256 / SHA1 / MD5 / domain / IPv4 / IPv6 via iocsearcher (IANA TLD validation, defang, overlap removal) |
-| **False positive filtering** | Source-domain filter + Tranco top-100k popularity list (cached monthly) |
-| **STIX 2.1 storage** | Each IOC stored as a valid STIX 2.1 Indicator in Supabase PostgreSQL |
-| **Decay scoring** | Jakusz (2025) adversary-aware formula with APT10/29/38 LTV coefficients |
-| **VirusTotal verification** | Hash IOCs (min 10 malicious engines) and IP IOCs (min 3 malicious engines) |
-| **Shodan enrichment** | IP IOCs tagged as VPN / proxy / scanner / honeypot with open ports |
-| **TTP extraction** | MITRE ATT&CK technique extraction — regex (free, always-on) + Claude AI (cost-guarded) |
-| **URLhaus feed** | Malware URL IOCs ingested from URLhaus blocklist |
-| **Live dashboard** | Sources / IOCs / TTPs / VMs tabs with real-time data from the latest artifact |
-| **ATT&CK Navigator export** | One-click JSON layer export for MITRE ATT&CK Navigator |
-| **CISA KEV tracking** | VM tab shows Known Exploited Vulnerabilities with NVD CVSS scores |
-| **Weekly report** | Friday email listing stale sites, 7-day activity, and cumulative AI cost |
-| **AI cost tracking** | Per-run cost in every digest email; 7-day rollup in weekly report |
-| **Zero-post notification** | Digest always sent — even when no new articles are found |
+| **Source monitoring** | 187 configured sources — RSS feeds, JSON APIs, JS-heavy SPAs, WAF-protected blogs |
+| **Scraper diversity** | 9 scraper types: feed, api, nextjs, html, html_auto, crawl4ai, scrapling_fetcher, scrapling_stealthy, playwright_api |
+| **Parallel scraping** | 15 concurrent HTTP workers; 6 concurrent crawl4ai browser tabs; Playwright sites sequential under one browser |
+| **AI article summaries** | 1–2 sentence CTI summary per article via Claude Haiku 4.5 |
+| **AI combined extraction** | Single Claude Haiku call per article returns TTPs + IOCs + APT attribution as structured JSON |
+| **IOC extraction** | SHA-256 / SHA-1 / MD5 / domain / IPv4 / IPv6 via iocsearcher (defang, IANA TLD validation, overlap removal) |
+| **False positive filtering** | ~120-entry hardcoded FP list + source-domain filter + Tranco top-100k popularity list (cached 30 days) |
+| **APT attribution** | 80+ threat actor aliases (Chinese, Russian, Iranian, North Korean, financial) with word-boundary matching |
+| **STIX 2.1 storage** | Each IOC stored as a deterministic STIX 2.1 Indicator in Supabase PostgreSQL |
+| **Decay scoring** | Jakusz (2025) adversary-aware quadratic decay with APT10/29/38 LTV coefficients |
+| **Site reliability scoring** | 0–100 score per source (availability + content quality + analyst feedback) |
+| **Reliability-weighted LTV** | IOC lifetime extended 1.3× from high-reliability sources; shortened 0.7× from low-reliability sources |
+| **VirusTotal verification** | SHA-256 and SHA-1 hashes (≥10 malicious engines), rate-limited to free tier |
+| **Shodan enrichment** | IP IOCs tagged (VPN / proxy / scanner / honeypot) with open ports |
+| **TTP extraction** | MITRE ATT&CK extraction — regex (free, always-on) + Claude AI (budget-capped, 30 articles/run) |
+| **URLhaus feed** | Malware URL IOCs from URLhaus online-only filter, merged into export |
+| **Live dashboard** | Sources / IOCs / TTPs tabs with reliability badges, source filter, export, ATT&CK heatmap |
+| **IOC reliability filter** | Toggle IOC table to show all / ≥40 amber+ / ≥70 trusted sources only |
+| **Weekly report** | Friday email: AI-generated threat narrative, stale sites, source activity, degradation alerts, 7-day IOC summary |
+| **Degradation alerts** | Weekly email flags sources that dropped from ≥70 to <50 reliability since last snapshot |
+| **AI cost tracking** | Per-run cost in every digest; 7-day rollup chip in weekly report |
 
 ---
 
@@ -33,37 +38,52 @@ An automated Cyber Threat Intelligence (CTI) pipeline that monitors **173 securi
 GitHub Actions (daily 21:30 IST via cron-job.org + schedule fallback)
   │
   ├── run_check.py
-  │     ├── Scrape 173 sources (rss / api / nextjs / scrapling / crawl4ai / html / html_auto)
-  │     ├── Diff against state.json (dedup, capped per site)
-  │     ├── Filter articles older than 30 days from digest
+  │     ├── Phase 1: Parallel fetch
+  │     │     ├── HTTP sites (feed, api, nextjs, scrapling_fetcher)  — up to 15 threads
+  │     │     ├── crawl4ai sites                                      — up to 6 async browser tabs
+  │     │     └── Playwright sites (html, html_auto, playwright_api) — sequential, shared browser
+  │     ├── Phase 2: State diffing
+  │     │     ├── Diff against state.json (seen-URL dedup, flood guard)
+  │     │     ├── Resolve publish dates (URL pattern → requests+htmldate → crawl4ai)
+  │     │     └── Suppress articles older than 7 days from digest
   │     ├── Summarise fresh articles → Claude Haiku 4.5 (1-2 sentences)
-  │     ├── ioc_pipeline.py
-  │     │     ├── ioc_extractor.py   — fetch + iocsearcher extract + Tranco/source FP filter
-  │     │     ├── stix_converter.py  — build STIX 2.1 Indicator objects
-  │     │     ├── ioc_db.py          — upsert to Supabase (psycopg2)
-  │     │     ├── vt_enricher.py     — VirusTotal hash + IP reputation
-  │     │     ├── shodan_enricher.py — Shodan IP tagging (VPN / scanner / honeypot)
-  │     │     ├── ttp_extractor.py   — MITRE ATT&CK regex + Claude AI extraction
-  │     │     ├── urlhaus_fetcher.py — URLhaus malware URL feed
-  │     │     ├── ioc_scorer.py      — Jakusz decay score
-  │     │     └── Save ioc_export.json + ttp_export.json (for dashboard)
-  │     ├── Save state.json, last_active.json, prev_run_links.json
-  │     └── Send HTML digest email (articles + summaries + IOC tables + AI cost)
+  │     │     └── Skip if article text < 200 chars (non-readable)
+  │     ├── Build site reliability scores (availability + content quality + analyst ratings)
+  │     └── ioc_pipeline.py
+  │           ├── Parallel fetch article texts (up to 10 workers)
+  │           ├── Sort by reliability → high-reliability sites get Claude API budget priority
+  │           ├── Per article:
+  │           │     ├── ioc_extractor.py   — regex IOC extraction + APT detection
+  │           │     ├── ai_extractor.py    — combined TTPs + IOCs + APT (one Haiku call)
+  │           │     ├── ioc_scorer.py      — Jakusz decay LTV × reliability multiplier
+  │           │     ├── stix_converter.py  — build STIX 2.1 Indicator objects
+  │           │     └── ioc_db.py          — upsert to Supabase (psycopg2)
+  │           ├── vt_enricher.py     — VirusTotal SHA-256/SHA-1 hash verification
+  │           ├── shodan_enricher.py — Shodan IP tagging (VPN / scanner / honeypot)
+  │           ├── urlhaus_fetcher.py — URLhaus malware URL feed (merged into export)
+  │           └── Save ioc_export.json + ttp_export.json (for dashboard)
   │
-  ├── weekly_report.py  (Fridays only)
-  │     └── Send stale-sites email (sites quiet 7+ days, activity chart, 7-day AI cost)
+  ├── Save state.json, last_active.json (with _reliability_snapshot), prev_run_links.json
+  ├── Send HTML digest email (articles + summaries + IOC tables + reliability badges + AI cost)
   │
-  └── GitHub Actions cache + artifact
+  ├── weekly_report.py  (Fridays 16:00–20:00 UTC, or force_weekly=true)
+  │     ├── Claude Haiku: 2-3 paragraph executive threat narrative
+  │     ├── Stale sites table (silent ≥ 7 days)
+  │     ├── Source activity with reliability badges and degradation alerts
+  │     └── IOC 7-day summary (by type, by APT, top-10 decay score table)
+  │
+  └── GitHub Actions cache + artifact (7-day retention)
         state.json / last_active.json / prev_run_links.json
         ioc_export.json / ttp_export.json / .tranco_cache.txt
 
 Dashboard (Vercel)
-  ├── /api/data.js   — fetches latest artifact from GitHub, returns JSON
+  ├── /api/data.js     — fetches latest artifact from GitHub, returns merged JSON
+  ├── /api/ratings.js  — analyst rating API (GET averages / POST new 1-5 star rating)
   └── /public/index.html
-        ├── Sources tab — site cards, 7-day sparkline, active / quiet / failing panels
-        ├── IOCs tab    — searchable table, live decay scores, VT + Shodan enrichment
-        ├── TTPs tab    — MITRE ATT&CK heatmap with observation counts + Navigator export
-        └── VMs tab     — CISA KEV vulnerabilities with NVD CVSS scores
+        ├── Home tab    — KPI cards, daily volume sparkline, IOC donut chart, ATT&CK radar
+        ├── Sources tab — active / quiet / failing panels with reliability badges and site drawers
+        ├── IOCs tab    — scored table with reliability filter, VT/Shodan enrichment, export
+        └── TTPs tab    — MITRE ATT&CK heatmap with tactic/technique breakdown + Navigator export
 ```
 
 ---
@@ -72,15 +92,163 @@ Dashboard (Vercel)
 
 | Type | Method | Used for |
 |---|---|---|
-| `rss` / `feed` | feedparser | Standard RSS / Atom feeds |
+| `feed` | feedparser | Standard RSS / Atom feeds |
 | `api` | requests + JSON | Sites with a public JSON API |
-| `nextjs` | Playwright + Next.js routing | Next.js-rendered blogs |
-| `scrapling` | Lightweight HTTP + CSS selectors | Plain HTML blogs |
+| `nextjs` | Playwright + `__NEXT_DATA__` extraction | Next.js-rendered blogs |
+| `scrapling_fetcher` | curl_cffi TLS fingerprinting | Fast fetching without a browser |
 | `scrapling_stealthy` | Patchright stealth browser | WAF / Cloudflare-protected sites |
-| `crawl4ai` | AI-assisted crawler | JS-heavy SPAs |
-| `html` | Playwright + CSS selectors | Dynamic HTML with explicit selectors |
-| `html_auto` | Playwright + heuristic detection | Dynamic HTML without known selectors |
+| `crawl4ai` | AsyncWebCrawler with stealth mode | JS-heavy SPAs |
+| `html` | Playwright + CSS selectors | Dynamic HTML with known selectors |
+| `html_auto` | Playwright + heuristic link diffing | Dynamic HTML without known selectors |
+| `playwright_api` | Playwright + response interception | Sites that load content via API calls |
 | `skip` | No-op | Disabled sources |
+
+---
+
+## Site Reliability Score
+
+Each source receives a 0–100 score computed from three components:
+
+| Component | Max | How it's earned |
+|---|---|---|
+| **Availability** | 40 | Not failing (+20), posted in last 7 days (+15), last_active timestamp known (+5); −2/day past 7 days |
+| **Content quality** | 40 | IOC yield ratio (up to 25 pts), VT-verified IOC from this site (+5), APT-attributed IOC (+5) |
+| **Analyst feedback** | 20 | 1–5 star ratings via dashboard (1★ = 0 pts, 5★ = 20 pts) |
+
+Score thresholds: **≥70** green (trusted) / **40–69** amber (moderate) / **<40** red (low).
+
+The score directly affects IOC lifetime: LTV for IOCs from green sources is multiplied by **1.3×** (decays slower); red sources get **0.7×** (decays faster). Reliability scores are snapshotted each run to detect degradation over time.
+
+---
+
+## IOC Pipeline
+
+### Extraction
+
+Articles are fetched with up to 10 parallel workers, then processed sequentially (sorted by source reliability). Each article runs two extraction passes:
+
+1. **Regex pass** (`ioc_extractor.py`) — iocsearcher regex after un-defanging (`hxxp→http`, `[.]→.`)
+2. **AI pass** (`ai_extractor.py`) — single Claude Haiku call returning TTPs + additional IOCs + APT as structured JSON; budget-capped at 30 articles per run
+
+| IOC type | Notes |
+|---|---|
+| SHA-256 | 64-char hex |
+| SHA-1 | 40-char hex |
+| MD5 | 32-char hex (extracted; not sent to VirusTotal) |
+| Domain / FQDN | IANA TLD validation, subdomain dedup |
+| IPv4 / IPv6 | IANA validated, private/reserved excluded |
+
+**False positive filtering** runs after both passes:
+
+1. ~120-entry FP list — security vendors, CDNs, major platforms, news sites (exact + subdomain match)
+2. Source-domain filter — the article's own domain is never extracted as an IOC
+3. Tranco top-100k — popular domains filtered out; list cached locally for 30 days
+
+### Enrichment
+
+| Enricher | IOC types | Threshold | Rate |
+|---|---|---|---|
+| VirusTotal | SHA-256, SHA-1 | ≥10 malicious engines | 15 s between calls (free tier) |
+| Shodan | IPv4, IPv6 | — | 1 s between calls |
+| URLhaus | URL | Online-only filter | Batch of up to 500 |
+
+Shodan stores open ports and tags (e.g. `vpn`, `scanner`, `honeypot`) in JSONB columns. URLhaus URLs are merged directly into the export (not inserted into Postgres).
+
+### STIX 2.1 Storage
+
+Each IOC becomes a STIX 2.1 `Indicator` with a deterministic UUID (`uuid5(dns_namespace, value:type)`) — safe to re-ingest without duplication. Stored in Supabase `ioc_indicators` with full STIX JSON in a `JSONB` column alongside enrichment data.
+
+### Decay Scoring (Jakusz 2025)
+
+```
+score = 100 × max(0, 1 − (t / (τ × LTV))²)
+
+t   = days since last_seen
+τ   = VT-observed TTL (if enriched) or default (domain 30d, hash 60d, url/ip 7d)
+LTV = APT-specific coefficient (APT10: hash 1.85 / APT29: hash 0.84 / default 1.0)
+      × site reliability multiplier (≥70: 1.3× / 40–69: 1.0× / <40: 0.7×)
+```
+
+Scores are recomputed live from stored `tau` and `ltv` values — the dashboard always shows current-moment decay. Active threshold: score ≥ 30. Expiring: 1–29. Hard prune: `last_seen` older than 90 days.
+
+---
+
+## TTP Extraction
+
+Each article runs two passes:
+
+1. **Regex** — free, always-on, matches `T1234` / `T1234.001` patterns against a ~320-technique lookup table
+2. **Claude AI** (`ai_extractor.py`) — combined call also returns TTPs; falls back to `ttp_extractor` regex-only when AI budget is exhausted or no API key is set
+
+Techniques are stored in Supabase `ttp_observations` with technique ID, name, tactic, APT attribution, source URL, and observation count. The dashboard TTPs tab renders a MITRE ATT&CK heatmap filterable by time window (7 / 14 / 30 / all days) with one-click Navigator JSON export.
+
+---
+
+## AI Capabilities
+
+All Claude usage uses **claude-haiku-4-5**. Three distinct uses per run:
+
+| Use | Max tokens | Input limit | Notes |
+|---|---|---|---|
+| Article summarisation | 150 | 4,000 chars | Skipped if article text < 200 chars |
+| Combined extraction (TTPs + IOCs + APT) | 1,000 | 3,500 chars | Budget-capped at 30 articles/run |
+| Weekly narrative | 400 | ~300 token prompt | 2–3 paragraph executive threat summary |
+
+All three degrade gracefully to no-op when no API key is set. Daily spend is tracked in `last_active._ai_cost` and shown in both digest and weekly emails.
+
+---
+
+## Email Digest
+
+Sent after every run (even zero-post runs). Sections:
+
+- **New articles table** — date, source, link, AI summary
+- **IOC summary** — new this run / active (≥30) / expiring (<30), up to 20 rows each
+- **Site reliability snapshot** — badge + score for sites that posted or failed this run
+- **AI footer** — model, articles processed, token counts, run cost
+
+---
+
+## Weekly Report
+
+Sent every **Friday between 16:00–20:00 UTC** (or on demand via `force_weekly=true`). Sections:
+
+- **KPI chips** — active sources, quiet sites, links this week, AI 7-day cost, active IOC count
+- **Executive narrative** — Claude Haiku-generated 2–3 paragraph threat landscape summary
+- **Stale sites** — sources silent for 7+ days, color-coded amber/red
+- **Source activity** — 7-day link counts with reliability badge per source
+- **Degradation alerts** — sources that dropped from ≥70 to <50 reliability since the previous run
+- **IOC 7-day summary** — totals by type and APT, top-10 IOC decay score table
+
+---
+
+## Key Files
+
+| File | Purpose |
+|---|---|
+| `run_check.py` | Main orchestrator: scrape → diff → summarise → reliability → IOC pipeline → email |
+| `config.json` | All 187 site definitions (type, URL, selectors, filters) |
+| `state_seeds.json` | Seed URLs for new or force-replaced sites (applied on first run or cache reset) |
+| `state.json` | Seen-link history per site (GitHub Actions cache, max 2,000 URLs/site) |
+| `last_active.json` | Per-site timestamps, 7-day counts, daily AI cost, reliability snapshot |
+| `prev_run_links.json` | Enriched link objects `{url, site, date, summary}` for dashboard |
+| `ioc_export.json` | Scored IOC list `{value, type, apt, score, tau, ltv, shodan_tags, …}` |
+| `ttp_export.json` | TTP observations `{technique_id, tactic, total_observations, apts, …}` |
+| `ioc_extractor.py` | Article text fetch, iocsearcher extraction, FP filtering, APT detection |
+| `ai_extractor.py` | Single Haiku call: returns TTPs + IOCs + APT as structured JSON |
+| `stix_converter.py` | Build STIX 2.1 Indicator / ThreatActor / Relationship objects |
+| `ioc_scorer.py` | Jakusz decay formula + APT LTV coefficients |
+| `vt_enricher.py` | VirusTotal SHA-256/SHA-1 verification (free-tier rate-limited) |
+| `shodan_enricher.py` | Shodan IP tagging — tags and open ports |
+| `ioc_db.py` | Supabase upsert / query / prune via psycopg2 |
+| `ioc_pipeline.py` | Orchestrates fetch → extract → STIX → DB → VT → Shodan → URLhaus → export |
+| `ttp_extractor.py` | MITRE ATT&CK regex extraction with ~320-technique lookup table |
+| `urlhaus_fetcher.py` | URLhaus malware URL feed (online-only filter) |
+| `weekly_report.py` | Friday report: narrative generation + stale sites + degradation alerts |
+| `dashboard/api/data.js` | Vercel function: fetches latest GitHub artifact, returns merged JSON |
+| `dashboard/api/ratings.js` | Vercel function: analyst rating GET/POST backed by Supabase |
+| `dashboard/public/index.html` | Live dashboard (Home / Sources / IOCs / TTPs tabs) |
+| `.github/workflows/cti-monitor.yml` | Daily workflow with guard job (21:30 IST primary + 20:00 UTC fallback) |
 
 ---
 
@@ -93,146 +261,19 @@ git clone https://github.com/Aveek06/cti-monitor.git
 cd cti-monitor
 ```
 
-### 2. Supabase (IOC storage)
+### 2. Database (Supabase)
 
-1. Create a project at [supabase.com](https://supabase.com)
-2. Go to **Settings → Database → Connection string** and copy the URI (port 5432)
-3. The `ioc_indicators` and `ttp_observations` tables are auto-created on first pipeline run — no manual SQL needed
+Create a project at [supabase.com](https://supabase.com). The `ioc_indicators`, `ttp_observations`, and `site_ratings` tables are auto-created on first pipeline run — no manual SQL needed.
 
-### 3. API keys
-
-| Service | Where to get it | Free tier |
-|---|---|---|
-| VirusTotal | [virustotal.com](https://www.virustotal.com) → profile → API key | 4 req/min |
-| Shodan | [shodan.io](https://www.shodan.io) → account → API key | Membership plan |
-| URLhaus | [urlhaus-api.abuse.ch](https://urlhaus-api.abuse.ch) | Free |
-
-### 4. Dashboard (Vercel)
+### 3. Dashboard (Vercel)
 
 1. Import the repo into [Vercel](https://vercel.com), set **Root Directory** to `dashboard`
-2. Add a `GITHUB_TOKEN` environment variable in Vercel (a GitHub personal access token with `repo` read scope)
+2. Add your GitHub personal access token (with `repo` read scope) as a Vercel environment variable
 3. Vercel auto-deploys on every push; the dashboard reads the latest GitHub Actions artifact
 
-### 5. Trigger a test run
+### 4. Trigger a test run
 
 Go to **Actions → CTI Monitor → Run workflow** to run manually and confirm you receive an email.
-
----
-
-## Email Digest
-
-Each daily digest contains:
-
-- **New articles table** — date, source, link, and a 1-2 sentence AI summary beneath each link
-- **IOC tables** — New this run / Active (score ≥ 30) / Expiring (score < 30), capped at 20 rows each
-- **AI status footer** — articles summarised, token counts, cost (or reason if skipped)
-
----
-
-## IOC Pipeline
-
-### Extraction
-
-Articles are fetched, stripped to plain text, and scanned with [iocsearcher](https://github.com/malicialab/iocsearcher) after un-defanging (`hxxp→http`, `[.]→.`):
-
-| IOC type | Method |
-|---|---|
-| SHA-256 | 64-char hex word |
-| SHA-1 | 40-char hex word |
-| MD5 | 32-char hex word |
-| Domain / FQDN | IANA TLD validation, overlap removal |
-| IPv4 | IANA validated, private/reserved ranges excluded |
-| IPv6 | IANA validated, private/reserved ranges excluded |
-
-**False positive filtering** runs after extraction:
-
-1. **Allowlist** — known-good domains (security vendors, CDNs, dev platforms, news sites) filtered by exact match or subdomain
-2. **Source domain filter** — the article's own blog domain is never extracted as an IOC
-3. **Tranco top-100k** — domains ranking in the Tranco popularity list are filtered; list downloaded once and cached for 30 days
-
-APT attribution is detected by keyword scan across 80+ threat actor aliases.
-
-### IP Enrichment
-
-After extraction, IP IOCs are enriched asynchronously (up to 20 per run, rate-limited):
-
-- **VirusTotal** — flags IPs with ≥ 3 malicious engine detections
-- **Shodan** — tags IPs with context labels (VPN / tor / scanner / honeypot / cloud) and stores open ports
-
-### STIX 2.1 Storage
-
-Each IOC becomes a STIX 2.1 `Indicator` object with a deterministic UUID (`uuid5(namespace, value:type)`) so the same IOC is safe to re-ingest. Stored in Supabase `ioc_indicators` with full STIX JSON in a `JSONB` column.
-
-### Decay Scoring (Jakusz 2025)
-
-```
-score = 100 × (1 − (t / (τ × LTV))²)
-
-t   = days since last_seen
-τ   = VirusTotal TTL (observed) or default (domain/IP: 30d, hash: 60d)
-LTV = adversary-specific lifetime value:
-      APT10: domain 0.97 / hash 1.85
-      APT29: domain 0.61 / hash 0.84
-      APT38: domain 0.83 / hash 0.77
-      Unknown: 1.0
-```
-
-Scores are recomputed **live in the browser** on every page load using the exported `tau` and `ltv` values — the dashboard always shows true current-moment decay, not a stale snapshot.
-
-### Pruning
-
-IOCs with `last_seen` older than **90 days** are automatically deleted from Supabase at the end of each pipeline run. If a pruned IOC resurfaces in a new article, the upsert recreates it with today's date.
-
----
-
-## TTP Extraction
-
-Each new article is scanned for MITRE ATT&CK techniques in two passes:
-
-1. **Regex** — free, always runs, matches explicit `T1234` / `T1234.001` references and common technique keywords
-2. **Claude AI** — reads the full article text and returns structured technique IDs; runs cost-guarded (budget cap per run)
-
-Techniques are stored in Supabase `ttp_observations` with article URL, site, APT attribution, date, and observation count. The dashboard TTPs tab renders a heatmap and supports one-click export to MITRE ATT&CK Navigator JSON.
-
----
-
-## Weekly Report
-
-Sent every **Friday at 21:30 IST**. Contains:
-
-- Stat chips: active sources / quiet sites / links this week / 7-day AI cost
-- Stale sites table (color-coded: amber ≥ 7 days, red ≥ 14 days)
-- Source activity bar chart (7-day link counts)
-
-Sites currently failing their scraper are excluded from the stale report — they appear in the daily digest instead.
-
----
-
-## Key Files
-
-| File | Purpose |
-|---|---|
-| `run_check.py` | Main pipeline: scrape → diff → summarise → IOC extract → email |
-| `config.json` | All site definitions (type, URL, selectors, filters) |
-| `state_seeds.json` | Seed URLs for new/empty sites (applied on first run or after cache reset) |
-| `state.json` | Seen-links history per site (GitHub Actions cache) |
-| `last_active.json` | Per-site timestamps, 7-day counts, daily AI cost |
-| `prev_run_links.json` | Enriched link objects `{url, site, date, summary}` for dashboard |
-| `ioc_export.json` | Scored IOC list `{value, type, apt, score, tau, ltv, shodan_tags, …}` |
-| `ttp_export.json` | TTP observations `{technique_id, tactic, score, apt, …}` for dashboard |
-| `ioc_extractor.py` | Fetch article text, iocsearcher extraction, Tranco + source FP filtering, APT detection |
-| `stix_converter.py` | Build STIX 2.1 Indicator / ThreatActor / Relationship dicts |
-| `ioc_scorer.py` | Jakusz decay formula + LTV coefficients |
-| `vt_enricher.py` | VirusTotal hash and IP verification (free-tier rate-limited) |
-| `shodan_enricher.py` | Shodan IP tagging — VPN, scanner, honeypot labels + open ports |
-| `ioc_db.py` | Supabase upsert / query / prune via psycopg2 |
-| `ioc_pipeline.py` | Orchestrates extraction → STIX → DB → VT → Shodan → TTP → URLhaus → export |
-| `ttp_extractor.py` | MITRE ATT&CK extraction: regex pass + Claude AI pass |
-| `urlhaus_fetcher.py` | URLhaus malware URL feed ingestion |
-| `weekly_report.py` | Friday stale-sites report |
-| `dashboard/api/data.js` | Vercel function: fetches GitHub artifact, returns JSON |
-| `dashboard/public/index.html` | Live dashboard (Sources / IOCs / TTPs / VMs tabs) |
-| `.github/workflows/cti-monitor.yml` | Daily workflow (21:30 IST via cron-job.org + fallback schedule) |
 
 ---
 
@@ -245,24 +286,14 @@ playwright install chromium
 crawl4ai-setup
 scrapling install
 
-# Environment variables
-export SMTP_USERNAME=you@gmail.com
-export SMTP_PASSWORD=your-app-password
-export EMAIL_TO=recipient@example.com
-export ANTHROPIC_API_KEY=sk-ant-...
-export VT_API_KEY=your-vt-key
-export SHODAN_API_KEY=your-shodan-key
-export URLHAUS_API_KEY=your-urlhaus-key
-export DATABASE_URL=postgresql://...
-
 python run_check.py config.json state.json last_active.json prev_run_links.json
-python weekly_report.py config.json last_active.json ioc_export.json  # stale-sites report
+python weekly_report.py config.json last_active.json ioc_export.json
 ```
 
-Dashboard (requires Node.js + Vercel CLI):
+Dashboard (requires Node.js):
 
 ```bash
 cd dashboard
 npm install
-GITHUB_TOKEN=ghp_... vercel dev
+vercel dev
 ```
