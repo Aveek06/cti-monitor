@@ -1302,6 +1302,10 @@
         <div id="pv-tac-bars"></div>
       </div>
     </div>
+    <div class="pv-section-hd" style="margin-bottom:8px;">
+      <span class="pv-section-title">Source Reliability</span>
+    </div>
+    <div id="pv-rel-section" style="background:var(--surface2);border:1px solid var(--border);padding:16px 18px;margin-bottom:22px;"></div>
     <div class="pv-section-hd">
       <span class="pv-section-title">Indicators from this source</span>
       <div class="pv-export-wrap">
@@ -1537,6 +1541,8 @@ async function submitRating(name){
     const quiet=_lastDerived?.quietSites?.find(s=>s.name===name);
     const failSet=new Set((_lastDerived?.failingSites||[]).map(s=>s.name));
     document.getElementById("rel-section").innerHTML=renderRelSection(name,active?.count||0,_lastActive[name],failSet.has(name));
+    const pvRel=document.getElementById("pv-rel-section");
+    if(pvRel)pvRel.innerHTML=renderRelSection(name,active?.count||0,_lastActive[name],failSet.has(name));
   }catch{if(btn){btn.disabled=false;btn.textContent="Submit";}}
 }
 
@@ -1836,6 +1842,10 @@ function renderSitePage(name){
   // Charts
   renderPvDonut("pv-donut-svg","pv-donut-legend",iocs);
   renderPvTacBars("pv-tac-bars",ttps);
+
+  // Reliability + analyst rating
+  _pendingRating=0;
+  document.getElementById("pv-rel-section").innerHTML=renderRelSection(name,weekCount,lastTs,failing.has(name));
 
   // Articles table
   const articles=getSiteArticles(name);
