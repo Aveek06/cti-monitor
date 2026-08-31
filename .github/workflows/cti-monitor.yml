@@ -122,6 +122,8 @@ jobs:
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DATABASE_URL:      ${{ secrets.DATABASE_URL }}
         run: |
           HOUR=$(date +%H)
           FORCE="${{ github.event.inputs.force_weekly }}"

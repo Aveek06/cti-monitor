@@ -16,6 +16,11 @@ from datetime import datetime, timezone, timedelta
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+try:
+    import anthropic as _anthropic
+except ImportError:
+    _anthropic = None
+
 SMTP_SERVER   = "smtp.gmail.com"
 SMTP_PORT     = 587
 SMTP_USERNAME = os.environ.get("SMTP_USERNAME", "")
@@ -164,9 +169,56 @@ def _compute_reliability(name, week_count, last_ts_str, is_failing, ioc_by_site,
     return avail + content + feedback
 
 
+def generate_narrative(active_sites, stale_sites, ioc_stats, top_ttps,
+                       degraded_sources, report_date, api_key):
+    """Generate a 2-3 paragraph executive threat intelligence narrative using Claude."""
+    if not _anthropic or not api_key:
+        return ""
+    try:
+        active_names = ", ".join(s["name"] for s in active_sites[:10]) or "none"
+        stale_names  = ", ".join(s["name"] for s in stale_sites[:8])   or "none"
+        ioc_summary  = ""
+        if ioc_stats and ioc_stats.get("total"):
+            breakdown = ", ".join(f"{t} ({c})" for t, c in (ioc_stats.get("by_type") or {}).items())
+            ioc_summary = f"{ioc_stats['total']} active IOCs ({breakdown})"
+        else:
+            ioc_summary = "no active IOCs"
+        ttp_names = ", ".join(
+            f"{t.get('technique_id','?')} {t.get('technique_name','')}" for t in (top_ttps or [])[:6]
+        ) or "none observed"
+        degraded = ", ".join(
+            f"{d['name']} ({d['prev']}→{d['curr']})" for d in (degraded_sources or [])
+        ) or "none"
+
+        prompt = (
+            f"You are writing the weekly threat intelligence digest for a security team. "
+            f"Write 2-3 concise paragraphs (plain prose, no bullet points, no headers) that give an "
+            f"executive summary of this week's CTI monitoring results. Be specific and analytical.\n\n"
+            f"Report date: {report_date}\n"
+            f"Active sources (posted this week): {active_names}\n"
+            f"Silent/stale sources: {stale_names}\n"
+            f"IOC posture: {ioc_summary}\n"
+            f"Top TTPs observed: {ttp_names}\n"
+            f"Reliability degradations: {degraded}\n\n"
+            f"Cover: what the threat landscape looks like this week, any notable shifts or concerns, "
+            f"and what the team should prioritize reviewing."
+        )
+        client = _anthropic.Anthropic(api_key=api_key)
+        msg = client.messages.create(
+            model="claude-haiku-4-5",
+            max_tokens=400,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return msg.content[0].text.strip()
+    except Exception as e:
+        print(f"Weekly narrative generation failed: {e}")
+        return ""
+
+
 def send_stale_email(stale_sites, active_sites, total_active, report_date,
                      ai_weekly_cost=0.0, ioc_stats=None,
-                     ioc_by_site=None, ratings=None, last_active_raw=None, failing_set=None):
+                     ioc_by_site=None, ratings=None, last_active_raw=None, failing_set=None,
+                     degraded_sources=None, narrative=""):
     # palette (dark theme, inline styles for email compatibility)
     BG       = "#0d1117"
     SURFACE  = "#161b22"
@@ -235,6 +287,21 @@ def send_stale_email(stale_sites, active_sites, total_active, report_date,
     _la_raw      = last_active_raw or {}
     _failing     = failing_set or set()
 
+    narrative_section = ""
+    if narrative:
+        narrative_section = (
+            f'<tr><td style="padding:0 0 16px 0;">'
+            f'<table width="100%" cellpadding="0" cellspacing="0"'
+            f' style="border-collapse:collapse;background:{SURFACE};'
+            f'border:1px solid {BORDER};border-radius:8px;">'
+            f'<tr><td style="padding:10px 20px 6px;font-size:9px;font-weight:700;'
+            f'letter-spacing:.12em;text-transform:uppercase;color:{DIM};'
+            f'border-bottom:1px solid {BORDER};">Threat Intelligence Narrative</td></tr>'
+            f'<tr><td style="padding:16px 20px;font-size:13px;color:{TEXT};'
+            f'line-height:1.65;font-style:italic;">{narrative}</td></tr>'
+            f'</table></td></tr>'
+        )
+
     activity_rows = ""
     if active_sites:
         for s in active_sites:
@@ -279,6 +346,48 @@ def send_stale_email(stale_sites, active_sites, total_active, report_date,
             f'No 7-day activity data yet (accumulates after first week of tracking).'
             f'</td></tr>'
         )
+
+    # Degradation alert section
+    degradation_section_html = ""
+    if degraded_sources:
+        deg_rows = ""
+        for d in degraded_sources:
+            deg_rows += (
+                f'<tr>'
+                f'<td style="padding:10px 16px 10px 20px;border-bottom:1px solid {BORDER};'
+                f'font-size:13px;color:{TEXT};">{d["name"]}</td>'
+                f'<td style="padding:10px 8px;border-bottom:1px solid {BORDER};'
+                f'font-family:monospace;font-size:12px;">'
+                f'<span style="color:{GREEN};">{d["prev"]}</span>'
+                f'<span style="color:{DIM};margin:0 6px;">&#x2192;</span>'
+                f'<span style="color:{CRIT};">{d["curr"]}</span></td>'
+                f'<td style="padding:10px 20px 10px 8px;border-bottom:1px solid {BORDER};'
+                f'font-family:monospace;font-size:12px;color:{AMBER};">-{d["drop"]} pts</td>'
+                f'</tr>'
+            )
+        degradation_section_html = f"""
+  <tr><td style="padding:0 0 16px 0;">
+    <table width="100%" cellpadding="0" cellspacing="0"
+           style="border-collapse:collapse;background:{SURFACE};border:1px solid #5e3a1a;border-radius:8px;">
+    <tr>
+      <th colspan="3" style="padding:14px 20px 10px;font-size:10px;font-weight:700;
+          letter-spacing:.12em;text-transform:uppercase;color:{AMBER};
+          text-align:left;border-bottom:1px solid {BORDER};">
+        Reliability Degradation Alert
+      </th>
+    </tr>
+    <tr>
+      <th style="padding:6px 16px 6px 20px;font-size:9px;font-weight:700;letter-spacing:.1em;
+          text-transform:uppercase;color:{DIM};text-align:left;border-bottom:1px solid {BORDER};">Source</th>
+      <th style="padding:6px 8px;font-size:9px;font-weight:700;letter-spacing:.1em;
+          text-transform:uppercase;color:{DIM};text-align:left;border-bottom:1px solid {BORDER};">Score</th>
+      <th style="padding:6px 20px 6px 8px;font-size:9px;font-weight:700;letter-spacing:.1em;
+          text-transform:uppercase;color:{DIM};text-align:left;border-bottom:1px solid {BORDER};">Drop</th>
+    </tr>
+    {deg_rows}
+    </table>
+  </td></tr>
+"""
 
     # IOC section
     ioc_section_html = ""
@@ -478,6 +587,8 @@ def send_stale_email(stale_sites, active_sites, total_active, report_date,
     </table>
   </td></tr>
 
+  {narrative_section}
+
   <!-- Stale Sites section -->
   <tr><td style="background:{SURFACE};border:1px solid {BORDER};border-top:none;border-bottom:none;">
     <table width="100%" cellpadding="0" cellspacing="0">
@@ -531,6 +642,8 @@ def send_stale_email(stale_sites, active_sites, total_active, report_date,
     {activity_rows}
     </table>
   </td></tr>
+
+  {degradation_section_html}
 
   {ioc_section_html}
 
@@ -640,9 +753,44 @@ def main(config_path, last_active_path, ioc_export_path=None):
     ai_weekly_cost = sum(v for k, v in ai_cost_by_day.items() if k >= cutoff_str)
 
     ioc_export  = load_json(ioc_export_path or "ioc_export.json", [])
+    ttp_export  = load_json("ttp_export.json", [])
     ioc_stats   = _compute_ioc_stats(ioc_export, cutoff_str)
     ioc_by_site = _build_ioc_by_site(ioc_export)
     ratings     = _fetch_ratings()
+
+    top_ttps = sorted(ttp_export, key=lambda t: t.get("total_observations", 0), reverse=True)[:6]
+
+    # Detect sources that degraded by >20 pts since the last pipeline snapshot
+    prev_snapshot = last_active.get("_reliability_snapshot", {})
+    degraded_sources = []
+    if prev_snapshot:
+        for site in config["sites"]:
+            name = site["name"]
+            if site.get("type") in ("skip", "html_TODO"):
+                continue
+            prev_score = prev_snapshot.get(name)
+            if prev_score is None or prev_score < 70:
+                continue
+            counts = seven_day.get(name, {})
+            week_count = sum(v for k, v in counts.items() if k >= cutoff_str)
+            curr_score = _compute_reliability(
+                name, week_count, last_active.get(name),
+                name in currently_failing, ioc_by_site, ratings,
+            )
+            if curr_score < 50:
+                degraded_sources.append({
+                    "name": name,
+                    "prev": prev_score,
+                    "curr": curr_score,
+                    "drop": prev_score - curr_score,
+                })
+        degraded_sources.sort(key=lambda x: x["drop"], reverse=True)
+
+    anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    narrative = generate_narrative(
+        active_sites, stale_sites, ioc_stats, top_ttps,
+        degraded_sources, report_date, anthropic_key,
+    )
 
     stale_label = f"{len(stale_sites)} stale" if stale_sites else "all clear"
     ioc_label   = f", {ioc_stats['total']} active IOCs" if ioc_stats else ""
@@ -658,6 +806,8 @@ def main(config_path, last_active_path, ioc_export_path=None):
         ratings=ratings,
         last_active_raw=last_active,
         failing_set=currently_failing,
+        degraded_sources=degraded_sources if degraded_sources else None,
+        narrative=narrative,
     )
 
 

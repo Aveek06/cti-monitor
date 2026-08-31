@@ -15,7 +15,7 @@ import json
 
 TECHNIQUE_RE = re.compile(r'\b(T\d{4}(?:\.\d{3})?)\b')
 
-MAX_ARTICLES_PER_RUN = 20   # cost guard: max AI calls per pipeline run
+MAX_ARTICLES_PER_RUN = 30   # cost guard: max AI calls per pipeline run
 MAX_TEXT_CHARS       = 4000  # truncate article to keep token costs low
 
 TECHNIQUE_LOOKUP: dict[str, dict] = {

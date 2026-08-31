@@ -70,6 +70,7 @@ def upsert_ioc(conn, stix_obj, value, ioc_type, first_seen, last_seen,
                 stix_object    = EXCLUDED.stix_object,
                 source_article = EXCLUDED.source_article,
                 source_blog    = EXCLUDED.source_blog,
+                ltv            = EXCLUDED.ltv,
                 updated_at     = NOW()
         """, (
             stix_obj["id"],

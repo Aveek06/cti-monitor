@@ -99,7 +99,7 @@ def enrich_pending_hashes(conn, api_key: str) -> None:
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute(
             "SELECT id, value, type FROM ioc_indicators "
-            "WHERE vt_verified = FALSE AND type IN ('sha256','sha1','md5') "
+            "WHERE vt_verified = FALSE AND type IN ('sha256','sha1') "
             "ORDER BY created_at DESC LIMIT 20"
         )
         rows = cur.fetchall()

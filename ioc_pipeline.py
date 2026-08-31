@@ -11,9 +11,10 @@ import vt_enricher
 import shodan_enricher
 import ttp_extractor
 import urlhaus_fetcher
+import ai_extractor
 
 
-def run(new_items: list[dict]) -> dict:
+def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
     results = {"new": [], "active": [], "expiring": []}
 
     if not os.environ.get("DATABASE_URL"):
@@ -68,6 +69,10 @@ def run(new_items: list[dict]) -> dict:
                 fetched_items.append(fut.result())
     print(f"IOC pipeline: fetched {len(fetched_items)} article text(s) in parallel.")
 
+    # High-reliability sites process first so they get Claude API budget priority
+    if rel_lookup:
+        fetched_items.sort(key=lambda x: rel_lookup.get(x[0]["site"], 50), reverse=True)
+
     # Phase 2: sequential IOC/TTP extraction + DB writes (psycopg2 is not thread-safe)
     for item, text in fetched_items:
         if not text:
@@ -75,8 +80,29 @@ def run(new_items: list[dict]) -> dict:
         apt  = ioc_extractor.detect_apt(item["site"] + " " + text)
         iocs = ioc_extractor.extract_iocs(text, item["link"])
 
+        # Combined AI extraction: TTPs + additional IOCs + APT attribution in one call
+        use_ai = anthropic_key and ttp_ai_budget > 0
+        if use_ai:
+            ai = ai_extractor.extract_all(text, item["link"], anthropic_key)
+            if ai.get("ttps") or ai.get("iocs") or ai.get("apt"):
+                ttp_ai_budget -= 1
+            ttps = ai["ttps"] if ai["ttps"] else ttp_extractor.extract_ttps(text, "")
+            _seen = {(r["value"], r["type"]) for r in iocs}
+            for ai_ioc in (ai["iocs"] or []):
+                v, t = ai_ioc.get("value", "").strip(), ai_ioc.get("type", "").strip()
+                if v and t and (v, t) not in _seen:
+                    iocs.append({"value": v, "type": t})
+                    _seen.add((v, t))
+            if ai["apt"]:
+                apt = ai["apt"]
+        else:
+            ttps = ttp_extractor.extract_ttps(text, "")
+
         for ioc in iocs:
             ltv      = ioc_scorer.get_ltv(apt, ioc["type"])
+            if rel_lookup:
+                _s = rel_lookup.get(item["site"], 50)
+                ltv *= 1.3 if _s >= 70 else 0.7 if _s < 40 else 1.0
             tau      = ioc_scorer.TAU_DEFAULT[ioc_scorer.ioc_group(ioc["type"])]
             stix_obj = stix_converter.ioc_to_indicator(
                 ioc["value"], ioc["type"],
@@ -96,11 +122,6 @@ def run(new_items: list[dict]) -> dict:
                 print(f"IOC upsert failed ({ioc['value'][:20]}...): {e}")
                 conn.rollback()
 
-        # TTP extraction — use AI budget for semantic extraction, always do regex
-        use_ai = anthropic_key and ttp_ai_budget > 0
-        ttps = ttp_extractor.extract_ttps(text, anthropic_key if use_ai else "")
-        if use_ai and ttps:
-            ttp_ai_budget -= 1
         for ttp in ttps:
             try:
                 ioc_db.upsert_ttp(
@@ -123,11 +144,6 @@ def run(new_items: list[dict]) -> dict:
             vt_enricher.enrich_pending_hashes(conn, vt_api_key)
         except Exception as e:
             print(f"VT enrichment error: {e}")
-        print("Running VirusTotal IP enrichment (up to 20 IPs, 15s between calls)...")
-        try:
-            vt_enricher.enrich_pending_ips(conn, vt_api_key)
-        except Exception as e:
-            print(f"VT IP enrichment error: {e}")
     else:
         print("VT_API_KEY not set — skipping VirusTotal enrichment.")
 
@@ -207,5 +223,6 @@ def run(new_items: list[dict]) -> dict:
     except Exception as e:
         print(f"IOC pipeline: result query / export failed: {e}")
 
+    results["rel_snapshot"] = rel_lookup or {}
     conn.close()
     return results

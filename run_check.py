@@ -51,6 +51,9 @@ _URL_DATE_RE = re.compile(r'/(\d{4})[/\-](\d{2})[/\-](\d{2})(?:[/\-_.]|$)')
 HAIKU_COST_PER_INPUT  = 1.0 / 1_000_000   # $1.00 per 1M input tokens
 HAIKU_COST_PER_OUTPUT = 5.0 / 1_000_000   # $5.00 per 1M output tokens
 
+# Minimum readable characters after stripping boilerplate — shorter = paywall/error page
+_MIN_READABLE_CHARS = 200
+
 
 def _digest_build_ioc_by_site(active_iocs):
     result = {}
@@ -123,7 +126,7 @@ def _digest_compute_reliability(name, week_count, last_ts_str, is_failing, ioc_b
 
 
 def summarize_article(url, client):
-    """Fetch article and return (summary, input_tokens, output_tokens). Summary is '' on failure."""
+    """Fetch article and return (summary, input_tokens, output_tokens). Summary is '' on skip/failure."""
     try:
         slug = url.rstrip("/").split("/")[-1].replace("-", " ").replace("_", " ")
         resp = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
@@ -131,6 +134,11 @@ def summarize_article(url, client):
         for tag in soup(["nav", "header", "footer", "script", "style", "aside", "form"]):
             tag.decompose()
         text = soup.get_text(separator=" ", strip=True)[:4000]
+
+        if len(text) < _MIN_READABLE_CHARS:
+            print(f"  [summarize] skipped (non-readable, {len(text)} chars): {url[:70]}")
+            return "", 0, 0
+
         msg = client.messages.create(
             model="claude-haiku-4-5",
             max_tokens=150,
@@ -1401,7 +1409,26 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
     if fresh_items:
         try:
             from ioc_pipeline import run as run_ioc_pipeline
-            ioc_results = run_ioc_pipeline(fresh_items)
+            # Build per-site reliability lookup so pipeline can weight LTV
+            _rel_lookup = {}
+            try:
+                _rel_ratings   = _digest_fetch_ratings()
+                _rel_ioc_by    = _digest_build_ioc_by_site([])
+                _rel_failing   = set(last_active.get("_currently_failing", []))
+                _rel_seven_day = last_active.get("_seven_day_counts", {})
+                _rel_cutoff    = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d")
+                for _site_cfg in config.get("sites", []):
+                    _sn = _site_cfg["name"]
+                    _wk = sum(v for k, v in _rel_seven_day.get(_sn, {}).items() if k >= _rel_cutoff)
+                    _rel_lookup[_sn] = _digest_compute_reliability(_sn, _wk, last_active.get(_sn), _sn in _rel_failing, _rel_ioc_by, _rel_ratings)
+            except Exception as _re:
+                print(f"Reliability lookup build failed: {_re}")
+            ioc_results = run_ioc_pipeline(fresh_items, rel_lookup=_rel_lookup)
+            # Persist snapshot for degradation detection in weekly digest
+            snap = ioc_results.get("rel_snapshot") or _rel_lookup
+            if snap:
+                last_active["_reliability_snapshot"] = snap
+                save_json(last_active_path, last_active)
         except Exception as e:
             print(f"IOC pipeline skipped: {e}")
 
