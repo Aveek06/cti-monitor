@@ -9,8 +9,6 @@ function pool() {
   return _pool;
 }
 
-const _postLog = new Map();
-const POST_LIMIT_MS = 10 * 60 * 1000;
 
 module.exports = async function handler(req, res) {
   if (!process.env.DATABASE_URL)
@@ -49,14 +47,15 @@ module.exports = async function handler(req, res) {
     if (rater  && (typeof rater  !== "string" || rater.length  > 100))
       return res.status(400).json({ error: "rater must be ≤ 100 chars" });
     const ip = (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "unknown";
-    const lastPost = _postLog.get(ip) || 0;
-    if (Date.now() - lastPost < POST_LIMIT_MS)
-      return res.status(429).json({ error: "Rate limit: one rating per 10 minutes" });
-    _postLog.set(ip, Date.now());
     try {
+      const { rows: recent } = await pool().query(
+        `SELECT 1 FROM site_ratings WHERE rater_ip=$1 AND created_at > NOW() - INTERVAL '10 minutes' LIMIT 1`,
+        [ip]
+      );
+      if (recent.length) return res.status(429).json({ error: "Rate limit: one rating per 10 minutes" });
       await pool().query(
-        "INSERT INTO site_ratings (site_name, rating, note, rater) VALUES ($1,$2,$3,$4)",
-        [site_name, +rating, note || null, rater || null]
+        "INSERT INTO site_ratings (site_name, rating, note, rater, rater_ip) VALUES ($1,$2,$3,$4,$5)",
+        [site_name, +rating, note || null, rater || null, ip]
       );
       return res.json({ ok: true });
     } catch (e) {

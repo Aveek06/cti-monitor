@@ -23,7 +23,8 @@ export default async function middleware(request) {
   }
 
   try {
-    const secret = new TextEncoder().encode(process.env.SESSION_SECRET || 'changeme-32-char-secret-key!!!!!');
+    if (!process.env.SESSION_SECRET) throw new Error('SESSION_SECRET not set');
+    const secret = new TextEncoder().encode(process.env.SESSION_SECRET);
     await jwtVerify(token, secret);
   } catch {
     const res = Response.redirect(new URL('/login.html', request.url));

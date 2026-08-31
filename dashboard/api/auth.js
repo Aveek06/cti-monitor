@@ -13,7 +13,26 @@ function pool() {
 }
 
 function secret() {
-  return new TextEncoder().encode(process.env.SESSION_SECRET || 'changeme-32-char-secret-key!!!!!');
+  if (!process.env.SESSION_SECRET) throw new Error('SESSION_SECRET not set');
+  return new TextEncoder().encode(process.env.SESSION_SECRET);
+}
+
+const _loginAttempts = new Map();
+function checkLoginRateLimit(ip) {
+  const now = Date.now();
+  const entry = _loginAttempts.get(ip) || { count: 0, until: 0 };
+  if (now < entry.until) return false;
+  return entry;
+}
+function recordFailedLogin(ip) {
+  const now = Date.now();
+  const entry = _loginAttempts.get(ip) || { count: 0, until: 0 };
+  entry.count++;
+  if (entry.count >= 5) entry.until = now + 15 * 60 * 1000;
+  _loginAttempts.set(ip, entry);
+}
+function clearLoginAttempts(ip) {
+  _loginAttempts.delete(ip);
 }
 
 async function getUser(token) {
@@ -49,6 +68,10 @@ module.exports = async function handler(req, res) {
     const { email, password } = req.body || {};
     if (!email || !password) return res.status(400).json({ error: 'email and password required' });
 
+    const ip = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim() || 'unknown';
+    const rateEntry = checkLoginRateLimit(ip);
+    if (rateEntry === false) return res.status(429).json({ error: 'Too many failed attempts. Try again in 15 minutes.' });
+
     const { rows } = await pool().query(
       `SELECT u.email, u.active, u.is_admin, c.password_hash
        FROM allowed_users u
@@ -58,12 +81,12 @@ module.exports = async function handler(req, res) {
     );
 
     const user = rows[0];
-    if (!user || !user.active) return res.status(401).json({ error: 'Invalid credentials' });
+    if (!user || !user.active) { recordFailedLogin(ip); return res.status(401).json({ error: 'Invalid credentials' }); }
 
     const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
+    if (!valid) { recordFailedLogin(ip); return res.status(401).json({ error: 'Invalid credentials' }); }
 
-    // Update last_login
+    clearLoginAttempts(ip);
     await pool().query('UPDATE user_credentials SET last_login = NOW() WHERE email = $1', [user.email]);
 
     const token = await new SignJWT({ email: user.email, is_admin: user.is_admin })
@@ -111,7 +134,11 @@ module.exports = async function handler(req, res) {
   if (req.method === 'GET' && action === 'active-users') {
     const cookies = parseCookie(req.headers.cookie);
     const user = await getUser(cookies[COOKIE_NAME]);
-    if (!user || !user.is_admin) return res.status(403).json({ error: 'Forbidden' });
+    if (!user) return res.status(403).json({ error: 'Forbidden' });
+    const { rows: adminRows } = await pool().query(
+      'SELECT is_admin FROM allowed_users WHERE email=$1 AND active=TRUE', [user.email]
+    );
+    if (!adminRows[0]?.is_admin) return res.status(403).json({ error: 'Forbidden' });
 
     const { rows } = await pool().query(
       `SELECT s.email, s.last_seen, s.ip,
