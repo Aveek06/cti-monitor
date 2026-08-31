@@ -650,7 +650,7 @@ def send_stale_email(stale_sites, active_sites, total_active, report_date,
   <!-- Footer -->
   <tr><td style="padding:20px 0 0;text-align:center;font-size:11px;color:{DIM};line-height:1.8;">
     CTI Source Monitor &middot; Automated weekly digest<br>
-    avnandy@deloitte.com &middot; Sent Friday 21:30 IST
+    CTI Monitor &middot; Sent Friday 21:30 IST
   </td></tr>
 
 </table>

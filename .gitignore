@@ -8,6 +8,16 @@ venv/
 
 # Local state (managed via GitHub Actions cache, not committed)
 state.json
+last_active.json
+ioc_export.json
+ttp_export.json
+prev_run_links.json
+ttp_techniques_raw.json
+
+# Claude Code tooling (local dev only)
+.claude/
+CLAUDE.md
+graphify-out/
 
 # Local debug/capture artefacts
 capture_network.py
@@ -19,6 +29,7 @@ latest_run.txt
 
 # Dev/test scripts (not part of the pipeline)
 check_feeds.py
+cleanup_fp_iocs.py
 recheck_failures.py
 recheck_playwright.py
 test_crawl4ai.py
