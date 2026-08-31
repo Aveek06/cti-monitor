@@ -170,10 +170,15 @@ def check_feed_site(site):
     """Returns list of (link, date_str) for every entry in the feed."""
     entries = []
     try:
-        parsed = feedparser.parse(site["url"], request_headers={
-            "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                           "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
-        })
+        timeout_s = site.get("page_timeout_ms", 15000) // 1000
+        resp = requests.get(
+            site["url"],
+            timeout=timeout_s,
+            headers={"User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                                    "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")},
+        )
+        resp.raise_for_status()
+        parsed = feedparser.parse(resp.content)
         keywords = [kw.lower() for kw in site.get("title_keywords", [])]
         excludes = site.get("path_exclude", [])
         prefixes = site.get("link_path_prefix", [])
