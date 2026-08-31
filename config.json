@@ -934,13 +934,6 @@
       "min_slug_length": 8
     },
     {
-      "name": "Blackberry",
-      "type": "scrapling_fetcher",
-      "url": "https://www.blackberry.com/en/secure-communications/insights/blog",
-      "link_path_prefix": "/en/secure-communications/insights/blog/",
-      "notes": "Moved from blogs.blackberry.com to secure-communications insights blog. scrapling_fetcher works; links are relative paths."
-    },
-    {
       "name": "Cleafy",
       "type": "html",
       "url": "https://www.cleafy.com/labs",
