@@ -1821,6 +1821,8 @@ function updateDashboard({sites,activeSites,quietSites,failingSites,weekTotal,sp
   const total=sites.length||1;
   requestAnimationFrame(()=>{setTimeout(()=>{const setBar=(id,pct)=>{const el=document.getElementById(id);if(el)el.style.transform=`scaleX(${pct/100})`;};setBar("bar-active",Math.round((activeSites.length/total)*100));setBar("bar-quiet",Math.round((quietSites.length/total)*100));setBar("bar-failing",Math.round((failingSites.length/total)*100));setBar("bar-links",Math.min(100,Math.round((weekTotal/500)*100)));},120);});
   renderActive(activeSites,state);renderQuiet(quietSites,state);renderFailing(failingSites,state);
+  // Auto-open Active panel on every load/refresh, without scroll
+  {const p=document.getElementById("panel-active"),c=document.getElementById("card-active");p.classList.add("open");c.setAttribute("aria-expanded","true");const ct=p.querySelector(".panel-content");ct.classList.remove("panel-entering");void ct.offsetHeight;ct.classList.add("panel-entering");setTimeout(()=>p.querySelectorAll(".bar-fill").forEach(b=>b.style.width=b.dataset.w),120);}
   renderAreaChart(sparkData);renderTopSourcesChart(activeSites);
   renderHome({activeSites,quietSites,failingSites,weekTotal,iocExport:iocExport||[],ttpExport:ttpExport||[],prevRunLinks:prevRunLinks||[],updatedAt});
   renderIocs(iocExport||[]);renderDonut(iocExport||[]);
