@@ -1767,7 +1767,7 @@ function renderHome({activeSites,quietSites,failingSites,weekTotal,iocExport,ttp
   if(subEl)subEl.textContent=`of ${totalSites} monitored`;
   // KEV: try vmData global if loaded
   const kevEl=document.getElementById('hm-n-kev');
-  if(kevEl){const kd=window.vmData;if(kd&&kd.totalKev)animateCountUp(kevEl,kd.totalKev);else kevEl.textContent='—';}
+  if(kevEl){if(vmData&&vmData.totalKev)animateCountUp(kevEl,vmData.totalKev);else kevEl.textContent='—';}
   // Footer chips
   const setT=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
   setT('hm-f-active',activeSites.length);setT('hm-f-quiet',quietSites.length);setT('hm-f-failing',failingSites.length);
@@ -2049,7 +2049,7 @@ function switchTab(name){
   ["home","sources","iocs","ttps","graph","vm"].forEach(t=>{document.getElementById(`tab-${t}`).classList.toggle("active",t===name);const btn=document.getElementById(`tab-btn-${t}`);if(btn){btn.classList.toggle("active",t===name);btn.setAttribute("aria-selected",t===name);}});
   if(name==="graph")requestAnimationFrame(rebuildGraph);
   if(name==="vm")renderVmTab();
-  if(name==="home"){const kevEl=document.getElementById('hm-n-kev');if(kevEl&&kevEl.textContent==='—'&&window.vmData&&window.vmData.totalKev)animateCountUp(kevEl,window.vmData.totalKev);}
+  if(name==="home"){const kevEl=document.getElementById('hm-n-kev');if(kevEl&&kevEl.textContent==='—'&&vmData&&vmData.totalKev)animateCountUp(kevEl,vmData.totalKev);}
 }
 
 /* ── Init ── */
@@ -2079,6 +2079,8 @@ async function init(){
     document.getElementById("view-loading").style.display="none";
     document.getElementById("view-dashboard").style.display="block";
     setInterval(refreshData,REFRESH_MS);
+    // Eagerly load VM/KEV data for Home tab metric
+    loadVmData().then(vmd=>{if(vmd&&vmd.totalKev){animateCountUp(document.getElementById('hm-n-kev'),vmd.totalKev);}});
   }catch(err){
     document.getElementById("view-loading").style.display="none";
     document.getElementById("err-msg").textContent=err.message;
