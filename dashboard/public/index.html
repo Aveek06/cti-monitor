@@ -258,13 +258,10 @@
     .ttp-export-btn{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:5px 13px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;transition:background .12s var(--ease),color .12s var(--ease),border-color .12s var(--ease),box-shadow .12s var(--ease);white-space:nowrap;font-family:var(--font-ui);}
     .ttp-export-btn:hover{border-color:var(--green);color:var(--green);background:var(--green-dim);box-shadow:0 0 8px var(--green-glow);}
     .ttp-export-btn:active{transform:scale(.96);transition:transform 80ms ease-out;}
-    /* --- radar chart panel --- */
-    .ttp-radar-section{margin-bottom:16px;}
-    .ttp-radar-panel{background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--border-hi);padding:18px 24px 20px;display:flex;flex-direction:column;align-items:center;position:relative;}
-    .ttp-radar-panel::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(0,255,65,.03) 0%,transparent 70%);}
-    .ttp-radar-hd{font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);display:flex;align-items:center;gap:6px;margin-bottom:14px;width:100%;font-family:var(--font-ui);}
-    .ttp-radar-hd::before{content:'';display:block;width:10px;height:1px;background:var(--green);box-shadow:0 0 4px var(--green);}
-    .radar-svg{width:100%;display:block;max-width:360px;margin:0 auto;}
+    /* --- radar chart panel (inside analytics grid) --- */
+    .ttp-analytics-panel-radar{position:relative;overflow:hidden;display:flex;flex-direction:column;}
+    .ttp-analytics-panel-radar::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 60% at 50% 55%,rgba(0,255,65,.04) 0%,transparent 70%);}
+    .radar-svg{width:100%;display:block;max-width:100%;margin:0 auto;flex:1;}
     /* --- heatmap panel --- */
     .ttp-map-section{background:var(--surface);border:1px solid var(--border);border-top:2px solid rgba(255,149,0,.6);padding:16px;}
     .ttp-map-hd{font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);display:flex;align-items:center;gap:6px;margin-bottom:14px;font-family:var(--font-ui);}
@@ -370,7 +367,7 @@
     .donut-legend-pct{color:var(--text-muted);min-width:30px;text-align:right;}
 
     /* RADAR */
-    .radar-svg{width:100%;display:block;max-width:420px;margin:0 auto;}
+    .radar-svg{width:100%;display:block;max-width:100%;margin:0 auto;}
 
     /* BACKDROP / DRAWER */
     .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .2s;z-index:300;}
@@ -774,26 +771,19 @@
           <button class="ttp-export-btn" onclick="exportNavigatorLayer()">&#x2193; ATT&amp;CK Navigator</button>
         </div>
       </div>
-      <!-- radar chart -->
-      <div class="ttp-radar-section">
-        <div class="ttp-radar-panel">
-          <div class="ttp-radar-hd">ATT&amp;CK Coverage</div>
+      <!-- 3-panel row: radar / top techniques / tactic activity -->
+      <div class="ttp-analytics-row">
+        <div class="ttp-analytics-panel ttp-analytics-panel-radar">
+          <div class="ttp-a-hd ttp-a-hd-green">ATT&amp;CK Coverage</div>
           <svg class="radar-svg" viewBox="0 0 280 280" id="radar-svg"></svg>
         </div>
-      </div>
-      <!-- analytics row: top techniques / tactic activity / APT attribution -->
-      <div class="ttp-analytics-row">
         <div class="ttp-analytics-panel">
           <div class="ttp-a-hd ttp-a-hd-amber">Top Techniques</div>
           <div id="ttp-top-techniques"></div>
         </div>
         <div class="ttp-analytics-panel">
-          <div class="ttp-a-hd ttp-a-hd-green">Tactic Activity</div>
+          <div class="ttp-a-hd ttp-a-hd-cyan">Tactic Activity</div>
           <div id="ttp-tactic-bars"></div>
-        </div>
-        <div class="ttp-analytics-panel">
-          <div class="ttp-a-hd ttp-a-hd-cyan">APT Attribution</div>
-          <div id="ttp-apt-bars"></div>
         </div>
       </div>
       <!-- technique heatmap -->
@@ -1482,10 +1472,9 @@ function renderTtpMap(data){
 function renderTtpAnalytics(data){
   const topEl=document.getElementById("ttp-top-techniques");
   const tacEl=document.getElementById("ttp-tactic-bars");
-  const aptEl=document.getElementById("ttp-apt-bars");
-  if(!topEl||!tacEl||!aptEl)return;
+  if(!topEl||!tacEl)return;
   const empty='<div class="ttp-a-empty">No data</div>';
-  if(!data?.length){topEl.innerHTML=tacEl.innerHTML=aptEl.innerHTML=empty;return;}
+  if(!data?.length){topEl.innerHTML=tacEl.innerHTML=empty;return;}
   // Top 10 techniques by article_count
   const top10=[...data].sort((a,b)=>b.article_count-a.article_count).slice(0,10);
   const maxC=top10[0]?.article_count||1;
@@ -1505,17 +1494,6 @@ function renderTtpAnalytics(data){
     const label=TACTIC_SHORT[tac]||tac;
     return`<div class="ttp-a-row"><span class="ttp-a-lbl" style="width:58px" title="${tac}">${esc(label)}</span><div class="ttp-a-track"><div class="ttp-a-fill" style="width:${pct}%;background:var(--green);opacity:.75;"></div></div><span class="ttp-a-val">${val}</span></div>`;
   }).join(""):empty;
-  // APT attribution — techniques linked to each actor
-  const aptCount={};
-  for(const t of data){for(const apt of(t.apts||[]))aptCount[apt]=(aptCount[apt]||0)+1;}
-  const aptSorted=Object.entries(aptCount).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  if(!aptSorted.length){aptEl.innerHTML='<div class="ttp-a-empty">No APT attribution yet</div>';return;}
-  const maxApt=aptSorted[0][1];
-  aptEl.innerHTML=aptSorted.map(([apt,cnt])=>{
-    const pct=Math.round(cnt/maxApt*100);
-    const short=apt.length>18?apt.slice(0,16)+"…":apt;
-    return`<div class="ttp-a-row"><span class="ttp-a-lbl" style="width:80px" title="${esc(apt)}">${esc(short)}</span><div class="ttp-a-track"><div class="ttp-a-fill" style="width:${pct}%;background:var(--cyan);opacity:.8;"></div></div><span class="ttp-a-val">${cnt}</span></div>`;
-  }).join("");
 }
 /* ── Update dashboard ── */
 function updateDashboard({sites,activeSites,quietSites,failingSites,weekTotal,sparkData,state,sevenDay,prevRunLinks,iocExport,ttpExport,updatedAt}){
