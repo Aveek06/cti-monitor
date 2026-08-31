@@ -1415,7 +1415,7 @@ let lastUpdatedAt=null,lastSevenDay={},lastState={},lastPrevRunLinks=[],_lmAllLi
 let _ratings={},_iocBySite={},_ttpSiteSet=new Set(),_lastDerived=null,_lastActive={},_pendingRating=0,_openSiteName=null;
 let _minReliability=0,_relScoreCache={};
 /* ── Page view state ── */
-let _pvDays=30,_pvSiteName="",_pvArticleUrl="",_allTtps=[];
+let _pvDays=30,_pvSiteName="",_pvArticleUrl="",_allTtps=[],_currentUserEmail="";
 
 /* ── Clock ── */
 function tickClock(){const el=document.getElementById("sys-clock");if(!el)return;const n=new Date();el.textContent=n.toUTCString().slice(17,25)+" UTC";}
@@ -1539,7 +1539,6 @@ function renderRelSection(name,weekCount,lastTs,isFailing){
 <div class="rel-section-hd">Rate This Source</div>
 ${cooldown?cooldownHtml:`<div class="rel-stars">${stars}</div>
 <div class="rel-fields">
-  <input class="rel-input" id="rel-rater" placeholder="Your name (optional)" maxlength="60">
   <input class="rel-input" id="rel-note" placeholder="Note (optional)" maxlength="200">
   <button class="rel-submit" onclick="submitRating('${esc(name)}')">Submit</button>
 </div>`}
@@ -1551,7 +1550,7 @@ function setRelStar(v){
 }
 async function submitRating(name){
   if(!_pendingRating)return;
-  const rater=document.getElementById("rel-rater")?.value.trim()||null;
+  const rater=_currentUserEmail||null;
   const note=document.getElementById("rel-note")?.value.trim()||null;
   const btn=document.querySelector(".rel-submit");
   if(btn){btn.disabled=true;btn.textContent="...";}
@@ -2668,6 +2667,7 @@ async function init(){
     _routeHash();
     // Auth: heartbeat + whoami
     fetch('/api/auth?action=whoami').then(r=>r.json()).then(u=>{
+      if(u.email) _currentUserEmail=u.email;
       if(u.is_admin){
         document.getElementById('live-users-wrap').style.display='';
         _refreshLiveUsers();
