@@ -85,6 +85,9 @@
     @keyframes tabIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
     .sec-title{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);display:flex;align-items:center;gap:6px;font-family:var(--font-ui);}
     .sec-title::before{content:'';display:block;width:10px;height:1px;background:var(--green);box-shadow:0 0 4px var(--green);}
+    .sec-title--amber::before{background:var(--amber);box-shadow:0 0 4px var(--amber);}
+    .sec-title--red::before{background:var(--red);box-shadow:0 0 4px var(--red);}
+    .sec-title--cyan::before{background:var(--cyan);box-shadow:0 0 4px var(--cyan);}
     .chart-panel{background:var(--surface);border:1px solid var(--border);padding:16px;border-top:2px solid var(--border-hi);}
     .chart-panel-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
 
@@ -103,9 +106,9 @@
     #card-failing[aria-expanded="true"] .stat-num{color:var(--red);}
     #card-failing[aria-expanded="true"] .stat-label{color:var(--red);opacity:.6;}
     .stat-num{font-size:32px;font-weight:700;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--text-hi);transition:color .15s;}
-    .stat-num.amber{color:var(--amber);}
-    .stat-num.red{color:var(--red);}
-    .stat-num.cyan{color:var(--cyan);}
+    .stat-num.amber{color:var(--amber);text-shadow:0 0 20px rgba(255,149,0,.38);}
+    .stat-num.red{color:var(--red);text-shadow:0 0 20px rgba(255,59,48,.38);}
+    .stat-num.cyan{color:var(--cyan);text-shadow:0 0 20px rgba(0,212,255,.38);}
     .stat-label{font-size:9px;font-weight:600;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase;transition:color .15s;font-family:var(--font-ui);}
     .stat-arrow{position:absolute;top:12px;right:12px;font-size:11px;color:var(--text-muted);pointer-events:none;transition:transform .3s var(--ease),color .15s;}
     #card-active[aria-expanded="true"] .stat-arrow,
@@ -113,6 +116,15 @@
     #card-failing[aria-expanded="true"] .stat-arrow{transform:rotate(180deg);}
     .kpi-bar{height:2px;background:var(--border);overflow:hidden;}
     .kpi-bar-fill{height:100%;width:100%;transform:scaleX(0);transform-origin:left;transition:transform .7s cubic-bezier(.16,1,.3,1);will-change:transform;}
+    @keyframes kpiCardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .kpi-card{animation:kpiCardIn 240ms var(--ease) both;}
+    #card-active{border-top-color:rgba(0,255,65,.5);}
+    #card-quiet{border-top-color:rgba(255,149,0,.5);animation-delay:55ms;}
+    #card-failing{border-top-color:rgba(255,59,48,.5);animation-delay:110ms;}
+    #card-links{border-top-color:rgba(0,212,255,.5);animation-delay:165ms;}
+    #card-active[aria-expanded="true"]{border-top-color:var(--green);background:rgba(0,255,65,.024);}
+    #card-quiet[aria-expanded="true"]{border-top-color:var(--amber);background:rgba(255,149,0,.024);}
+    #card-failing[aria-expanded="true"]{border-top-color:var(--red);background:rgba(255,59,48,.024);}
 
     /* SOURCES LAYOUT */
     .sources-grid{display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start;}
@@ -135,12 +147,12 @@
     #panel-active .site-row:hover{border-left-color:var(--green);}
     #panel-quiet .site-row:hover{border-left-color:var(--amber);}
     #panel-failing .site-row:hover{border-left-color:var(--red);}
-    .panel-entering .site-row{animation:rowIn .3s var(--ease) calc(var(--i,0)*45ms) both;}
-    @keyframes rowIn{from{opacity:0;transform:translateX(-4px);}to{opacity:1;transform:none;}}
-    .site-prefix{color:var(--text-muted);font-size:10px;flex-shrink:0;user-select:none;}
-    #panel-active .site-row:hover .site-prefix{color:var(--green);}
-    #panel-quiet .site-row:hover .site-prefix{color:var(--amber);}
-    #panel-failing .site-row:hover .site-prefix{color:var(--red);}
+    .panel-entering .site-row{animation:rowIn .26s var(--ease) calc(var(--i,0)*32ms) both;}
+    @keyframes rowIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
+    .site-prefix{width:5px;height:5px;border-radius:50%;background:var(--border-hi);flex-shrink:0;transition:background .15s,box-shadow .15s;}
+    #panel-active .site-row:hover .site-prefix{background:var(--green);box-shadow:0 0 6px var(--green);}
+    #panel-quiet .site-row:hover .site-prefix{background:var(--amber);box-shadow:0 0 6px var(--amber);}
+    #panel-failing .site-row:hover .site-prefix{background:var(--red);box-shadow:0 0 6px var(--red);}
     .site-name{flex:1;min-width:0;font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);letter-spacing:.02em;font-family:var(--font-mono);}
     .site-meta{display:flex;align-items:center;gap:10px;flex-shrink:0;}
     .bar-wrap{display:flex;align-items:center;gap:6px;}
@@ -482,13 +494,15 @@
 
     /* REDUCED MOTION */
     @media(prefers-reduced-motion:reduce){
-      .panel,.kpi-card{transition:none!important;}
+      .panel,.kpi-card{transition:none!important;animation:none!important;opacity:1!important;}
       .kpi-bar-fill{transition:none!important;}
       .tab-pane.active{animation:none!important;}
       @keyframes rowIn{from{opacity:0;}to{opacity:1;}}
+      @keyframes kpiCardIn{from{opacity:0;}to{opacity:1;}}
       @keyframes linkIn{from{opacity:0;}to{opacity:1;}}
       @keyframes tabIn{from{opacity:0;}to{opacity:1;}}
-      .site-row,.link-item{opacity:1!important;}
+      .site-row,.link-item{opacity:1!important;animation:none!important;}
+      .ts-bar{transition:none!important;}
       .drawer{transition:opacity 180ms ease!important;}
       .drawer:not(.open){opacity:0;pointer-events:none;}
       .lm-modal{transition:opacity 180ms ease!important;}
@@ -716,7 +730,7 @@
           </div>
           <div class="chart-panel" style="border-top-color:rgba(255,149,0,.6);">
             <div class="chart-panel-hd">
-              <span class="sec-title">Top Sources</span>
+              <span class="sec-title sec-title--amber">Top Sources</span>
               <span style="font-size:9px;color:var(--text-muted);letter-spacing:.06em">7-day links</span>
             </div>
             <div id="top-sources-chart"></div>
@@ -1171,18 +1185,18 @@ async function submitRating(name){
 function renderActive(sites,state){
   const max=sites[0]?.count||1;
   const el=document.getElementById("content-active");
-  el.innerHTML=sites.map((s,i)=>{const pct=Math.round((s.count/max)*100);return`<div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i,9)}"><span class="site-prefix">&gt;</span><span class="site-name">${s.name}</span><div class="site-meta"><div class="bar-wrap"><div class="bar-track"><div class="bar-fill" data-w="${pct}%"></div></div><span class="count-val">${s.count}</span></div><span class="rel-badge rel-none" data-rel="${esc(s.name)}">—</span><span class="chevron">›</span></div></div>`;}).join("")+(sites.length>12?`<div class="panel-footer">// ${sites.length} Sources Total</div>`:"");
+  el.innerHTML=sites.map((s,i)=>{const pct=Math.round((s.count/max)*100);return`<div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i,9)}"><span class="site-prefix"></span><span class="site-name">${s.name}</span><div class="site-meta"><div class="bar-wrap"><div class="bar-track"><div class="bar-fill" data-w="${pct}%"></div></div><span class="count-val">${s.count}</span></div><span class="rel-badge rel-none" data-rel="${esc(s.name)}">—</span><span class="chevron">›</span></div></div>`;}).join("")+(sites.length>12?`<div class="panel-footer">// ${sites.length} Sources Total</div>`:"");
   el.querySelectorAll(".site-row").forEach(row=>row.addEventListener("click",()=>openDrawer(row.dataset.name,sites,state)));
 }
 function renderQuiet(sites,state){
   const el=document.getElementById("content-quiet");
-  el.innerHTML=sites.map((s,i)=>{const cls=s.days>=14?"badge-red":"badge-amber";return`<div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i,9)}"><span class="site-prefix">&gt;</span><span class="site-name">${s.name}</span><div class="site-meta"><span class="last-date">${fmtDate(s.lastActive)}</span><span class="badge ${cls}">${s.days}D Quiet</span><span class="rel-badge rel-none" data-rel="${esc(s.name)}">—</span><span class="chevron">›</span></div></div>`;}).join("")+(sites.length>8?`<div class="panel-footer">// ${sites.length} Quiet Sites Total</div>`:"");
+  el.innerHTML=sites.map((s,i)=>{const cls=s.days>=14?"badge-red":"badge-amber";return`<div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i,9)}"><span class="site-prefix"></span><span class="site-name">${s.name}</span><div class="site-meta"><span class="last-date">${fmtDate(s.lastActive)}</span><span class="badge ${cls}">${s.days}D Quiet</span><span class="rel-badge rel-none" data-rel="${esc(s.name)}">—</span><span class="chevron">›</span></div></div>`;}).join("")+(sites.length>8?`<div class="panel-footer">// ${sites.length} Quiet Sites Total</div>`:"");
   el.querySelectorAll(".site-row").forEach(row=>row.addEventListener("click",()=>openDrawer(row.dataset.name,sites,state)));
 }
 function renderFailing(sites,state){
   const el=document.getElementById("content-failing");
   if(!sites.length){el.innerHTML=`<div class="panel-footer">// No scraper errors detected</div>`;return;}
-  el.innerHTML=sites.map((s,i)=>`<div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i,9)}"><span class="site-prefix">&gt;</span><span class="site-name">${s.name}</span><div class="site-meta"><span class="badge badge-red">Scraper Err</span><span class="chevron">›</span></div></div>`).join("")+(sites.length>12?`<div class="panel-footer">// ${sites.length} Errors Total</div>`:"");
+  el.innerHTML=sites.map((s,i)=>`<div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i,9)}"><span class="site-prefix"></span><span class="site-name">${s.name}</span><div class="site-meta"><span class="badge badge-red">Scraper Err</span><span class="chevron">›</span></div></div>`).join("")+(sites.length>12?`<div class="panel-footer">// ${sites.length} Errors Total</div>`:"");
   el.querySelectorAll(".site-row").forEach(row=>row.addEventListener("click",()=>openDrawer(row.dataset.name,sites,state,true)));
 }
 
@@ -1220,15 +1234,17 @@ function renderTopSourcesChart(activeSites){
   el.innerHTML=top.map((s,i)=>{
     const pct=Math.round((s.count/max)*100);
     const col=i===0?"var(--green)":i<3?"rgba(0,255,65,.7)":"rgba(0,255,65,.45)";
-    const name=s.name.length>20?s.name.slice(0,18)+"…":s.name;
-    return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
-      <span style="font-size:8px;color:var(--text-dim);width:130px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em" title="${esc(s.name)}">${esc(name)}</span>
-      <div style="flex:1;height:6px;background:var(--surface3);position:relative;overflow:hidden;">
-        <div style="position:absolute;inset:0 ${100-pct}% 0 0;background:${col};box-shadow:0 0 6px ${col};transition:right .7s cubic-bezier(.16,1,.3,1)"></div>
+    const name=s.name.length>22?s.name.slice(0,20)+"…":s.name;
+    return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <span style="font-size:8px;color:var(--text-muted);width:14px;flex-shrink:0;text-align:right;font-variant-numeric:tabular-nums;font-family:'Fira Code',monospace;">${i+1}</span>
+      <span style="font-size:8px;color:var(--text-dim);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em" title="${esc(s.name)}">${esc(name)}</span>
+      <div style="width:80px;height:2px;background:var(--surface3);position:relative;overflow:hidden;flex-shrink:0;">
+        <div class="ts-bar" data-pct="${pct}" style="position:absolute;top:0;left:0;bottom:0;right:100%;background:${col};box-shadow:0 0 5px ${col};transition:right .6s cubic-bezier(.16,1,.3,1) ${i*70}ms"></div>
       </div>
-      <span style="font-size:9px;font-variant-numeric:tabular-nums;color:var(--text-dim);min-width:24px;text-align:right">${s.count}</span>
+      <span style="font-size:9px;font-variant-numeric:tabular-nums;color:var(--text-dim);min-width:20px;text-align:right;font-family:'Fira Code',monospace;">${s.count}</span>
     </div>`;
   }).join("");
+  requestAnimationFrame(()=>el.querySelectorAll(".ts-bar").forEach(b=>b.style.right=`${100-+b.dataset.pct}%`));
 }
 
 /* ── IOC Donut ── */
