@@ -205,7 +205,7 @@
     .ioc-type-btn:hover{border-color:var(--green);color:var(--text);}
     .ioc-type-btn.active{background:var(--green);border-color:var(--green);color:#000;}
     .ioc-rel-filters{display:flex;gap:4px;flex-wrap:wrap;border-left:1px solid var(--border);padding-left:10px;}
-    .ioc-rel-btn{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;transition:background .1s,color .1s,border-color .1s;white-space:nowrap;font-family:var(--font-ui);}
+    .ioc-rel-btn{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;transition:background .1s,color .1s,border-color .1s;white-space:nowrap;font-family:var(--font-mono);}
     .ioc-rel-btn:hover{border-color:var(--green);color:var(--text);}
     .ioc-rel-btn.active[data-rel="0"]{background:var(--surface2);border-color:var(--border-hi);color:var(--text);}
     .ioc-rel-btn.active[data-rel="40"]{background:rgba(255,149,0,.12);border-color:var(--amber);color:var(--amber);}
@@ -773,9 +773,9 @@
               <button class="ioc-type-btn" data-type="md5" onclick="setIocType(this)">MD5</button>
             </div>
             <div class="ioc-rel-filters">
-              <button class="ioc-rel-btn active" data-rel="0" onclick="setIocRelFilter(this)">All Sources</button>
-              <button class="ioc-rel-btn" data-rel="40" onclick="setIocRelFilter(this)">&#x2265;40</button>
-              <button class="ioc-rel-btn" data-rel="70" onclick="setIocRelFilter(this)">&#x2265;70 Trusted</button>
+              <button class="ioc-rel-btn active" data-rel="0" onclick="setIocRelFilter(this)">All</button>
+              <button class="ioc-rel-btn" data-rel="40" onclick="setIocRelFilter(this)">Rel ≥40</button>
+              <button class="ioc-rel-btn" data-rel="70" onclick="setIocRelFilter(this)">Trusted ≥70</button>
             </div>
             <span class="ioc-count" id="ioc-count">— IOCs</span>
             <div class="ioc-export-wrap">
