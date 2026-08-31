@@ -5,12 +5,14 @@ from datetime import datetime, timezone
 _NAMESPACE = uuid.UUID("6ba7b811-9dad-11d1-80b4-00c04fd430c8")  # uuid.NAMESPACE_URL
 
 STIX_PATTERNS = {
-    "sha256": "[file:hashes.'SHA-256' = '{v}']",
-    "sha1":   "[file:hashes.'SHA-1' = '{v}']",
-    "md5":    "[file:hashes.'MD5' = '{v}']",
-    "domain": "[domain-name:value = '{v}']",
-    "ipv4":   "[ipv4-addr:value = '{v}']",
-    "ipv6":   "[ipv6-addr:value = '{v}']",
+    "sha256":     "[file:hashes.'SHA-256' = '{v}']",
+    "sha1":       "[file:hashes.'SHA-1' = '{v}']",
+    "md5":        "[file:hashes.'MD5' = '{v}']",
+    "domain":     "[domain-name:value = '{v}']",
+    "ipv4":       "[ipv4-addr:value = '{v}']",
+    "ipv6":       "[ipv6-addr:value = '{v}']",
+    "url":        "[url:value = '{v}']",
+    "email-addr": "[email-addr:value = '{v}']",
 }
 
 

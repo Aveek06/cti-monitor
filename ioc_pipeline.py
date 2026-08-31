@@ -103,13 +103,13 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
             if rel_lookup:
                 _s = rel_lookup.get(item["site"], 50)
                 ltv *= 1.3 if _s >= 70 else 0.7 if _s < 40 else 1.0
-            tau      = ioc_scorer.TAU_DEFAULT[ioc_scorer.ioc_group(ioc["type"])]
-            stix_obj = stix_converter.ioc_to_indicator(
-                ioc["value"], ioc["type"],
-                item["date"], item["link"], item["site"],
-                today,
-            )
+            tau      = ioc_scorer.TAU_DEFAULT.get(ioc_scorer.ioc_group(ioc["type"]), 30)
             try:
+                stix_obj = stix_converter.ioc_to_indicator(
+                    ioc["value"], ioc["type"],
+                    item["date"], item["link"], item["site"],
+                    today,
+                )
                 ioc_db.upsert_ioc(
                     conn, stix_obj,
                     ioc["value"], ioc["type"],
