@@ -658,8 +658,16 @@
     .page-view{position:fixed;inset:0;z-index:210;background:var(--bg);overflow-y:auto;overflow-x:hidden;display:none;scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent;}
     .page-view::-webkit-scrollbar{width:4px;}
     .page-view::-webkit-scrollbar-thumb{background:var(--border-hi);}
-    .page-view.active{display:block;animation:pvIn 300ms var(--ease-drawer) both;}
-    @keyframes pvIn{from{transform:translateY(18px) scale(0.99);opacity:0;}to{transform:translateY(0) scale(1);opacity:1;}}
+    .page-view.active{display:block;}
+    #page-site.active:not(.pv-exit){animation:pvIn 300ms var(--ease-drawer) both;}
+    #page-article.active:not(.pv-exit){animation:paIn 260ms var(--ease-drawer) both;}
+    .page-view.pv-exit{pointer-events:none;}
+    #page-site.pv-exit{animation:pvOut 210ms cubic-bezier(.4,0,1,1) both;}
+    #page-article.pv-exit{animation:paOut 200ms cubic-bezier(.4,0,1,1) both;}
+    @keyframes pvIn {from{transform:translateY(18px) scale(0.99);opacity:0;}to{transform:none;opacity:1;}}
+    @keyframes pvOut{from{transform:none;opacity:1;}to{transform:translateY(28px) scale(0.985);opacity:0;}}
+    @keyframes paIn {from{transform:translateX(36px);opacity:0;}to{transform:none;opacity:1;}}
+    @keyframes paOut{from{transform:none;opacity:1;}to{transform:translateX(40px);opacity:0;}}
     .pv-header{position:sticky;top:0;z-index:10;height:48px;display:flex;align-items:center;gap:10px;padding:0 28px;background:rgba(2,2,2,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);}
     .pv-back{display:flex;align-items:center;gap:5px;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;transition:color .12s,transform .1s var(--ease);font-family:var(--font-ui);border:none;background:none;padding:6px 8px 6px 0;}
     .pv-back:hover{color:var(--green);}
@@ -1982,36 +1990,71 @@ function setPvDays(btn){
 }
 
 /* ── Hash routing ── */
+/* Close a page-view with its exit animation, then call cb. */
+function _closePage(el,cb){
+  if(!el||!el.classList.contains("active")){if(cb)cb();return;}
+  el.classList.add("pv-exit");
+  let fired=false;
+  const done=()=>{if(fired)return;fired=true;el.classList.remove("active","pv-exit");if(cb)cb();};
+  el.addEventListener("animationend",done,{once:true});
+  setTimeout(done,280); // fallback if event misfires
+}
+
 function _routeHash(){
   const hash=location.hash;
+  const PS=document.getElementById("page-site");
+  const PA=document.getElementById("page-article");
+
+  /* ── Back to dashboard ── */
   if(!hash||hash==="#"||hash===""){
-    document.getElementById("page-site").classList.remove("active");
-    document.getElementById("page-article").classList.remove("active");
+    _closePage(PA,()=>_closePage(PS));
     return;
   }
+
+  /* ── Article page ── */
   if(hash.startsWith("#article/")){
     const url=decodeURIComponent(hash.slice("#article/".length));
     _pvArticleUrl=url;
     renderArticlePage(url);
-    document.getElementById("page-site").classList.remove("active");
-    document.getElementById("page-article").classList.add("active");
-    document.getElementById("page-article").scrollTop=0;
+    // Site page stays active behind — article slides in on top (right→center)
+    if(!PA.classList.contains("active")){
+      PA.classList.remove("pv-exit");
+      PA.classList.add("active");
+      PA.scrollTop=0;
+    }
     return;
   }
+
+  /* ── Site page ── */
   if(hash.startsWith("#site/")){
     const name=decodeURIComponent(hash.slice("#site/".length));
-    _pvSiteName=name;
-    // Reset time filter to 30d
-    _pvDays=30;
-    document.querySelectorAll(".pv-time-btn").forEach(b=>b.classList.toggle("active",+b.dataset.days===30));
-    renderSitePage(name);
-    document.getElementById("page-article").classList.remove("active");
-    document.getElementById("page-site").classList.add("active");
-    document.getElementById("page-site").scrollTop=0;
+    if(PA.classList.contains("active")){
+      // Going back from article: slide article out, site is already behind it
+      _closePage(PA);
+      // If site name changed (unlikely via back) re-render; otherwise leave as-is
+      if(_pvSiteName!==name){
+        _pvSiteName=name;_pvDays=30;
+        document.querySelectorAll(".pv-time-btn").forEach(b=>b.classList.toggle("active",+b.dataset.days===30));
+        renderSitePage(name);
+      }
+      // Ensure site is visible (suppress re-entry animation since it's already "behind")
+      if(!PS.classList.contains("active")){
+        PS.style.animation="none";PS.classList.add("active");PS.scrollTop=0;
+        requestAnimationFrame(()=>{PS.style.animation="";});
+      }
+    } else {
+      // Fresh forward navigation to site page
+      _pvSiteName=name;_pvDays=30;
+      document.querySelectorAll(".pv-time-btn").forEach(b=>b.classList.toggle("active",+b.dataset.days===30));
+      renderSitePage(name);
+      PS.classList.remove("pv-exit");
+      PS.classList.add("active");
+      PS.scrollTop=0;
+    }
     return;
   }
-  document.getElementById("page-site").classList.remove("active");
-  document.getElementById("page-article").classList.remove("active");
+
+  _closePage(PA,()=>_closePage(PS));
 }
 
 function openTtpDrawer(tid){
