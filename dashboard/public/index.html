@@ -1787,7 +1787,12 @@ function getSiteArticles(siteName){
     const sn=typeof item==="object"?(item.site||item.source_blog||null):null;
     if(href&&sn===siteName)linkMap[href]=item;
   });
-  return urls.map(url=>({url,...(typeof linkMap[url]==="object"?linkMap[url]:{})}));
+  const articles=urls.map(url=>({url,...(typeof linkMap[url]==="object"?linkMap[url]:{})}));
+  // Dated articles (from prevRunLinks) float to top, sorted newest first.
+  // Undated keep their reversed-state order (append order = newest last → reversed = newest first).
+  const dated=articles.filter(a=>a.date).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const undated=articles.filter(a=>!a.date);
+  return[...dated,...undated];
 }
 function buildIocCountByArticle(iocs){const m={};iocs.forEach(r=>{const k=r.source_article;if(k)m[k]=(m[k]||0)+1;});return m;}
 function buildTtpCountByArticle(ttps){const m={};ttps.forEach(t=>{(t.sources||[]).forEach(s=>{if(/^https?:\/\//.test(s))m[s]=(m[s]||0)+1;});});return m;}
