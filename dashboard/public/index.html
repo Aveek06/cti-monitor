@@ -651,6 +651,94 @@
       .sources-right{position:static;}
       .ioc-left{position:static;}
     }
+    /* PAGE VIEWS */
+    .page-view{position:fixed;inset:0;z-index:210;background:var(--bg);overflow-y:auto;overflow-x:hidden;display:none;scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent;}
+    .page-view::-webkit-scrollbar{width:4px;}
+    .page-view::-webkit-scrollbar-thumb{background:var(--border-hi);}
+    .page-view.active{display:block;animation:pvIn 220ms var(--ease-drawer) both;}
+    @keyframes pvIn{from{transform:translateX(40px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+    .pv-header{position:sticky;top:0;z-index:10;height:48px;display:flex;align-items:center;gap:10px;padding:0 28px;background:rgba(2,2,2,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);}
+    .pv-back{display:flex;align-items:center;gap:5px;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;transition:color .12s;font-family:var(--font-ui);border:none;background:none;padding:6px 8px 6px 0;}
+    .pv-back:hover{color:var(--green);}
+    .pv-back svg{flex-shrink:0;}
+    .pv-breadcrumb{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--text-hi);font-family:var(--font-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:400px;}
+    .pv-breadcrumb-prefix{color:var(--green);margin-right:4px;}
+    .pv-body{max-width:1100px;margin:0 auto;padding:24px 32px 48px;}
+    .pv-meta-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+    .pv-url{font-size:10px;color:var(--cyan);font-family:var(--font-mono);text-decoration:none;display:flex;align-items:center;gap:4px;}
+    .pv-url:hover{text-decoration:underline;}
+    .pv-type-badge{font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;background:var(--surface3);border:1px solid var(--border-hi);color:var(--text-dim);font-family:var(--font-ui);}
+    .pv-kpi-strip{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
+    .pv-kpi-chip{background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--border-hi);padding:12px 16px;display:flex;flex-direction:column;gap:4px;min-width:130px;}
+    .pv-kpi-num{font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;font-family:var(--font-mono);color:var(--text-hi);}
+    .pv-kpi-num.green{color:var(--green);text-shadow:0 0 14px rgba(0,255,65,.3);}
+    .pv-kpi-num.amber{color:var(--amber);}
+    .pv-kpi-num.cyan{color:var(--cyan);}
+    .pv-kpi-lbl{font-size:8px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);font-family:var(--font-ui);}
+    .pv-time-filter{display:flex;gap:0;border:1px solid var(--border);width:fit-content;margin-bottom:18px;overflow:hidden;}
+    .pv-time-btn{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border:none;border-right:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;transition:background .1s,color .1s;font-family:var(--font-ui);}
+    .pv-time-btn:last-child{border-right:none;}
+    .pv-time-btn.active,.pv-time-btn:hover{background:var(--green-dim);color:var(--green);}
+    .pv-time-btn.active{color:var(--green);font-weight:700;}
+    .pv-charts-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px;}
+    .pv-chart-card{background:var(--surface2);border:1px solid var(--border);padding:16px 18px;}
+    .pv-chart-title{font-size:8px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;font-family:var(--font-ui);display:flex;align-items:center;gap:6px;}
+    .pv-chart-title::before{content:'';display:block;width:8px;height:1px;background:var(--green);box-shadow:0 0 3px var(--green);}
+    .pv-donut-wrap{display:flex;align-items:center;gap:16px;}
+    .pv-donut-legend{display:flex;flex-direction:column;gap:5px;flex:1;}
+    .pv-legend-row{display:flex;align-items:center;gap:6px;font-size:8px;}
+    .pv-legend-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+    .pv-legend-lbl{color:var(--text-dim);flex:1;letter-spacing:.03em;font-family:var(--font-mono);}
+    .pv-legend-val{color:var(--text);font-variant-numeric:tabular-nums;font-weight:600;}
+    .pv-tac-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+    .pv-tac-lbl{font-size:8px;color:var(--text-dim);width:72px;flex-shrink:0;font-family:var(--font-ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .pv-tac-track{flex:1;height:5px;background:var(--surface3);}
+    .pv-tac-fill{height:100%;background:var(--green);opacity:.75;transition:width .5s cubic-bezier(.16,1,.3,1);}
+    .pv-tac-val{font-size:8px;color:var(--text-muted);font-variant-numeric:tabular-nums;min-width:20px;text-align:right;font-family:var(--font-mono);}
+    .pv-section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;margin-top:4px;}
+    .pv-section-title{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);font-family:var(--font-ui);display:flex;align-items:center;gap:6px;}
+    .pv-section-title::before{content:'';display:block;width:10px;height:1px;background:var(--green);box-shadow:0 0 4px var(--green);}
+    .pv-export-wrap{position:relative;}
+    .pv-export-btn{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:5px 11px;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);cursor:pointer;font-family:var(--font-ui);transition:background .1s,color .1s;}
+    .pv-export-btn:hover{background:var(--green-dim);color:var(--green);border-color:var(--green-ring);}
+    .pv-export-menu{position:absolute;right:0;top:calc(100% + 4px);background:var(--surface2);border:1px solid var(--border-hi);min-width:130px;display:none;z-index:20;}
+    .pv-export-menu.open{display:block;}
+    .pv-export-item{display:block;width:100%;padding:7px 12px;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;border:none;background:none;text-align:left;font-family:var(--font-ui);transition:background .1s,color .1s;}
+    .pv-export-item:hover{background:var(--green-dim);color:var(--green);}
+    .pv-links-table{width:100%;border-collapse:collapse;margin-top:4px;}
+    .pv-links-table th{font-size:7px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-family:var(--font-ui);background:var(--surface2);}
+    .pv-links-table td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:10px;font-family:var(--font-mono);}
+    .pv-links-table tr:hover td{background:var(--surface2);cursor:pointer;}
+    .pv-link-date{color:var(--text-muted);font-size:9px;white-space:nowrap;font-variant-numeric:tabular-nums;}
+    .pv-link-title{color:var(--cyan);font-size:10px;max-width:340px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;}
+    .pv-link-title:hover{text-decoration:underline;}
+    .pv-link-summary{color:var(--text-dim);font-size:9px;font-family:var(--font-ui);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;max-width:380px;}
+    .pv-count-chip{display:inline-block;font-size:8px;font-weight:700;padding:2px 7px;font-family:var(--font-mono);border:1px solid;}
+    .pv-count-chip.green{color:var(--green);border-color:rgba(0,255,65,.3);background:var(--green-dim);}
+    .pv-count-chip.cyan{color:var(--cyan);border-color:rgba(0,212,255,.25);background:rgba(0,212,255,.05);}
+    .pv-count-chip.none{color:var(--text-muted);border-color:var(--border);background:none;}
+    .pv-empty{text-align:center;padding:28px;color:var(--text-muted);font-size:9px;letter-spacing:.08em;}
+    /* Article page specific */
+    .pa-source-line{font-size:10px;color:var(--text-muted);font-family:var(--font-ui);margin-bottom:4px;letter-spacing:.02em;}
+    .pa-title{font-size:17px;font-weight:700;color:var(--text-hi);font-family:var(--font-mono);margin-bottom:6px;line-height:1.3;word-break:break-word;}
+    .pa-url-row{margin-bottom:20px;}
+    .pa-url{font-size:9px;color:var(--cyan);font-family:var(--font-mono);text-decoration:none;display:inline-flex;align-items:center;gap:4px;opacity:.75;}
+    .pa-url:hover{opacity:1;text-decoration:underline;}
+    .pa-summary-card{border-left:3px solid var(--green);background:var(--surface2);border-radius:0 4px 4px 0;padding:13px 16px;margin-bottom:22px;}
+    .pa-summary-lbl{font-size:7px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--green);font-family:var(--font-ui);margin-bottom:7px;}
+    .pa-summary-text{font-size:10px;color:var(--text);font-family:var(--font-ui);line-height:1.65;}
+    .pa-summary-text.empty{color:var(--text-muted);font-style:italic;}
+    .pa-ioc-table{width:100%;border-collapse:collapse;font-size:9px;font-family:var(--font-mono);margin-top:4px;}
+    .pa-ioc-table th{font-size:7px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;font-family:var(--font-ui);background:var(--surface2);}
+    .pa-ioc-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+    .pa-ioc-table tr:hover td{background:var(--surface2);}
+    .pa-ttp-list{display:flex;flex-direction:column;gap:6px;margin-top:4px;}
+    .pa-ttp-card{background:var(--surface2);border:1px solid var(--border);border-left:2px solid var(--cyan);padding:10px 14px;display:flex;align-items:center;gap:12px;}
+    .pa-ttp-id{font-size:10px;font-weight:700;color:var(--cyan);font-family:var(--font-mono);min-width:70px;}
+    .pa-ttp-name{font-size:10px;color:var(--text);flex:1;}
+    .pa-ttp-tactic{font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;background:var(--surface3);border:1px solid var(--border-hi);color:var(--text-dim);font-family:var(--font-ui);}
+    .pa-empty{text-align:center;padding:24px;color:var(--text-muted);font-size:9px;letter-spacing:.08em;}
+    @media(max-width:700px){.pv-charts-row{grid-template-columns:1fr;}.pv-body{padding:16px 16px 40px;}.pv-kpi-chip{min-width:100px;}}
   </style>
 </head>
 <body>
@@ -1163,6 +1251,131 @@
   <div class="lm-body" id="lm-body"></div>
 </div>
 
+<div id="page-site" class="page-view">
+  <div class="pv-header">
+    <button class="pv-back" onclick="history.back()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Sources
+    </button>
+    <span class="pv-breadcrumb"><span class="pv-breadcrumb-prefix">//</span> <span id="pv-site-name"></span></span>
+    <span id="pv-site-badge" class="rel-badge rel-none" style="margin-left:auto;flex-shrink:0">—</span>
+  </div>
+  <div class="pv-body">
+    <div class="pv-meta-row">
+      <a id="pv-site-url" class="pv-url" href="#" target="_blank" rel="noopener noreferrer">
+        <span id="pv-site-url-txt"></span>
+        <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M3.5 2H2C1.45 2 1 2.45 1 3V8C1 8.55 1.45 9 2 9H7C7.55 9 8 8.55 8 8V6.5M6 1H9M9 1V4M9 1L4.5 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <span id="pv-site-type" class="pv-type-badge"></span>
+    </div>
+    <div class="pv-kpi-strip">
+      <div class="pv-kpi-chip"><span class="pv-kpi-num" id="pv-kpi-total">—</span><span class="pv-kpi-lbl">Total Captured</span></div>
+      <div class="pv-kpi-chip"><span class="pv-kpi-num green" id="pv-kpi-week">—</span><span class="pv-kpi-lbl">This Week</span></div>
+      <div class="pv-kpi-chip"><span class="pv-kpi-num amber" id="pv-kpi-iocs">—</span><span class="pv-kpi-lbl">Active IOCs</span></div>
+      <div class="pv-kpi-chip"><span class="pv-kpi-num cyan" id="pv-kpi-ttps">—</span><span class="pv-kpi-lbl">TTPs Observed</span></div>
+    </div>
+    <div class="pv-time-filter" id="pv-time-filter">
+      <button class="pv-time-btn active" data-days="30" onclick="setPvDays(this)">30D</button>
+      <button class="pv-time-btn" data-days="60" onclick="setPvDays(this)">60D</button>
+      <button class="pv-time-btn" data-days="90" onclick="setPvDays(this)">90D</button>
+      <button class="pv-time-btn" data-days="0" onclick="setPvDays(this)">All</button>
+    </div>
+    <div class="pv-charts-row">
+      <div class="pv-chart-card">
+        <div class="pv-chart-title">IOC Type Distribution</div>
+        <div class="pv-donut-wrap">
+          <svg id="pv-donut-svg" width="130" height="130" viewBox="0 0 130 130"></svg>
+          <div class="pv-donut-legend" id="pv-donut-legend"></div>
+        </div>
+      </div>
+      <div class="pv-chart-card">
+        <div class="pv-chart-title">ATT&amp;CK Tactic Breakdown</div>
+        <div id="pv-tac-bars"></div>
+      </div>
+    </div>
+    <div class="pv-section-hd">
+      <span class="pv-section-title">Indicators from this source</span>
+      <div class="pv-export-wrap">
+        <button class="pv-export-btn" onclick="togglePvExportMenu()">Export IOCs ▾</button>
+        <div class="pv-export-menu" id="pv-export-menu">
+          <button class="pv-export-item" onclick="exportSiteIocs('csv')">CSV</button>
+          <button class="pv-export-item" onclick="exportSiteIocs('txt')">TXT (values only)</button>
+          <button class="pv-export-item" onclick="exportSiteIocs('json')">JSON</button>
+        </div>
+      </div>
+    </div>
+    <div class="pv-section-hd" style="margin-top:20px;margin-bottom:8px;">
+      <span class="pv-section-title">Captured Articles</span>
+      <span id="pv-article-count" style="font-size:9px;color:var(--text-muted);font-family:var(--font-ui)"></span>
+    </div>
+    <table class="pv-links-table">
+      <thead><tr><th>Date</th><th>Article</th><th>IOCs</th><th>TTPs</th><th>Summary</th></tr></thead>
+      <tbody id="pv-links-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="page-article" class="page-view">
+  <div class="pv-header">
+    <button class="pv-back" id="pa-back-btn" onclick="history.back()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      <span id="pa-back-label">Sources</span>
+    </button>
+    <span class="pv-breadcrumb"><span class="pv-breadcrumb-prefix">//</span> Article</span>
+  </div>
+  <div class="pv-body" style="max-width:960px;">
+    <div class="pa-source-line" id="pa-source-line"></div>
+    <div class="pa-title" id="pa-title"></div>
+    <div class="pa-url-row">
+      <a class="pa-url" id="pa-url" href="#" target="_blank" rel="noopener noreferrer">
+        <span id="pa-url-txt"></span>
+        <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M3.5 2H2C1.45 2 1 2.45 1 3V8C1 8.55 1.45 9 2 9H7C7.55 9 8 8.55 8 8V6.5M6 1H9M9 1V4M9 1L4.5 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+    <div class="pa-summary-card">
+      <div class="pa-summary-lbl">// AI Summary</div>
+      <div class="pa-summary-text" id="pa-summary"></div>
+    </div>
+    <div class="pv-kpi-strip" style="margin-bottom:18px;">
+      <div class="pv-kpi-chip"><span class="pv-kpi-num amber" id="pa-kpi-iocs">—</span><span class="pv-kpi-lbl">IOCs Extracted</span></div>
+      <div class="pv-kpi-chip"><span class="pv-kpi-num cyan" id="pa-kpi-ttps">—</span><span class="pv-kpi-lbl">TTPs Observed</span></div>
+      <div class="pv-kpi-chip"><span class="pv-kpi-num" id="pa-kpi-rel">—</span><span class="pv-kpi-lbl">Source Reliability</span></div>
+    </div>
+    <div class="pv-charts-row">
+      <div class="pv-chart-card">
+        <div class="pv-chart-title">IOC Type Breakdown</div>
+        <div class="pv-donut-wrap">
+          <svg id="pa-donut-svg" width="130" height="130" viewBox="0 0 130 130"></svg>
+          <div class="pv-donut-legend" id="pa-donut-legend"></div>
+        </div>
+      </div>
+      <div class="pv-chart-card">
+        <div class="pv-chart-title">ATT&amp;CK Tactics</div>
+        <div id="pa-tac-bars"></div>
+      </div>
+    </div>
+    <div class="pv-section-hd" style="margin-bottom:8px;">
+      <span class="pv-section-title">Extracted Indicators</span>
+      <div class="pv-export-wrap">
+        <button class="pv-export-btn" onclick="togglePaExportMenu()">Export ▾</button>
+        <div class="pv-export-menu" id="pa-export-menu">
+          <button class="pv-export-item" onclick="exportArticleIocs('csv')">CSV</button>
+          <button class="pv-export-item" onclick="exportArticleIocs('txt')">TXT (values only)</button>
+          <button class="pv-export-item" onclick="exportArticleIocs('json')">JSON</button>
+        </div>
+      </div>
+    </div>
+    <table class="pa-ioc-table">
+      <thead><tr><th>Value</th><th>Type</th><th>Score</th><th>APT</th><th>VT</th><th>Shodan</th></tr></thead>
+      <tbody id="pa-ioc-tbody"></tbody>
+    </table>
+    <div class="pv-section-hd" style="margin-top:24px;margin-bottom:8px;">
+      <span class="pv-section-title">MITRE ATT&amp;CK Techniques</span>
+    </div>
+    <div class="pa-ttp-list" id="pa-ttp-list"></div>
+  </div>
+</div>
+
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script>
 /* ── Constants ── */
@@ -1170,6 +1383,8 @@ const STALE_DAYS=7,SKIP_TYPES=new Set(["skip","html_TODO"]),REFRESH_MS=15*60*100
 let lastUpdatedAt=null,lastSevenDay={},lastState={},lastPrevRunLinks=[],_lmAllLinks=[];
 let _ratings={},_iocBySite={},_ttpSiteSet=new Set(),_lastDerived=null,_lastActive={},_pendingRating=0,_openSiteName=null;
 let _minReliability=0,_relScoreCache={};
+/* ── Page view state ── */
+let _pvDays=30,_pvSiteName="",_pvArticleUrl="",_allTtps=[];
 
 /* ── Clock ── */
 function tickClock(){const el=document.getElementById("sys-clock");if(!el)return;const n=new Date();el.textContent=n.toUTCString().slice(17,25)+" UTC";}
@@ -1321,18 +1536,18 @@ function renderActive(sites,state){
   const max=sites[0]?.count||1;
   const el=document.getElementById("content-active");
   el.innerHTML=sites.map((s,i)=>{const pct=Math.round((s.count/max)*100);return`<div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i,9)}"><span class="site-prefix"></span><span class="site-name">${s.name}</span><div class="site-meta"><div class="bar-wrap"><div class="bar-track"><div class="bar-fill" data-w="${pct}%"></div></div><span class="count-val">${s.count}</span></div><span class="rel-badge rel-none" data-rel="${esc(s.name)}">—</span><span class="chevron">›</span></div></div>`;}).join("")+(sites.length>12?`<div class="panel-footer">// ${sites.length} Sources Total</div>`:"");
-  el.querySelectorAll(".site-row").forEach(row=>row.addEventListener("click",()=>openDrawer(row.dataset.name,sites,state)));
+  el.querySelectorAll(".site-row").forEach(row=>row.addEventListener("click",()=>{location.hash="#site/"+encodeURIComponent(row.dataset.name);}));
 }
 function renderQuiet(sites,state){
   const el=document.getElementById("content-quiet");
   el.innerHTML=sites.map((s,i)=>{const cls=s.days>=14?"badge-red":"badge-amber";return`<div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i,9)}"><span class="site-prefix"></span><span class="site-name">${s.name}</span><div class="site-meta"><span class="last-date">${fmtDate(s.lastActive)}</span><span class="badge ${cls}">${s.days}D Quiet</span><span class="rel-badge rel-none" data-rel="${esc(s.name)}">—</span><span class="chevron">›</span></div></div>`;}).join("")+(sites.length>8?`<div class="panel-footer">// ${sites.length} Quiet Sites Total</div>`:"");
-  el.querySelectorAll(".site-row").forEach(row=>row.addEventListener("click",()=>openDrawer(row.dataset.name,sites,state)));
+  el.querySelectorAll(".site-row").forEach(row=>row.addEventListener("click",()=>{location.hash="#site/"+encodeURIComponent(row.dataset.name);}));
 }
 function renderFailing(sites,state){
   const el=document.getElementById("content-failing");
   if(!sites.length){el.innerHTML=`<div class="panel-footer">// No scraper errors detected</div>`;return;}
   el.innerHTML=sites.map((s,i)=>`<div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i,9)}"><span class="site-prefix"></span><span class="site-name">${s.name}</span><div class="site-meta"><span class="badge badge-red">Scraper Err</span><span class="chevron">›</span></div></div>`).join("")+(sites.length>12?`<div class="panel-footer">// ${sites.length} Errors Total</div>`:"");
-  el.querySelectorAll(".site-row").forEach(row=>row.addEventListener("click",()=>openDrawer(row.dataset.name,sites,state,true)));
+  el.querySelectorAll(".site-row").forEach(row=>row.addEventListener("click",()=>{location.hash="#site/"+encodeURIComponent(row.dataset.name);}));
 }
 
 /* ── Area Chart ── */
@@ -1521,6 +1736,254 @@ function openDrawer(name,sites,state,isFailing=false){
   animateDrawer(true);document.getElementById("backdrop").classList.add("visible");document.body.style.overflow="hidden";
 }
 function closeDrawer(){animateDrawer(false);document.getElementById("backdrop").classList.remove("visible");document.body.style.overflow="";setTimeout(()=>document.querySelectorAll(".link-item").forEach(li=>li.classList.remove("show")),420);}
+
+/* ── Page View Data Helpers ── */
+function getSiteIocs(siteName,days){
+  const cutoff=days?new Date(Date.now()-days*864e5):null;
+  return _allIocs.filter(r=>r.source_blog===siteName&&(!cutoff||new Date(r.last_seen+"T00:00:00Z")>=cutoff));
+}
+function getSiteTtps(siteUrl){
+  let host="";try{host=new URL(siteUrl).hostname.replace(/^www\./,"");}catch{return[];}
+  return _allTtps.filter(t=>(t.sources||[]).some(s=>{try{return new URL(s).hostname.replace(/^www\./,"")===host;}catch{return false;}}));
+}
+function getSiteArticles(siteName){
+  const urls=(lastState[siteName]||[]).slice().reverse();
+  const linkMap={};
+  (lastPrevRunLinks||[]).forEach(item=>{
+    const href=typeof item==="string"?item:item.url;
+    const sn=typeof item==="object"?(item.site||item.source_blog||null):null;
+    if(href&&sn===siteName)linkMap[href]=item;
+  });
+  return urls.map(url=>({url,...(typeof linkMap[url]==="object"?linkMap[url]:{})}));
+}
+function buildIocCountByArticle(iocs){const m={};iocs.forEach(r=>{const k=r.source_article;if(k)m[k]=(m[k]||0)+1;});return m;}
+function buildTtpCountByArticle(ttps){const m={};ttps.forEach(t=>{(t.sources||[]).forEach(s=>{if(/^https?:\/\//.test(s))m[s]=(m[s]||0)+1;});});return m;}
+function getArticleIocs(url){return _allIocs.filter(r=>r.source_article===url);}
+function getArticleTtps(url){return _allTtps.filter(t=>(t.sources||[]).some(s=>s===url));}
+function resolveArticleMeta(url){return(lastPrevRunLinks||[]).find(it=>(typeof it==="string"?it:it.url)===url)||null;}
+
+/* ── Page View Chart Helpers ── */
+const PV_IOC_COLS={domain:"#00ff41",url:"#ff9f0a",sha256:"#bf5fff",sha1:"#ff9500",md5:"#67e8f9",ip:"#ff3b30",other:"#444"};
+function renderPvDonut(svgId,legendId,iocs){
+  const svg=document.getElementById(svgId),leg=document.getElementById(legendId);
+  if(!svg||!leg)return;
+  const counts={};
+  for(const ioc of iocs){const t=ioc.type||"other";const grp=(t==="ipv4"||t==="ipv6")?"ip":t;counts[grp]=(counts[grp]||0)+1;}
+  const total=Object.values(counts).reduce((s,v)=>s+v,0);
+  if(!total){svg.innerHTML=`<text x="65" y="70" text-anchor="middle" fill="#444" font-size="9" font-family="monospace">No IOCs</text>`;leg.innerHTML="";return;}
+  const entries=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const cx=65,cy=65,R=56,rI=36;
+  let sa=-Math.PI/2;
+  const slices=entries.map(([type,count])=>{const angle=(count/total)*2*Math.PI;const s={type,count,start:sa,end:sa+angle};sa+=angle;return s;});
+  function arc(s){const x1=cx+R*Math.cos(s.start),y1=cy+R*Math.sin(s.start),x2=cx+R*Math.cos(s.end),y2=cy+R*Math.sin(s.end),xi1=cx+rI*Math.cos(s.start),yi1=cy+rI*Math.sin(s.start),xi2=cx+rI*Math.cos(s.end),yi2=cy+rI*Math.sin(s.end),lg=s.end-s.start>Math.PI?1:0;return`M ${x1} ${y1} A ${R} ${R} 0 ${lg} 1 ${x2} ${y2} L ${xi2} ${yi2} A ${rI} ${rI} 0 ${lg} 0 ${xi1} ${yi1} Z`;}
+  svg.innerHTML=slices.map(s=>`<path d="${arc(s)}" fill="${PV_IOC_COLS[s.type]||PV_IOC_COLS.other}" opacity="0.85" stroke="#000" stroke-width="1.5"><title>${s.type}: ${s.count}</title></path>`).join("")+`<circle cx="${cx}" cy="${cy}" r="${rI}" fill="#080808" stroke="#1a1a1a" stroke-width="1"/><text x="${cx}" y="${cy-4}" text-anchor="middle" fill="#f0f0f0" font-size="16" font-weight="700" font-family="JetBrains Mono,monospace">${total}</text><text x="${cx}" y="${cy+9}" text-anchor="middle" fill="#444" font-size="6" font-family="JetBrains Mono,monospace" letter-spacing="1.5">TOTAL</text>`;
+  leg.innerHTML=entries.map(([type,count])=>`<div class="pv-legend-row"><div class="pv-legend-dot" style="background:${PV_IOC_COLS[type]||PV_IOC_COLS.other}"></div><span class="pv-legend-lbl">${type}</span><span class="pv-legend-val">${count}</span></div>`).join("");
+}
+function renderPvTacBars(containerId,ttps){
+  const el=document.getElementById(containerId);if(!el)return;
+  if(!ttps||!ttps.length){el.innerHTML=`<div class="pv-empty" style="padding:20px 0;text-align:left">No TTPs observed</div>`;return;}
+  const byTac={};
+  for(const t of ttps){const tac=(t.tactic||"unknown").toLowerCase();byTac[tac]=(byTac[tac]||0)+(t.total_observations||t.article_count||1);}
+  const entries=Object.entries(byTac).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const maxV=entries[0]?.[1]||1;
+  el.innerHTML=entries.map(([tac,val])=>{const label=TACTIC_SHORT[tac]||tac;const pct=Math.round(val/maxV*100);return`<div class="pv-tac-row"><span class="pv-tac-lbl" title="${tac}">${esc(label)}</span><div class="pv-tac-track"><div class="pv-tac-fill" style="width:${pct}%"></div></div><span class="pv-tac-val">${val}</span></div>`;}).join("");
+}
+
+/* ── Site Detail Page ── */
+function renderSitePage(name){
+  // Look up site config
+  const cfgSite=(_lastDerived?.sites||[]).find(s=>s.name===name)||{};
+  const active=_lastDerived?.activeSites?.find(s=>s.name===name);
+  const quiet=_lastDerived?.quietSites?.find(s=>s.name===name);
+  const failing=new Set((_lastDerived?.failingSites||[]).map(s=>s.name));
+  const weekCount=active?.count||0;
+  const siteUrl=cfgSite.url||active?.url||quiet?.url||"";
+  const siteType=cfgSite.type||"";
+  const lastTs=_lastActive[name]||null;
+  const{score}=computeReliability(name,weekCount,lastTs,failing.has(name));
+
+  // Header
+  document.getElementById("pv-site-name").textContent=name;
+  const badge=document.getElementById("pv-site-badge");badge.textContent=score;badge.className="rel-badge "+relClass(score);
+
+  // Meta row
+  const urlEl=document.getElementById("pv-site-url"),urlTxt=document.getElementById("pv-site-url-txt");
+  if(siteUrl){try{urlTxt.textContent=new URL(siteUrl).hostname;urlEl.href=siteUrl;}catch{urlTxt.textContent=siteUrl;}}else{urlTxt.textContent="";}
+  document.getElementById("pv-site-type").textContent=siteType||"—";
+
+  // KPI chips
+  const totalLinks=(lastState[name]||[]).length;
+  document.getElementById("pv-kpi-total").textContent=totalLinks.toLocaleString();
+  document.getElementById("pv-kpi-week").textContent=weekCount||"—";
+
+  // IOCs with time filter
+  const iocs=getSiteIocs(name,_pvDays);
+  document.getElementById("pv-kpi-iocs").textContent=iocs.length||"—";
+
+  // TTPs for site
+  const ttps=getSiteTtps(siteUrl);
+  document.getElementById("pv-kpi-ttps").textContent=ttps.length||"—";
+
+  // Charts
+  renderPvDonut("pv-donut-svg","pv-donut-legend",iocs);
+  renderPvTacBars("pv-tac-bars",ttps);
+
+  // Articles table
+  const articles=getSiteArticles(name);
+  const allIocs=getSiteIocs(name,0);
+  const iocByArt=buildIocCountByArticle(allIocs);
+  const ttpByArt=buildTtpCountByArticle(ttps);
+  const tbody=document.getElementById("pv-links-tbody");
+  document.getElementById("pv-article-count").textContent=articles.length+" article"+(articles.length!==1?"s":"");
+  if(!articles.length){tbody.innerHTML=`<tr><td colspan="5" class="pv-empty">// No articles captured yet</td></tr>`;return;}
+  tbody.innerHTML=articles.slice(0,200).map(a=>{
+    const dateStr=a.date?fmtDate(a.date):"—";
+    const slug=urlToSlug(a.url);
+    const iocCt=iocByArt[a.url]||0;
+    const ttpCt=ttpByArt[a.url]||0;
+    const iocChip=iocCt?`<span class="pv-count-chip green">${iocCt}</span>`:`<span class="pv-count-chip none">—</span>`;
+    const ttpChip=ttpCt?`<span class="pv-count-chip cyan">${ttpCt}</span>`:`<span class="pv-count-chip none">—</span>`;
+    const summary=a.summary?`<span class="pv-link-summary">${esc(a.summary)}</span>`:`<span style="color:var(--text-muted);font-size:9px;font-family:var(--font-ui)">—</span>`;
+    return`<tr onclick="location.hash='#article/'+encodeURIComponent('${esc(a.url).replace(/'/g,"\\'")}')"><td class="pv-link-date">${dateStr}</td><td><span class="pv-link-title">${esc(slug)}</span></td><td>${iocChip}</td><td>${ttpChip}</td><td>${summary}</td></tr>`;
+  }).join("");
+}
+
+/* ── Article Detail Page ── */
+function renderArticlePage(url){
+  const meta=resolveArticleMeta(url);
+  const siteName=(meta&&(meta.site||meta.source_blog))||_allIocs.find(r=>r.source_article===url)?.source_blog||"";
+  const date=(meta&&meta.date)||"";
+  const summary=(meta&&typeof meta==="object"&&meta.summary)||"";
+
+  // Header back button
+  document.getElementById("pa-back-label").textContent=siteName||"Sources";
+
+  // Source line, title, URL
+  const sl=document.getElementById("pa-source-line");
+  sl.textContent=(siteName?siteName:"Unknown Source")+(date?" · "+fmtDate(date):"");
+  document.getElementById("pa-title").textContent=urlToSlug(url);
+  const urlTrunc=url.length>80?url.slice(0,78)+"…":url;
+  document.getElementById("pa-url-txt").textContent=urlTrunc;
+  const urlEl=document.getElementById("pa-url");urlEl.href=url;
+
+  // Summary
+  const sumEl=document.getElementById("pa-summary");
+  if(summary){sumEl.textContent=summary;sumEl.className="pa-summary-text";}
+  else{sumEl.textContent="No summary available for this article.";sumEl.className="pa-summary-text empty";}
+
+  // IOCs and TTPs for this article
+  const iocs=getArticleIocs(url);
+  const ttps=getArticleTtps(url);
+
+  // Reliability
+  let relScore="—",relCls="";
+  if(siteName){
+    const active=_lastDerived?.activeSites?.find(s=>s.name===siteName);
+    const failing=new Set((_lastDerived?.failingSites||[]).map(s=>s.name));
+    const weekCount=active?.count||0;
+    const{score}=computeReliability(siteName,weekCount,_lastActive[siteName]||null,failing.has(siteName));
+    relScore=score;relCls=relClass(score);
+  }
+  const relEl=document.getElementById("pa-kpi-rel");relEl.textContent=relScore;relEl.className="pv-kpi-num "+(relCls==="rel-green"?"green":relCls==="rel-amber"?"amber":"");
+
+  // KPIs
+  document.getElementById("pa-kpi-iocs").textContent=iocs.length||"—";
+  document.getElementById("pa-kpi-ttps").textContent=ttps.length||"—";
+
+  // Charts
+  renderPvDonut("pa-donut-svg","pa-donut-legend",iocs);
+  renderPvTacBars("pa-tac-bars",ttps);
+
+  // IOC table
+  const tbody=document.getElementById("pa-ioc-tbody");
+  if(!iocs.length){tbody.innerHTML=`<tr><td colspan="6" class="pa-empty">// No IOCs extracted from this article</td></tr>`;}
+  else{
+    const scored=iocs.map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((a,b)=>b._live-a._live);
+    tbody.innerHTML=scored.map(r=>{
+      const s=r._live,col=scoreColor(s),bar=Math.round(s);
+      const shodan=(r.shodan_tags||[]).slice(0,2).map(t=>`<span class="ioc-tag">${esc(t)}</span>`).join(" ");
+      return`<tr>
+        <td><span class="ioc-val" style="font-size:9px">${esc(r.value.length>40?r.value.slice(0,38)+"…":r.value)}</span></td>
+        <td><span class="ioc-badge">${esc(r.type)}</span></td>
+        <td><span style="color:${col};font-weight:600;font-variant-numeric:tabular-nums">${s.toFixed(1)}</span><br><div class="ioc-decay-track" style="margin-top:3px"><div class="ioc-decay-fill" style="width:${bar}%;background:${col}"></div></div></td>
+        <td>${r.apt?`<span class="ioc-apt">${esc(r.apt)}</span>`:`<span class="ioc-dim">—</span>`}</td>
+        <td>${r.vt_malicious!=null&&r.vt_malicious>0?`<span class="ioc-vt">${r.vt_malicious}</span>`:`<span class="ioc-dim">—</span>`}</td>
+        <td>${shodan||`<span class="ioc-dim">—</span>`}</td>
+      </tr>`;
+    }).join("");
+  }
+
+  // TTP list
+  const ttpEl=document.getElementById("pa-ttp-list");
+  if(!ttps.length){ttpEl.innerHTML=`<div class="pa-empty">// No ATT&CK techniques identified in this article</div>`;}
+  else{
+    ttpEl.innerHTML=ttps.map(t=>{
+      const tLabel=(t.tactic||"").split("-").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" ");
+      return`<div class="pa-ttp-card"><span class="pa-ttp-id">${esc(t.technique_id)}</span><span class="pa-ttp-name">${esc(t.technique_name||t.technique_id)}</span>${tLabel?`<span class="pa-ttp-tactic">${esc(tLabel)}</span>`:""}</div>`;
+    }).join("");
+  }
+}
+
+/* ── Page Export ── */
+function togglePvExportMenu(){const m=document.getElementById("pv-export-menu");m.classList.toggle("open");if(m.classList.contains("open")){const close=e=>{if(!m.contains(e.target)){m.classList.remove("open");document.removeEventListener("click",close);}};setTimeout(()=>document.addEventListener("click",close),0);}}
+function togglePaExportMenu(){const m=document.getElementById("pa-export-menu");m.classList.toggle("open");if(m.classList.contains("open")){const close=e=>{if(!m.contains(e.target)){m.classList.remove("open");document.removeEventListener("click",close);}};setTimeout(()=>document.addEventListener("click",close),0);}}
+function _doExport(rows,fmt,prefix){
+  const ts=new Date().toISOString().slice(0,10);
+  let content,mime,filename;
+  if(fmt==="csv"){
+    const hdr="value,type,score,apt,source_blog,source_article,first_seen,last_seen,vt_malicious";
+    const ec=v=>`"${String(v==null?"":v).replace(/"/g,'""')}"`;
+    const body=rows.map(r=>[r.value,r.type,(liveScore(r.last_seen,r.tau,r.ltv)).toFixed(1),r.apt||"",r.source_blog||"",r.source_article||"",r.first_seen||"",r.last_seen||"",r.vt_malicious!=null?r.vt_malicious:""].map(ec).join(",")).join("\n");
+    content=hdr+"\n"+body;mime="text/csv";filename=`${prefix}_${ts}.csv`;
+  }else if(fmt==="txt"){
+    content=rows.map(r=>r.value).join("\n");mime="text/plain";filename=`${prefix}_${ts}.txt`;
+  }else{
+    content=JSON.stringify(rows,null,2);mime="application/json";filename=`${prefix}_${ts}.json`;
+  }
+  const blob=new Blob([content],{type:mime});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);
+}
+function exportSiteIocs(fmt){document.getElementById("pv-export-menu").classList.remove("open");_doExport(getSiteIocs(_pvSiteName,0),fmt,"site_iocs_"+_pvSiteName.replace(/[^a-z0-9]/gi,"_").toLowerCase());}
+function exportArticleIocs(fmt){document.getElementById("pa-export-menu").classList.remove("open");_doExport(getArticleIocs(_pvArticleUrl),fmt,"article_iocs");}
+
+/* ── Time filter for site page ── */
+function setPvDays(btn){
+  _pvDays=+btn.dataset.days;
+  document.querySelectorAll(".pv-time-btn").forEach(b=>b.classList.toggle("active",+b.dataset.days===_pvDays));
+  if(_pvSiteName)renderSitePage(_pvSiteName);
+}
+
+/* ── Hash routing ── */
+function _routeHash(){
+  const hash=location.hash;
+  if(!hash||hash==="#"||hash===""){
+    document.getElementById("page-site").classList.remove("active");
+    document.getElementById("page-article").classList.remove("active");
+    return;
+  }
+  if(hash.startsWith("#article/")){
+    const url=decodeURIComponent(hash.slice("#article/".length));
+    _pvArticleUrl=url;
+    renderArticlePage(url);
+    document.getElementById("page-site").classList.remove("active");
+    document.getElementById("page-article").classList.add("active");
+    document.getElementById("page-article").scrollTop=0;
+    return;
+  }
+  if(hash.startsWith("#site/")){
+    const name=decodeURIComponent(hash.slice("#site/".length));
+    _pvSiteName=name;
+    // Reset time filter to 30d
+    _pvDays=30;
+    document.querySelectorAll(".pv-time-btn").forEach(b=>b.classList.toggle("active",+b.dataset.days===30));
+    renderSitePage(name);
+    document.getElementById("page-article").classList.remove("active");
+    document.getElementById("page-site").classList.add("active");
+    document.getElementById("page-site").scrollTop=0;
+    return;
+  }
+  document.getElementById("page-site").classList.remove("active");
+  document.getElementById("page-article").classList.remove("active");
+}
 
 function openTtpDrawer(tid){
   const t=_ttpById[tid];if(!t)return;
@@ -1834,9 +2297,9 @@ function updateDashboard({sites,activeSites,quietSites,failingSites,weekTotal,sp
   renderAreaChart(sparkData);renderTopSourcesChart(activeSites);
   renderHome({activeSites,quietSites,failingSites,weekTotal,iocExport:iocExport||[],ttpExport:ttpExport||[],prevRunLinks:prevRunLinks||[],updatedAt});
   renderIocs(iocExport||[]);renderDonut(iocExport||[]);
-  _ttpExport=ttpExport||[];renderTtpMap(getTtpFiltered());renderRadar(getTtpFiltered());renderTtpAnalytics(getTtpFiltered());
+  _ttpExport=ttpExport||[];_allTtps=ttpExport||[];renderTtpMap(getTtpFiltered());renderRadar(getTtpFiltered());renderTtpAnalytics(getTtpFiltered());
   renderGraph(iocExport||[]);
-  _lastDerived={activeSites,quietSites,failingSites};
+  _lastDerived={activeSites,quietSites,failingSites,sites,prevRunLinks:prevRunLinks||[]};
   for(const s of activeSites)_lastActive[s.name]=s.lastActive||null;
   _iocBySite=buildIocBySite(iocExport||[]);
   _ttpSiteSet=buildTtpSiteSet(ttpExport||[],sites);
@@ -2075,7 +2538,7 @@ async function init(){
     document.getElementById("lm-close").addEventListener("click",closeLinksModal);
     document.getElementById("lm-backdrop").addEventListener("click",closeLinksModal);
     document.getElementById("lm-search").addEventListener("input",e=>filterLm(e.target.value));
-    document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeDrawer();closeLinksModal();}});
+    document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(document.getElementById("page-article").classList.contains("active")){history.back();}else if(document.getElementById("page-site").classList.contains("active")){history.back();}else{closeDrawer();closeLinksModal();}}});
     /* VM filters */
     document.getElementById("vm-search").addEventListener("input",()=>{if(vmData){const f=getVmFiltered();renderVmTable(f,vmData.cvssMap);renderVmKpis(f,vmData.kevEntries,vmData.cvssMap);renderVmSeverityDonut(f,vmData.cvssMap);renderVmVendorBars(f);}});
     document.getElementById("vm-sev-filter").addEventListener("change",()=>{if(vmData){const f=getVmFiltered();renderVmTable(f,vmData.cvssMap);renderVmKpis(f,vmData.kevEntries,vmData.cvssMap);renderVmSeverityDonut(f,vmData.cvssMap);renderVmVendorBars(f);}});
@@ -2089,6 +2552,8 @@ async function init(){
     document.getElementById("view-loading").style.display="none";
     document.getElementById("view-dashboard").style.display="block";
     setInterval(refreshData,REFRESH_MS);
+    window.addEventListener("hashchange",_routeHash);
+    _routeHash();
     // Eagerly load VM/KEV data for Home tab metric
     loadVmData().then(vmd=>{if(vmd&&vmd.totalKev){animateCountUp(document.getElementById('hm-n-kev'),vmd.totalKev);}});
   }catch(err){
