@@ -273,6 +273,9 @@
     .rel-submit{font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border:1px solid var(--green);background:transparent;color:var(--green);cursor:pointer;white-space:nowrap;transition:background .1s,color .1s;}
     .rel-submit:hover{background:var(--green);color:#000;}
     .rel-submit:active{transform:scale(.95);}
+    .rel-cooldown{font-size:9px;color:var(--text-muted);font-family:var(--font-ui);padding:5px 0 2px;letter-spacing:.02em;line-height:1.5;}
+    .rel-cooldown strong{color:var(--amber);}
+    .rel-star.disabled{cursor:default;opacity:.3;pointer-events:none;}
     .rel-team-avg{font-size:8px;color:var(--text-muted);margin-top:4px;margin-bottom:8px;}
     .ioc-threat{font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:1px 5px;border:1px solid rgba(255,59,48,.35);color:var(--red);white-space:nowrap;}
     .ioc-online{font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:1px 5px;border:1px solid rgba(0,255,65,.35);color:var(--green);white-space:nowrap;}
@@ -1505,7 +1508,13 @@ function renderRelSection(name,weekCount,lastTs,isFailing){
   const r=_ratings[name];
   const avgStr=r?`Team avg: ${r.avg.toFixed(1)} ★ (${r.count} rating${r.count!==1?"s":""})`:"No ratings yet";
   const bar=(pts,max,clr)=>`<div class="rel-track"><div class="rel-fill" style="width:${Math.round((pts/max)*100)}%;background:${clr}"></div></div>`;
-  const stars=[1,2,3,4,5].map(i=>`<span class="rel-star${i<=_pendingRating?" on":""}" onclick="setRelStar(${i})">★</span>`).join("");
+  // 2-week cooldown check per analyst browser
+  let cooldown=false,cooldownHtml="";
+  try{
+    const ts=localStorage.getItem("rating_ts_"+name);
+    if(ts){const days=(Date.now()-new Date(ts).getTime())/86400000;if(days<14){cooldown=true;const left=Math.ceil(14-days);cooldownHtml=`<div class="rel-cooldown">You rated this source <strong>${Math.floor(days)} day${Math.floor(days)!==1?"s":""} ago</strong>. Next rating available in <strong>${left} day${left!==1?"s":""}</strong>.</div>`;}}
+  }catch{}
+  const stars=[1,2,3,4,5].map(i=>`<span class="rel-star${i<=_pendingRating?" on":""}${cooldown?" disabled":""}" ${cooldown?"":"onclick=\"setRelStar("+i+")\""}">★</span>`).join("");
   return`<div class="rel-section-hd">Reliability <span style="color:${col};font-size:15px;font-weight:700;margin-left:4px">${score}</span><span style="color:var(--text-muted);font-size:8px">/100</span></div>
 <div class="rel-breakdown">
   <div class="rel-row"><span class="rel-lbl">Availability</span>${bar(avail,40,"var(--green)")}<span class="rel-pts">${avail}/40</span></div>
@@ -1513,13 +1522,13 @@ function renderRelSection(name,weekCount,lastTs,isFailing){
   <div class="rel-row"><span class="rel-lbl">Feedback</span>${bar(feedback,20,"rgba(0,255,65,.6)")}<span class="rel-pts">${feedback}/20</span></div>
 </div>
 <div class="rel-section-hd">Rate This Source</div>
-<div class="rel-stars">${stars}</div>
-<div class="rel-team-avg">${avgStr}</div>
+${cooldown?cooldownHtml:`<div class="rel-stars">${stars}</div>
 <div class="rel-fields">
   <input class="rel-input" id="rel-rater" placeholder="Your name (optional)" maxlength="60">
   <input class="rel-input" id="rel-note" placeholder="Note (optional)" maxlength="200">
   <button class="rel-submit" onclick="submitRating('${esc(name)}')">Submit</button>
-</div>`;
+</div>`}
+<div class="rel-team-avg">${avgStr}</div>`;
 }
 function setRelStar(v){
   _pendingRating=v;
@@ -1534,6 +1543,7 @@ async function submitRating(name){
   try{
     const r=await fetch("/api/ratings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({site_name:name,rating:_pendingRating,rater,note})});
     if(!r.ok)throw new Error();
+    try{localStorage.setItem("rating_ts_"+name,new Date().toISOString());}catch{}
     await loadRatings();
     _pendingRating=0;
     // Refresh rel section
