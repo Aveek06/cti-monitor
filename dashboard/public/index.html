@@ -158,7 +158,41 @@
     .panel-footer{padding:8px 14px;font-size:9px;color:var(--text-muted);border-top:1px solid var(--border);letter-spacing:.1em;text-transform:uppercase;text-align:center;}
 
     /* IOC TAB */
-    .ioc-layout{display:grid;grid-template-columns:240px 1fr;gap:20px;align-items:start;}
+    /* --- KPI header strip --- */
+    .ioc-header{margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid var(--border);}
+    .ioc-kpi-strip{display:flex;align-items:stretch;gap:0;}
+    .ioc-kpi-item{padding-right:28px;margin-right:28px;border-right:1px solid var(--border);}
+    .ioc-kpi-item:last-child{border-right:none;margin-right:0;padding-right:0;}
+    @keyframes iocKpiIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+    .ioc-kpi-num{font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.04em;color:var(--text-hi);line-height:1;display:block;font-family:var(--font-mono);animation:iocKpiIn 220ms var(--ease) both;}
+    .ioc-kpi-item:nth-child(2) .ioc-kpi-num{animation-delay:50ms;}
+    .ioc-kpi-item:nth-child(3) .ioc-kpi-num{animation-delay:100ms;}
+    .ioc-kpi-item:nth-child(4) .ioc-kpi-num{animation-delay:150ms;}
+    .ioc-kpi-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);display:block;margin-top:4px;font-family:var(--font-ui);}
+    /* --- body layout --- */
+    .ioc-layout{display:grid;grid-template-columns:200px 1fr;gap:20px;align-items:start;}
+    .ioc-sidebar{position:sticky;top:0;display:flex;flex-direction:column;gap:0;}
+    .ioc-main{min-width:0;}
+    /* --- sidebar panels --- */
+    .ioc-side-panel{background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--border-hi);padding:14px 14px 12px;position:relative;overflow:hidden;}
+    .ioc-side-panel--green{border-top-color:rgba(0,255,65,.5);}
+    .ioc-side-panel--amber{border-top-color:rgba(255,149,0,.5);}
+    .ioc-side-hd{font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);display:flex;align-items:center;gap:6px;margin-bottom:12px;font-family:var(--font-ui);}
+    .ioc-side-hd::before{content:'';display:block;width:10px;height:1px;}
+    .ioc-side-hd--green::before{background:var(--green);box-shadow:0 0 4px var(--green);}
+    .ioc-side-hd--amber::before{background:var(--amber);box-shadow:0 0 4px var(--amber);}
+    /* --- score distribution bars --- */
+    .ioc-dist-row{display:flex;align-items:center;gap:6px;font-size:8px;margin-bottom:5px;}
+    .ioc-dist-lbl{width:48px;color:var(--text-dim);letter-spacing:.04em;white-space:nowrap;flex-shrink:0;}
+    .ioc-dist-track{flex:1;height:3px;background:var(--surface2);}
+    .ioc-dist-fill{height:3px;transition:width .42s var(--ease);}
+    .ioc-dist-val{width:22px;text-align:right;font-variant-numeric:tabular-nums;color:var(--text);}
+    /* --- row entry stagger --- */
+    @keyframes iocRowIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+    .ioc-tbody-row{animation:iocRowIn 180ms var(--ease) both;}
+    /* --- VT badge --- */
+    .ioc-vt{font-size:7px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:1px 4px;border:1px solid rgba(255,59,48,.4);color:var(--red);white-space:nowrap;margin-left:3px;display:inline-block;}
+    /* legacy compat */
     .ioc-left{position:sticky;top:0;}
     .ioc-right{min-width:0;}
     .ioc-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
@@ -673,14 +707,14 @@
           </footer>
         </div>
         <div class="sources-right">
-          <div class="chart-panel">
+          <div class="chart-panel" style="border-top-color:rgba(0,255,65,.6);">
             <div class="chart-panel-hd">
               <span class="sec-title">Signal / 7D</span>
               <span style="font-size:9px;color:var(--text-muted);letter-spacing:.06em" id="spark-total-label"></span>
             </div>
             <svg id="area-chart-svg" height="120" viewBox="0 0 380 120" preserveAspectRatio="none" style="width:100%;display:block;overflow:visible;"></svg>
           </div>
-          <div class="chart-panel">
+          <div class="chart-panel" style="border-top-color:rgba(255,149,0,.6);">
             <div class="chart-panel-hd">
               <span class="sec-title">Top Sources</span>
               <span style="font-size:9px;color:var(--text-muted);letter-spacing:.06em">7-day links</span>
@@ -693,15 +727,41 @@
 
     <!-- IOC TAB -->
     <div id="tab-iocs" class="tab-pane">
+      <!-- KPI header strip -->
+      <div class="ioc-header">
+        <div class="ioc-kpi-strip">
+          <div class="ioc-kpi-item">
+            <strong class="ioc-kpi-num" id="ioc-kpi-total">—</strong>
+            <span class="ioc-kpi-lbl">Total IOCs</span>
+          </div>
+          <div class="ioc-kpi-item">
+            <strong class="ioc-kpi-num" id="ioc-kpi-high" style="color:var(--green)">—</strong>
+            <span class="ioc-kpi-lbl">High Confidence</span>
+          </div>
+          <div class="ioc-kpi-item">
+            <strong class="ioc-kpi-num" id="ioc-kpi-med" style="color:var(--amber)">—</strong>
+            <span class="ioc-kpi-lbl">Medium</span>
+          </div>
+          <div class="ioc-kpi-item">
+            <strong class="ioc-kpi-num" id="ioc-kpi-vt" style="color:var(--red)">—</strong>
+            <span class="ioc-kpi-lbl">VT Verified</span>
+          </div>
+        </div>
+      </div>
+      <!-- sidebar + main -->
       <div class="ioc-layout">
-        <div class="ioc-left">
-          <div class="chart-panel">
-            <div class="chart-panel-hd"><span class="sec-title">IOC Types</span></div>
+        <div class="ioc-sidebar">
+          <div class="ioc-side-panel ioc-side-panel--green">
+            <div class="ioc-side-hd ioc-side-hd--green">IOC Types</div>
             <svg class="donut-svg" viewBox="0 0 180 180" id="donut-svg"></svg>
             <div class="donut-legend" id="donut-legend"></div>
           </div>
+          <div class="ioc-side-panel ioc-side-panel--amber" style="margin-top:12px">
+            <div class="ioc-side-hd ioc-side-hd--amber">Score Distribution</div>
+            <div id="ioc-score-dist"></div>
+          </div>
         </div>
-        <div class="ioc-right">
+        <div class="ioc-main">
           <div class="ioc-toolbar">
             <input id="ioc-search" class="ioc-search" type="text" placeholder="Filter by indicator, type, site, APT…" oninput="filterIocs(this.value)">
             <div class="ioc-type-filters">
@@ -1339,9 +1399,31 @@ function copyIoc(el,value){navigator.clipboard.writeText(value).catch(()=>{});co
 function renderIocs(data){
   _allIocs=Array.isArray(data)?data:[];
   const none=document.getElementById("ioc-none"),tbl=document.getElementById("ioc-table");
-  if(!_allIocs.length){none.style.display="block";tbl.style.display="none";document.getElementById("ioc-count").textContent="0 IOCs";return;}
+  if(!_allIocs.length){
+    none.style.display="block";tbl.style.display="none";
+    document.getElementById("ioc-count").textContent="0 IOCs";
+    ["ioc-kpi-total","ioc-kpi-high","ioc-kpi-med","ioc-kpi-vt"].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent="0";});
+    return;
+  }
   none.style.display="none";tbl.style.display="";
+  const scored=_allIocs.map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)}));
+  const high=scored.filter(r=>r._live>=70).length;
+  const med=scored.filter(r=>r._live>=30&&r._live<70).length;
+  const vtOk=scored.filter(r=>r.vt_malicious!=null&&r.vt_malicious>0).length;
+  const setKpi=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setKpi("ioc-kpi-total",_allIocs.length);
+  setKpi("ioc-kpi-high",high);
+  setKpi("ioc-kpi-med",med);
+  setKpi("ioc-kpi-vt",vtOk);
+  renderIocScoreDist(scored);
   filterIocs(document.getElementById("ioc-search")?.value||"");
+}
+function renderIocScoreDist(scored){
+  const el=document.getElementById("ioc-score-dist");if(!el)return;
+  const buckets=[{lbl:"70-100",col:"var(--green)",min:70,max:101},{lbl:"30-69",col:"var(--amber)",min:30,max:70},{lbl:"0-29",col:"var(--red)",min:0,max:30}];
+  const counts=buckets.map(b=>({...b,n:scored.filter(r=>r._live>=b.min&&r._live<b.max).length}));
+  const maxN=Math.max(...counts.map(b=>b.n),1);
+  el.innerHTML=counts.map(b=>{const pct=Math.round(b.n/maxN*100);return`<div class="ioc-dist-row"><span class="ioc-dist-lbl">${b.lbl}</span><div class="ioc-dist-track"><div class="ioc-dist-fill" style="width:${pct}%;background:${b.col};opacity:.75;"></div></div><span class="ioc-dist-val">${b.n}</span></div>`;}).join("");
 }
 let _activeTypeFilter="";
 function setIocType(btn){document.querySelectorAll(".ioc-type-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");_activeTypeFilter=btn.dataset.type;filterIocs(document.getElementById("ioc-search")?.value||"");}
@@ -1353,7 +1435,7 @@ function filterIocs(q){
   const empty=document.getElementById("ioc-empty"),tbody=document.getElementById("ioc-tbody");
   if(!rows.length){empty.style.display="block";tbody.innerHTML="";return;}
   empty.style.display="none";
-  tbody.innerHTML=rows.map(r=>{const s=r._live,col=scoreColor(s),bar=Math.round(s),apt=r.apt?`<span class="ioc-apt">${esc(r.apt)}</span>`:`<span class="ioc-dim">—</span>`,vt=r.vt_malicious!=null?`<span style="color:var(--red);font-size:9px">${r.vt_malicious} engines</span>`:"";
+  tbody.innerHTML=rows.map((r,i)=>{const s=r._live,col=scoreColor(s),bar=Math.round(s),apt=r.apt?`<span class="ioc-apt">${esc(r.apt)}</span>`:`<span class="ioc-dim">—</span>`,vt=r.vt_malicious!=null&&r.vt_malicious>0?`<span class="ioc-vt">${r.vt_malicious} engines</span>`:"";
   const isUrl=r.type==="url";
   const displayVal=isUrl&&r.value.length>50?r.value.slice(0,48)+"…":r.value;
   const tags=(r.url_tags||[]).slice(0,3).map(t=>`<span class="ioc-tag">${esc(t)}</span>`).join("");
@@ -1361,7 +1443,8 @@ function filterIocs(q){
     ?`<td title="${esc(r.value)}"><span class="ioc-online">online</span>${r.url_threat?` <span class="ioc-threat">${esc(r.url_threat.replace(/_/g," "))}</span>`:""} ${tags}</td>`
     :`<td class="ioc-site" title="${esc(r.source_blog||'')}">${r.source_article?`<a href="${esc(r.source_article)}" target="_blank" rel="noopener">${esc(r.source_blog||'—')}</a>`:esc(r.source_blog||'—')}</td>`;
   const clipSvg=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M17 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>`;
-  return`<tr><td onclick="copyIoc(this,'${esc(r.value)}')" title="${isUrl?esc(r.value):'Click to copy'}" style="white-space:nowrap"><span class="ioc-val">${esc(displayVal)}</span><button class="ioc-copy-btn" onclick="event.stopPropagation();copyIoc(this,'${esc(r.value)}')" title="Copy to clipboard">${clipSvg}</button><span class="ioc-copied">✓</span></td><td><span class="ioc-badge">${esc(r.type)}</span></td>${sourceCell}<td>${apt}</td><td><span style="font-variant-numeric:tabular-nums;color:${col}">${s.toFixed(1)}</span>${vt?`<br>${vt}`:""}</td><td><div class="ioc-decay-track"><div class="ioc-decay-fill" style="width:${bar}%;background:${col}"></div></div><span style="font-size:8px;color:var(--text-muted)">${r.last_seen||""}</span></td></tr>`;}).join("");
+  const delay=i<25?`animation-delay:${i*22}ms`:"animation-fill-mode:both;opacity:1";
+  return`<tr class="ioc-tbody-row" style="${delay}"><td onclick="copyIoc(this,'${esc(r.value)}')" title="${isUrl?esc(r.value):'Click to copy'}" style="white-space:nowrap"><span class="ioc-val">${esc(displayVal)}</span><button class="ioc-copy-btn" onclick="event.stopPropagation();copyIoc(this,'${esc(r.value)}')" title="Copy to clipboard">${clipSvg}</button><span class="ioc-copied">✓</span></td><td><span class="ioc-badge">${esc(r.type)}</span></td>${sourceCell}<td>${apt}</td><td><span style="font-variant-numeric:tabular-nums;color:${col};font-weight:600">${s.toFixed(1)}</span>${vt?`<br>${vt}`:""}</td><td><div class="ioc-decay-track"><div class="ioc-decay-fill" style="width:${bar}%;background:${col}"></div></div><span style="font-size:8px;color:var(--text-muted)">${r.last_seen||""}</span></td></tr>`;}).join("");
 }
 
 /* ── IOC Export ── */
