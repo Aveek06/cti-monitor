@@ -9,6 +9,9 @@ function pool() {
   return _pool;
 }
 
+const _postLog = new Map();
+const POST_LIMIT_MS = 10 * 60 * 1000;
+
 module.exports = async function handler(req, res) {
   if (!process.env.DATABASE_URL)
     return res.status(500).json({ error: "DATABASE_URL not configured" });
@@ -36,6 +39,19 @@ module.exports = async function handler(req, res) {
     const { site_name, rating, note, rater } = req.body || {};
     if (!site_name || !Number.isInteger(+rating) || +rating < 1 || +rating > 5)
       return res.status(400).json({ error: "site_name and rating (1–5) required" });
+    if (typeof site_name !== "string" || site_name.length > 120)
+      return res.status(400).json({ error: "site_name must be a string ≤ 120 chars" });
+    if (/[<>"'`]/.test(site_name))
+      return res.status(400).json({ error: "site_name contains disallowed characters" });
+    if (note   && (typeof note   !== "string" || note.length   > 500))
+      return res.status(400).json({ error: "note must be ≤ 500 chars" });
+    if (rater  && (typeof rater  !== "string" || rater.length  > 100))
+      return res.status(400).json({ error: "rater must be ≤ 100 chars" });
+    const ip = (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "unknown";
+    const lastPost = _postLog.get(ip) || 0;
+    if (Date.now() - lastPost < POST_LIMIT_MS)
+      return res.status(429).json({ error: "Rate limit: one rating per 10 minutes" });
+    _postLog.set(ip, Date.now());
     try {
       await pool().query(
         "INSERT INTO site_ratings (site_name, rating, note, rater) VALUES ($1,$2,$3,$4)",

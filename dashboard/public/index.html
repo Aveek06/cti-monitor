@@ -43,10 +43,7 @@
     .topbar-meta{padding:0 16px;font-size:9px;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;text-align:right;line-height:1.7;border-left:1px solid var(--border);height:100%;display:flex;flex-direction:column;justify-content:center;}
     .topbar-meta span{display:block;}
     .topbar-meta #hdr-updated{color:var(--text-dim);}
-    .refresh-btn{height:100%;padding:0 16px;font-family:inherit;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--green);border:none;border-left:1px solid var(--border);cursor:pointer;transition:background .12s;text-shadow:0 0 8px var(--green-glow);}
-    .refresh-btn:hover{background:var(--green-dim);}
-    .refresh-btn:active{opacity:.6;}
-    .refresh-btn:disabled{opacity:.3;cursor:default;}
+
 
     /* SIDEBAR */
     .sidebar{position:fixed;top:var(--topbar-h);left:0;width:var(--sidebar-w);height:calc(100vh - var(--topbar-h));background:rgba(8,8,8,.97);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:4px;z-index:100;}
@@ -781,7 +778,6 @@
       <span id="hdr-updated"></span>
       <span id="sys-clock"></span>
     </div>
-    <button id="btn-refresh" class="refresh-btn" onclick="refreshData(true)">[ Refresh ]</button>
   </div>
 </header>
 
@@ -1423,7 +1419,7 @@ function urlToSlug(href){try{const parts=new URL(href).pathname.split("/").filte
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 
 /* ── Load & derive ── */
-async function loadData(bust=false){const url=bust?`/api/data?bust=${Date.now()}`:"/api/data";const res=await fetch(url,bust?{cache:"no-store"}:{});if(!res.ok){const j=await res.json().catch(()=>({}));throw new Error(j.error||`HTTP ${res.status}`);}return res.json();}
+async function loadData(){const res=await fetch("/api/data");if(!res.ok){const j=await res.json().catch(()=>({}));throw new Error(j.error||`HTTP ${res.status}`);}return res.json();}
 
 function derive({config,state,lastActive,prevRunLinks,iocExport,ttpExport,updatedAt}){
   const cutoff=new Date(Date.now()-STALE_DAYS*86400000);
@@ -1579,7 +1575,7 @@ function renderQuiet(sites,state){
 function renderFailing(sites,state){
   const el=document.getElementById("content-failing");
   if(!sites.length){el.innerHTML=`<div class="panel-footer">// No scraper errors detected</div>`;return;}
-  el.innerHTML=sites.map((s,i)=>`<div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i,9)}"><span class="site-prefix"></span><span class="site-name">${s.name}</span><div class="site-meta"><span class="badge badge-red">Scraper Err</span><span class="chevron">›</span></div></div>`).join("")+(sites.length>12?`<div class="panel-footer">// ${sites.length} Errors Total</div>`:"");
+  el.innerHTML=sites.map((s,i)=>`<div class="site-row" data-name="${esc(s.name)}" style="--i:${Math.min(i,9)}"><span class="site-prefix"></span><span class="site-name">${esc(s.name)}</span><div class="site-meta"><span class="badge badge-red">Scraper Err</span><span class="chevron">›</span></div></div>`).join("")+(sites.length>12?`<div class="panel-footer">// ${sites.length} Errors Total</div>`:"");
   el.querySelectorAll(".site-row").forEach(row=>row.addEventListener("click",()=>{location.hash="#site/"+encodeURIComponent(row.dataset.name);}));
 }
 
@@ -2587,11 +2583,9 @@ ${cvss?`<div class="vm-drawer-field"><div class="lbl">CVSS Version</div><div cla
 }
 
 /* ── Refresh ── */
-async function refreshData(force=false){
-  const btn=document.getElementById("btn-refresh");if(btn){btn.disabled=true;btn.textContent="[ Syncing... ]";}
-  try{const raw=await loadData(force);if(!force&&raw.updatedAt===lastUpdatedAt)return;lastUpdatedAt=raw.updatedAt;resetUI();updateDashboard(derive(raw));flashUpdated(raw.updatedAt);}
+async function refreshData(){
+  try{const raw=await loadData();if(raw.updatedAt===lastUpdatedAt)return;lastUpdatedAt=raw.updatedAt;resetUI();updateDashboard(derive(raw));flashUpdated(raw.updatedAt);}
   catch(err){console.warn("Refresh failed:",err.message);}
-  finally{if(btn){btn.disabled=false;btn.textContent="[ Refresh ]";}}
 }
 
 /* ── Tab switching ── */
