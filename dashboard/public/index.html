@@ -778,6 +778,17 @@
       <span id="hdr-updated"></span>
       <span id="sys-clock"></span>
     </div>
+        <div id="live-users-wrap" style="display:none;position:relative;height:100%;">
+          <button id="live-users-btn" style="height:100%;padding:0 14px;border:none;border-left:1px solid var(--border);background:none;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:var(--font-ui);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);" onclick="toggleLivePanel()">
+            <span id="live-dot" style="width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s ease-in-out infinite;flex-shrink:0;"></span>
+            <span id="live-count">0</span> Online
+          </button>
+          <div id="live-panel" style="display:none;position:absolute;right:0;top:100%;min-width:240px;background:var(--surface2);border:1px solid var(--border-hi);border-top:2px solid var(--green);z-index:500;padding:0;">
+            <div style="font-size:7px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);padding:8px 12px 6px;border-bottom:1px solid var(--border);font-family:var(--font-ui);">// Live Analysts</div>
+            <div id="live-list" style="padding:4px 0;max-height:200px;overflow-y:auto;"></div>
+          </div>
+        </div>
+        <button onclick="doLogout()" style="height:100%;padding:0 14px;border:none;border-left:1px solid var(--border);background:none;cursor:pointer;font-family:var(--font-ui);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);transition:color .12s;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-dim)'">Sign Out</button>
   </div>
 </header>
 
@@ -2582,6 +2593,36 @@ ${cvss?`<div class="vm-drawer-field"><div class="lbl">CVSS Version</div><div cla
   animateDrawer(true);document.getElementById("backdrop").classList.add("visible");document.body.style.overflow="hidden";
 }
 
+/* ── Auth ── */
+async function doLogout(){
+  await fetch('/api/auth?action=logout',{method:'POST'});
+  window.location.href='/login.html';
+}
+function toggleLivePanel(){
+  const p=document.getElementById('live-panel');
+  p.style.display=p.style.display==='none'?'block':'none';
+  if(p.style.display==='block'){_refreshLiveUsers();}
+}
+async function _refreshLiveUsers(){
+  try{
+    const r=await fetch('/api/auth?action=active-users');
+    if(!r.ok)return;
+    const{users}=await r.json();
+    document.getElementById('live-count').textContent=users.length;
+    const list=document.getElementById('live-list');
+    if(!users.length){list.innerHTML='<div style="padding:10px 12px;font-size:9px;color:var(--text-muted);font-family:var(--font-ui);">No other analysts online</div>';return;}
+    list.innerHTML=users.map(u=>{
+      const mins=Math.floor(u.seconds_ago/60);
+      const ago=mins===0?'just now':`${mins}m ago`;
+      return`<div style="display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid var(--border);">
+        <span style="width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 4px var(--green);flex-shrink:0;"></span>
+        <span style="font-size:9px;color:var(--text);font-family:var(--font-mono);flex:1;">${u.email}</span>
+        <span style="font-size:8px;color:var(--text-muted);font-family:var(--font-ui);">${ago}</span>
+      </div>`;
+    }).join('');
+  }catch{}
+}
+
 /* ── Refresh ── */
 async function refreshData(){
   try{const raw=await loadData();if(raw.updatedAt===lastUpdatedAt)return;lastUpdatedAt=raw.updatedAt;resetUI();updateDashboard(derive(raw));flashUpdated(raw.updatedAt);}
@@ -2625,6 +2666,17 @@ async function init(){
     setInterval(refreshData,REFRESH_MS);
     window.addEventListener("hashchange",_routeHash);
     _routeHash();
+    // Auth: heartbeat + whoami
+    fetch('/api/auth?action=whoami').then(r=>r.json()).then(u=>{
+      if(u.is_admin){
+        document.getElementById('live-users-wrap').style.display='';
+        _refreshLiveUsers();
+        setInterval(_refreshLiveUsers,30000);
+      }
+    }).catch(()=>{});
+    // Send heartbeat every 60s to keep session registered as live
+    const _hb=()=>fetch('/api/auth?action=heartbeat',{method:'POST'}).catch(()=>{});
+    _hb();setInterval(_hb,60000);
     // Eagerly load VM/KEV data for Home tab metric
     loadVmData().then(vmd=>{if(vmd&&vmd.totalKev){animateCountUp(document.getElementById('hm-n-kev'),vmd.totalKev);}});
   }catch(err){
