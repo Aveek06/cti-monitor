@@ -519,20 +519,23 @@
     .hm-sub-label::before{content:'';display:block;width:8px;height:1px;background:var(--green);box-shadow:0 0 4px var(--green);}
     .hm-sub-label.cyan::before{background:var(--cyan);box-shadow:0 0 4px var(--cyan);}
     .hm-sub-label.red::before{background:var(--red);box-shadow:0 0 4px var(--red);}
-    .hm-signal{display:grid;grid-template-columns:90px 1fr 42px;align-items:start;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border);cursor:default;transition:background .1s;animation:rowIn .26s var(--ease) calc(var(--i,0)*28ms) both;}
+    .hm-signal{display:grid;grid-template-columns:90px 1fr 42px;align-items:start;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer;text-decoration:none;color:inherit;transition:background .1s;animation:rowIn .26s var(--ease) calc(var(--i,0)*28ms) both;}
     .hm-signal:hover{background:var(--surface2);}
+    .hm-signal:hover .hm-signal-site{opacity:1;}
     .hm-signal-site{font-size:8px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--green);opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-top:1px;font-family:var(--font-ui);}
     .hm-signal-body{display:flex;flex-direction:column;gap:2px;min-width:0;}
     .hm-signal-title{font-size:10px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .hm-signal-summary{font-size:9px;color:var(--text-dim);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
     .hm-signal-date{font-size:9px;color:var(--text-muted);font-family:var(--font-mono);text-align:right;padding-top:1px;}
-    .hm-ioc-row{display:grid;grid-template-columns:38px 1fr 54px 28px;align-items:center;gap:6px;padding:7px 14px;border-bottom:1px solid var(--border);animation:rowIn .24s var(--ease) calc(var(--i,0)*38ms) both;}
+    .hm-ioc-row{display:grid;grid-template-columns:38px 1fr 54px 28px;align-items:center;gap:6px;padding:7px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;animation:rowIn .24s var(--ease) calc(var(--i,0)*38ms) both;}
+    .hm-ioc-row:hover{background:var(--surface2);}
     .hm-ioc-type{font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);font-family:var(--font-ui);}
     .hm-ioc-val{font-size:9px;color:var(--text);font-family:var(--font-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .hm-ioc-bar{position:relative;height:2px;background:var(--surface3);overflow:hidden;}
     .hm-ioc-bar-fill{position:absolute;top:0;left:0;bottom:0;right:100%;transition:right .6s cubic-bezier(.16,1,.3,1);}
     .hm-ioc-score{font-size:9px;font-variant-numeric:tabular-nums;font-family:var(--font-mono);text-align:right;}
-    .hm-ttp-row{display:grid;grid-template-columns:54px 1fr auto;align-items:center;gap:6px;padding:6px 14px;border-bottom:1px solid var(--border);animation:rowIn .24s var(--ease) calc(var(--i,0)*32ms) both;}
+    .hm-ttp-row{display:grid;grid-template-columns:54px 1fr auto;align-items:center;gap:6px;padding:6px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;animation:rowIn .24s var(--ease) calc(var(--i,0)*32ms) both;}
+    .hm-ttp-row:hover{background:var(--surface2);}.hm-ttp-row:hover .hm-ttp-id{color:var(--text-hi);}
     .hm-ttp-id{font-size:9px;font-family:var(--font-mono);color:var(--cyan);}
     .hm-ttp-name{font-size:9px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .hm-ttp-obs{font-size:9px;color:var(--text-muted);font-variant-numeric:tabular-nums;font-family:var(--font-mono);white-space:nowrap;}
@@ -802,11 +805,11 @@
         </div>
       </div>
       <div class="hm-footer">
-        <span class="hm-chip" onclick="switchTab('sources')"><span class="hm-chip-dot green"></span><span id="hm-f-active">—</span>&nbsp;Active</span>
+        <span class="hm-chip" onclick="switchTab('sources');togglePanel('card-active','panel-active')" title="View active sources"><span class="hm-chip-dot green"></span><span id="hm-f-active">—</span>&nbsp;Active</span>
         <span class="hm-sep">·</span>
-        <span class="hm-chip" onclick="switchTab('sources')"><span class="hm-chip-dot amber"></span><span id="hm-f-quiet">—</span>&nbsp;Quiet</span>
+        <span class="hm-chip" onclick="switchTab('sources');togglePanel('card-quiet','panel-quiet')" title="View quiet sources"><span class="hm-chip-dot amber"></span><span id="hm-f-quiet">—</span>&nbsp;Quiet</span>
         <span class="hm-sep">·</span>
-        <span class="hm-chip" onclick="switchTab('sources')"><span class="hm-chip-dot red"></span><span id="hm-f-failing">—</span>&nbsp;Failing</span>
+        <span class="hm-chip" onclick="switchTab('sources');togglePanel('card-failing','panel-failing')" title="View failing scrapers"><span class="hm-chip-dot red"></span><span id="hm-f-failing">—</span>&nbsp;Failing</span>
         <span style="flex:1"></span>
         <span>CTI Monitor · Daily 21:30 IST</span>
         <span class="hm-sep">·</span>
@@ -1728,6 +1731,7 @@ function renderTtpAnalytics(data){
 }
 /* ── Update dashboard ── */
 /* ─── Home Tab ─── */
+function goToIoc(val){switchTab('iocs');const inp=document.getElementById('ioc-search');if(inp){inp.value=val;filterIocs(val);}}
 function animateCountUp(el,target,dur){
   if(!el)return;
   const n=parseInt(target)||0;
@@ -1784,7 +1788,7 @@ function renderHome({activeSites,quietSites,failingSites,weekTotal,iocExport,ttp
       const titleLine=`<span class="hm-signal-title">${esc(urlShort.length>54?urlShort.slice(0,52)+'…':urlShort)}</span>`;
       const sumLine=s.summary?`<span class="hm-signal-summary">${esc(s.summary)}</span>`:'';
       const date=s.date?s.date.slice(5):'';
-      return`<div class="hm-signal" style="--i:${Math.min(i,14)}"><span class="hm-signal-site" title="${esc(s.site)}">${esc(s.site)}</span><div class="hm-signal-body">${titleLine}${sumLine}</div><span class="hm-signal-date">${date}</span></div>`;
+      return`<a class="hm-signal" href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="--i:${Math.min(i,14)}"><span class="hm-signal-site" title="${esc(s.site)}">${esc(s.site)}</span><div class="hm-signal-body">${titleLine}${sumLine}</div><span class="hm-signal-date">${date}</span></a>`;
     }).join(''):`<div class="panel-footer">// No signals in last run</div>`;
   }
   // Top IOCs
@@ -1797,14 +1801,14 @@ function renderHome({activeSites,quietSites,failingSites,weekTotal,iocExport,ttp
       const pct=Math.round((s/maxS)*100);
       const col=s>=70?'var(--green)':s>=40?'var(--amber)':'var(--red)';
       const v=ioc.value.length>22?ioc.value.slice(0,20)+'…':ioc.value;
-      return`<div class="hm-ioc-row" style="--i:${i}"><span class="hm-ioc-type">${esc(ioc.type)}</span><span class="hm-ioc-val" title="${esc(ioc.value)}">${esc(v)}</span><div class="hm-ioc-bar"><div class="hm-ioc-bar-fill" data-pct="${pct}" style="background:${col};box-shadow:0 0 4px ${col}"></div></div><span class="hm-ioc-score" style="color:${col}">${s}</span></div>`;
+      return`<div class="hm-ioc-row" style="--i:${i}" onclick="goToIoc(${JSON.stringify(ioc.value)})" title="View in IOC tab"><span class="hm-ioc-type">${esc(ioc.type)}</span><span class="hm-ioc-val" title="${esc(ioc.value)}">${esc(v)}</span><div class="hm-ioc-bar"><div class="hm-ioc-bar-fill" data-pct="${pct}" style="background:${col};box-shadow:0 0 4px ${col}"></div></div><span class="hm-ioc-score" style="color:${col}">${s}</span></div>`;
     }).join(''):`<div class="panel-footer">// No active IOCs</div>`;
     requestAnimationFrame(()=>iocEl.querySelectorAll('.hm-ioc-bar-fill').forEach(b=>b.style.right=`${100-+b.dataset.pct}%`));
   }
   // Top TTPs
   const ttpEl=document.getElementById('hm-top-ttps');
   const topTtps=(ttpExport||[]).slice(0,5);
-  if(ttpEl)ttpEl.innerHTML=topTtps.length?topTtps.map((t,i)=>`<div class="hm-ttp-row" style="--i:${i}"><span class="hm-ttp-id">${esc(t.technique_id)}</span><span class="hm-ttp-name" title="${esc(t.technique_name)}">${esc(t.technique_name)}</span><span class="hm-ttp-obs">${t.article_count||0}×</span></div>`).join(''):`<div class="panel-footer">// No TTPs observed</div>`;
+  if(ttpEl)ttpEl.innerHTML=topTtps.length?topTtps.map((t,i)=>`<div class="hm-ttp-row" style="--i:${i}" onclick="switchTab('ttps')" title="View in TTP Map"><span class="hm-ttp-id">${esc(t.technique_id)}</span><span class="hm-ttp-name" title="${esc(t.technique_name)}">${esc(t.technique_name)}</span><span class="hm-ttp-obs">${t.article_count||0}×</span></div>`).join(''):`<div class="panel-footer">// No TTPs observed</div>`;
 }
 
 function updateDashboard({sites,activeSites,quietSites,failingSites,weekTotal,sparkData,state,sevenDay,prevRunLinks,iocExport,ttpExport,updatedAt}){
