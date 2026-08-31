@@ -170,6 +170,12 @@
     .ioc-type-btn{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;transition:background .1s,color .1s,border-color .1s;white-space:nowrap;font-family:var(--font-ui);}
     .ioc-type-btn:hover{border-color:var(--green);color:var(--text);}
     .ioc-type-btn.active{background:var(--green);border-color:var(--green);color:#000;}
+    .ioc-rel-filters{display:flex;gap:4px;flex-wrap:wrap;border-left:1px solid var(--border);padding-left:10px;}
+    .ioc-rel-btn{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;transition:background .1s,color .1s,border-color .1s;white-space:nowrap;font-family:var(--font-ui);}
+    .ioc-rel-btn:hover{border-color:var(--green);color:var(--text);}
+    .ioc-rel-btn.active[data-rel="0"]{background:var(--surface2);border-color:var(--border-hi);color:var(--text);}
+    .ioc-rel-btn.active[data-rel="40"]{background:rgba(255,149,0,.12);border-color:var(--amber);color:var(--amber);}
+    .ioc-rel-btn.active[data-rel="70"]{background:var(--green-dim);border-color:var(--green);color:var(--green);}
     .ioc-export-wrap{position:relative;margin-left:auto;}
     .ioc-export-btn{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;gap:5px;transition:border-color .1s,color .1s;white-space:nowrap;font-family:var(--font-ui);}
     .ioc-export-btn:hover{border-color:var(--green);color:var(--green);}
@@ -317,6 +323,25 @@
     .ttp-tip-lbl{font-size:7.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);}
     .ttp-tip-val{font-size:9px;font-weight:600;letter-spacing:.02em;color:var(--text);font-variant-numeric:tabular-nums;}
     .ttp-tip-apts{font-size:8.5px;color:var(--amber);margin-top:7px;padding-top:7px;border-top:1px solid var(--border);letter-spacing:.04em;}
+    /* analytics panels */
+    .ttp-analytics-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+    .ttp-analytics-panel{background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--border-hi);padding:14px 14px 12px;}
+    .ttp-a-hd{font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);display:flex;align-items:center;gap:6px;margin-bottom:11px;font-family:var(--font-ui);}
+    .ttp-a-hd::before{content:'';display:block;width:10px;height:1px;}
+    .ttp-a-hd-amber::before{background:var(--amber);box-shadow:0 0 4px var(--amber);}
+    .ttp-a-hd-green::before{background:var(--green);box-shadow:0 0 4px var(--green);}
+    .ttp-a-hd-cyan::before{background:var(--cyan);box-shadow:0 0 4px var(--cyan);}
+    .ttp-a-row{display:flex;align-items:center;gap:7px;padding:3px 4px;cursor:default;transition:background .1s;}
+    .ttp-a-row.clickable{cursor:pointer;}
+    .ttp-a-row.clickable:hover{background:var(--surface2);}
+    .ttp-a-row.clickable:active{transform:scale(.99);}
+    .ttp-a-lbl{font-size:7.5px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;font-family:var(--font-mono);transition:color .12s;min-width:0;}
+    .ttp-a-row.clickable:hover .ttp-a-lbl{color:var(--text);}
+    .ttp-a-name{font-size:7.5px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1;font-family:var(--font-ui);}
+    .ttp-a-track{flex:1;height:3px;background:var(--surface2);position:relative;overflow:hidden;min-width:30px;}
+    .ttp-a-fill{height:100%;transition:width .42s var(--ease);}
+    .ttp-a-val{font-size:7.5px;color:var(--text-muted);font-variant-numeric:tabular-nums;width:22px;text-align:right;flex-shrink:0;font-family:var(--font-mono);}
+    .ttp-a-empty{font-size:9px;color:var(--text-muted);letter-spacing:.06em;padding:12px 0;text-align:center;}
 
     /* GRAPH TAB */
     .graph-toolbar{display:flex;align-items:center;gap:16px;margin-bottom:12px;flex-wrap:wrap;}
@@ -690,6 +715,11 @@
               <button class="ioc-type-btn" data-type="sha1" onclick="setIocType(this)">SHA1</button>
               <button class="ioc-type-btn" data-type="md5" onclick="setIocType(this)">MD5</button>
             </div>
+            <div class="ioc-rel-filters">
+              <button class="ioc-rel-btn active" data-rel="0" onclick="setIocRelFilter(this)">All Sources</button>
+              <button class="ioc-rel-btn" data-rel="40" onclick="setIocRelFilter(this)">&#x2265;40</button>
+              <button class="ioc-rel-btn" data-rel="70" onclick="setIocRelFilter(this)">&#x2265;70 Trusted</button>
+            </div>
             <span class="ioc-count" id="ioc-count">— IOCs</span>
             <div class="ioc-export-wrap">
               <button class="ioc-export-btn" id="ioc-export-btn" onclick="toggleExportMenu()">
@@ -749,6 +779,21 @@
         <div class="ttp-radar-panel">
           <div class="ttp-radar-hd">ATT&amp;CK Coverage</div>
           <svg class="radar-svg" viewBox="0 0 280 280" id="radar-svg"></svg>
+        </div>
+      </div>
+      <!-- analytics row: top techniques / tactic activity / APT attribution -->
+      <div class="ttp-analytics-row">
+        <div class="ttp-analytics-panel">
+          <div class="ttp-a-hd ttp-a-hd-amber">Top Techniques</div>
+          <div id="ttp-top-techniques"></div>
+        </div>
+        <div class="ttp-analytics-panel">
+          <div class="ttp-a-hd ttp-a-hd-green">Tactic Activity</div>
+          <div id="ttp-tactic-bars"></div>
+        </div>
+        <div class="ttp-analytics-panel">
+          <div class="ttp-a-hd ttp-a-hd-cyan">APT Attribution</div>
+          <div id="ttp-apt-bars"></div>
         </div>
       </div>
       <!-- technique heatmap -->
@@ -925,6 +970,7 @@
 const STALE_DAYS=7,SKIP_TYPES=new Set(["skip","html_TODO"]),REFRESH_MS=15*60*1000;
 let lastUpdatedAt=null,lastSevenDay={},lastState={},lastPrevRunLinks=[],_lmAllLinks=[];
 let _ratings={},_iocBySite={},_ttpSiteSet=new Set(),_lastDerived=null,_lastActive={},_pendingRating=0,_openSiteName=null;
+let _minReliability=0,_relScoreCache={};
 
 /* ── Clock ── */
 function tickClock(){const el=document.getElementById("sys-clock");if(!el)return;const n=new Date();el.textContent=n.toUTCString().slice(17,25)+" UTC";}
@@ -1023,6 +1069,7 @@ function applyReliabilityBadges(){
     const{score}=computeReliability(name,weekCount,lastTs,failSet.has(name));
     el.className=`rel-badge ${relClass(score)}`;
     el.textContent=score;
+    _relScoreCache[name]=score;
   });
 }
 function renderRelSection(name,weekCount,lastTs,isFailing){
@@ -1308,9 +1355,10 @@ function renderIocs(data){
 }
 let _activeTypeFilter="";
 function setIocType(btn){document.querySelectorAll(".ioc-type-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");_activeTypeFilter=btn.dataset.type;filterIocs(document.getElementById("ioc-search")?.value||"");}
+function setIocRelFilter(btn){document.querySelectorAll(".ioc-rel-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");_minReliability=+btn.dataset.rel;filterIocs(document.getElementById("ioc-search")?.value||"");}
 function filterIocs(q){
   const lq=(q||"").toLowerCase();
-  const rows=(_allIocs.filter(r=>{if(_activeTypeFilter&&r.type!==_activeTypeFilter)return false;return!lq||r.value.toLowerCase().includes(lq)||(r.type||"").includes(lq)||(r.source_blog||"").toLowerCase().includes(lq)||(r.apt||"").toLowerCase().includes(lq)||(r.url_threat||"").toLowerCase().includes(lq)||((r.url_tags||[]).join(" ").toLowerCase().includes(lq));}).map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((a,b)=>b._live-a._live));
+  const rows=(_allIocs.filter(r=>{if(_activeTypeFilter&&r.type!==_activeTypeFilter)return false;if(_minReliability>0){const _s=_relScoreCache[r.source_blog];if(_s==null||_s<_minReliability)return false;}return!lq||r.value.toLowerCase().includes(lq)||(r.type||"").includes(lq)||(r.source_blog||"").toLowerCase().includes(lq)||(r.apt||"").toLowerCase().includes(lq)||(r.url_threat||"").toLowerCase().includes(lq)||((r.url_tags||[]).join(" ").toLowerCase().includes(lq));}).map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((a,b)=>b._live-a._live));
   document.getElementById("ioc-count").textContent=`${rows.length} IOC${rows.length!==1?"s":""}`;
   const empty=document.getElementById("ioc-empty"),tbody=document.getElementById("ioc-tbody");
   if(!rows.length){empty.style.display="block";tbody.innerHTML="";return;}
@@ -1331,6 +1379,7 @@ function _getFilteredIocRows(){
   const q=(document.getElementById("ioc-search")?.value||"").toLowerCase();
   return _allIocs.filter(r=>{
     if(_activeTypeFilter&&r.type!==_activeTypeFilter)return false;
+    if(_minReliability>0){const _s=_relScoreCache[r.source_blog];if(_s==null||_s<_minReliability)return false;}
     return !q||r.value.toLowerCase().includes(q)||(r.type||"").includes(q)||(r.source_blog||"").toLowerCase().includes(q)||(r.apt||"").toLowerCase().includes(q)||(r.url_threat||"").toLowerCase().includes(q)||((r.url_tags||[]).join(" ").toLowerCase().includes(q));
   }).map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((a,b)=>b._live-a._live);
 }
@@ -1378,7 +1427,7 @@ function setTtpDays(d){
   _ttpDays=d;
   document.querySelectorAll(".ttp-days-btn").forEach(b=>b.classList.toggle("active",+b.dataset.days===d));
   const filtered=getTtpFiltered();
-  renderTtpMap(filtered);renderRadar(filtered);
+  renderTtpMap(filtered);renderRadar(filtered);renderTtpAnalytics(filtered);
 }
 function urlHost(u){try{return new URL(u).hostname.replace(/^www\./,"");}catch{return u;}}
 function urlPath(u){try{const p=new URL(u).pathname;return p.length>40?p.slice(0,38)+"…":p;}catch{return "";}}
@@ -1430,6 +1479,44 @@ function renderTtpMap(data){
   }).join("");
 }
 
+function renderTtpAnalytics(data){
+  const topEl=document.getElementById("ttp-top-techniques");
+  const tacEl=document.getElementById("ttp-tactic-bars");
+  const aptEl=document.getElementById("ttp-apt-bars");
+  if(!topEl||!tacEl||!aptEl)return;
+  const empty='<div class="ttp-a-empty">No data</div>';
+  if(!data?.length){topEl.innerHTML=tacEl.innerHTML=aptEl.innerHTML=empty;return;}
+  // Top 10 techniques by article_count
+  const top10=[...data].sort((a,b)=>b.article_count-a.article_count).slice(0,10);
+  const maxC=top10[0]?.article_count||1;
+  topEl.innerHTML=top10.map(t=>{
+    const pct=Math.round(t.article_count/maxC*100);
+    const name=t.technique_name||t.technique_id;
+    const short=name.length>22?name.slice(0,20)+"…":name;
+    return`<div class="ttp-a-row clickable" onclick="openTtpDrawer('${esc(t.technique_id)}')"><span class="ttp-a-lbl" style="width:52px" title="${esc(t.technique_id)}">${esc(t.technique_id)}</span><span class="ttp-a-name" title="${esc(name)}">${esc(short)}</span><div class="ttp-a-track"><div class="ttp-a-fill" style="width:${pct}%;background:var(--amber);opacity:.85;"></div></div><span class="ttp-a-val">${t.article_count}</span></div>`;
+  }).join("");
+  // Tactic activity — total observations per tactic, TACTIC_ORDER sequence
+  const byTac={};
+  for(const t of data){const tac=(t.tactic||"").toLowerCase()||"unknown";byTac[tac]=(byTac[tac]||0)+(t.total_observations||t.article_count);}
+  const activeTacs=TACTIC_ORDER.filter(t=>byTac[t]>0);
+  const maxTac=Math.max(...activeTacs.map(t=>byTac[t]),1);
+  tacEl.innerHTML=activeTacs.length?activeTacs.map(tac=>{
+    const val=byTac[tac];const pct=Math.round(val/maxTac*100);
+    const label=TACTIC_SHORT[tac]||tac;
+    return`<div class="ttp-a-row"><span class="ttp-a-lbl" style="width:58px" title="${tac}">${esc(label)}</span><div class="ttp-a-track"><div class="ttp-a-fill" style="width:${pct}%;background:var(--green);opacity:.75;"></div></div><span class="ttp-a-val">${val}</span></div>`;
+  }).join(""):empty;
+  // APT attribution — techniques linked to each actor
+  const aptCount={};
+  for(const t of data){for(const apt of(t.apts||[]))aptCount[apt]=(aptCount[apt]||0)+1;}
+  const aptSorted=Object.entries(aptCount).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  if(!aptSorted.length){aptEl.innerHTML='<div class="ttp-a-empty">No APT attribution yet</div>';return;}
+  const maxApt=aptSorted[0][1];
+  aptEl.innerHTML=aptSorted.map(([apt,cnt])=>{
+    const pct=Math.round(cnt/maxApt*100);
+    const short=apt.length>18?apt.slice(0,16)+"…":apt;
+    return`<div class="ttp-a-row"><span class="ttp-a-lbl" style="width:80px" title="${esc(apt)}">${esc(short)}</span><div class="ttp-a-track"><div class="ttp-a-fill" style="width:${pct}%;background:var(--cyan);opacity:.8;"></div></div><span class="ttp-a-val">${cnt}</span></div>`;
+  }).join("");
+}
 /* ── Update dashboard ── */
 function updateDashboard({sites,activeSites,quietSites,failingSites,weekTotal,sparkData,state,sevenDay,prevRunLinks,iocExport,ttpExport,updatedAt}){
   lastSevenDay=sevenDay;lastState=state;lastPrevRunLinks=prevRunLinks||[];
@@ -1447,7 +1534,7 @@ function updateDashboard({sites,activeSites,quietSites,failingSites,weekTotal,sp
   renderActive(activeSites,state);renderQuiet(quietSites,state);renderFailing(failingSites,state);
   renderAreaChart(sparkData);renderTopSourcesChart(activeSites);
   renderIocs(iocExport||[]);renderDonut(iocExport||[]);
-  _ttpExport=ttpExport||[];renderTtpMap(getTtpFiltered());renderRadar(getTtpFiltered());
+  _ttpExport=ttpExport||[];renderTtpMap(getTtpFiltered());renderRadar(getTtpFiltered());renderTtpAnalytics(getTtpFiltered());
   renderGraph(iocExport||[]);
   _lastDerived={activeSites,quietSites,failingSites};
   for(const s of activeSites)_lastActive[s.name]=s.lastActive||null;
