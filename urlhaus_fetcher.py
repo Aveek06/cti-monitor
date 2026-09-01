@@ -2,7 +2,7 @@ import os
 import requests
 from datetime import datetime, timezone
 
-URLHAUS_API = "https://urlhaus-api.abuse.ch/v1/urls/recent/limit/500/"
+URLHAUS_API = "https://urlhaus-api.abuse.ch/v1/urls/recent/"
 MAX_URLS = 500
 
 
