@@ -2846,6 +2846,7 @@ function switchTab(name){
     document.getElementById('vt-analyst').classList.add('active');
     document.getElementById('vt-executive').classList.remove('active');
     document.getElementById('tab-exec').style.display='none';
+    ["home","sources","iocs","ttps","graph","vm"].forEach(t=>{const p=document.getElementById(`tab-${t}`);if(p)p.style.display='';});
   }
   ["home","sources","iocs","ttps","graph","vm"].forEach(t=>{document.getElementById(`tab-${t}`).classList.toggle("active",t===name);const btn=document.getElementById(`tab-btn-${t}`);if(btn){btn.classList.toggle("active",t===name);btn.setAttribute("aria-selected",t===name);}});
   if(name==="graph")requestAnimationFrame(rebuildGraph);
@@ -2978,7 +2979,7 @@ function setViewMode(mode) {
       if (p) p.style.display = '';
     });
     const lastBtn = document.querySelector('.nav-btn.active');
-    const name = lastBtn ? lastBtn.dataset.tab : 'home';
+    const name = lastBtn ? (lastBtn.dataset.tab || lastBtn.id.replace('tab-btn-','')) : 'home';
     switchTab(name);
   }
 }
