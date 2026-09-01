@@ -9,7 +9,9 @@ on:
         default: "false"
         type: string
   schedule:
-    - cron: "0 20 * * *"   # fallback: fires 4h after cron-job.org (16:00 UTC / 21:30 IST) if missed
+    - cron: "0  4 * * *"   # fallback: fires 4h after cron-job.org 00:00 UTC (5:30 AM IST) if missed
+    - cron: "0 12 * * *"   # fallback: fires 4h after cron-job.org 08:00 UTC (1:30 PM IST) if missed
+    - cron: "0 20 * * *"   # fallback: fires 4h after cron-job.org 16:00 UTC (9:30 PM IST) if missed
 
 jobs:
   guard:
@@ -36,7 +38,7 @@ jobs:
               NOW=$(date +%s)
               AGO=$(( (NOW - LAST_TS) / 3600 ))
               echo "Last workflow_dispatch was ${AGO}h ago."
-              if [ "$AGO" -lt 20 ]; then
+              if [ "$AGO" -lt 9 ]; then
                 echo "should_run=false" >> $GITHUB_OUTPUT
                 echo "cron-job.org ran ${AGO}h ago — schedule fallback skipping."
               else
