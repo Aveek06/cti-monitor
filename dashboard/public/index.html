@@ -795,8 +795,7 @@
 
     /* ── Executive View ── */
     #tab-exec{padding:24px 28px 48px;max-width:1400px}
-
-    .exec-hero{background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%);border:1px solid var(--border-hi);border-radius:16px;padding:36px 40px;margin-bottom:20px;position:relative;overflow:hidden}
+    .exec-hero{background:linear-gradient(135deg,rgba(0,0,0,.45) 0%,rgba(22,22,28,.7) 100%);backdrop-filter:blur(12px) saturate(150%);border:1px solid var(--border-hi);border-radius:16px;padding:36px 40px;margin-bottom:20px;position:relative;overflow:hidden}
     .exec-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 80% 50%,rgba(0,255,65,.04) 0%,transparent 70%);pointer-events:none}
     .exec-threat-level{font:800 52px/1 var(--font-ui);letter-spacing:-0.03em;margin-bottom:10px;transition:color .4s var(--ease)}
     .exec-threat-level.level-critical{color:var(--red);text-shadow:0 0 40px rgba(255,59,48,.3)}
@@ -805,7 +804,11 @@
     .exec-threat-level.level-low{color:var(--green);text-shadow:0 0 30px rgba(0,255,65,.2)}
     .exec-hero-sub{font:400 15px/1.5 var(--font-ui);color:var(--text);max-width:600px;margin-bottom:6px}
     .exec-hero-ts{font:400 11px/1 var(--font-mono);color:var(--text-muted);letter-spacing:.04em}
-
+    .exec-velocity{font:600 11px/1 var(--font-mono);letter-spacing:.04em;margin-top:14px;padding:6px 10px;border-radius:6px;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid var(--border)}
+    .exec-velocity.vel-up{color:var(--amber)}.exec-velocity.vel-up-high{color:var(--red)}.exec-velocity.vel-down{color:var(--green)}
+    .exec-overview{margin-bottom:20px;padding:20px 24px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:12px}
+    .exec-overview-label{font:700 9px/1 var(--font-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--cyan);margin-bottom:8px}
+    .exec-overview-text{font:400 13px/1.7 var(--font-ui);color:var(--text)}
     .exec-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
     @media(max-width:900px){.exec-kpi-row{grid-template-columns:repeat(2,1fr)}}
     .exec-kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 22px;transition:border-color 200ms var(--ease),transform 200ms var(--ease)}
@@ -813,24 +816,21 @@
     .exec-kpi-label{font:600 10px/1 var(--font-ui);letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px}
     .exec-kpi-val{font:700 38px/1 var(--font-ui);letter-spacing:-0.02em;color:var(--text-hi);font-variant-numeric:tabular-nums;margin-bottom:6px}
     .exec-kpi-sub{font:400 11px/1.4 var(--font-ui);color:var(--text-dim)}
-
+    .exec-kpi-delta{font:600 10px/1 var(--font-mono);margin-top:6px;letter-spacing:.02em}
+    .exec-kpi-delta.d-up{color:var(--amber)}.exec-kpi-delta.d-up-high{color:var(--red)}.exec-kpi-delta.d-down{color:var(--green)}.exec-kpi-delta.d-neutral{color:var(--text-muted)}
     .exec-mid-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
     @media(max-width:900px){.exec-mid-row{grid-template-columns:1fr}}
     .exec-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px 24px}
-    .exec-panel-wide{grid-column:span 1}
     .exec-panel-full{margin-bottom:12px}
     .exec-panel-title{font:700 13px/1 var(--font-ui);letter-spacing:.02em;color:var(--text-hi);margin-bottom:4px}
     .exec-panel-sub{font:400 11px/1 var(--font-ui);color:var(--text-muted);margin-bottom:18px}
-
-    /* Attack vector bars */
-    .exec-vector-item{margin-bottom:14px}
+    .exec-vector-item{margin-bottom:16px}
     .exec-vector-label{display:flex;justify-content:space-between;margin-bottom:5px}
     .exec-vector-name{font:500 12px/1 var(--font-ui);color:var(--text)}
     .exec-vector-pct{font:600 12px/1 var(--font-mono);color:var(--text-dim)}
     .exec-vector-track{height:6px;background:var(--surface3);border-radius:3px;overflow:hidden}
     .exec-vector-fill{height:100%;border-radius:3px;transition:width .8s var(--ease)}
-
-    /* Threat actor cards */
+    .exec-vector-risk{font:400 10px/1.4 var(--font-ui);color:var(--text-muted);margin-top:4px}
     .exec-actor-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
     .exec-actor-item:last-child{border-bottom:none}
     .exec-actor-flag{font-size:18px;width:28px;text-align:center;flex-shrink:0}
@@ -838,17 +838,22 @@
     .exec-actor-name{font:600 13px/1 var(--font-ui);color:var(--text-hi);margin-bottom:3px}
     .exec-actor-desc{font:400 11px/1.4 var(--font-ui);color:var(--text-dim)}
     .exec-actor-count{font:700 18px/1 var(--font-mono);color:var(--amber);flex-shrink:0}
-
-    /* Recommendations */
-    .exec-rec-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+    .exec-killchain-stages{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .exec-kc-stage{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;transition:border-color 200ms var(--ease)}
+    .exec-kc-stage.kc-dominant{border-color:var(--amber);box-shadow:0 0 12px rgba(255,149,0,.1)}
+    .exec-kc-label{font:700 10px/1 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px}
+    .exec-kc-val{font:700 24px/1 var(--font-ui);color:var(--text-hi);font-variant-numeric:tabular-nums;margin-bottom:6px}
+    .exec-kc-desc{font:400 10px/1.4 var(--font-ui);color:var(--text-dim);margin-bottom:8px}
+    .exec-kc-bar{height:4px;background:var(--surface3);border-radius:2px;overflow:hidden}
+    .exec-kc-fill{height:100%;border-radius:2px;transition:width .8s var(--ease)}
+    .exec-rec-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap}
     .exec-rec-item:last-child{border-bottom:none}
     .exec-rec-priority{font:700 10px/18px var(--font-ui);letter-spacing:.06em;padding:0 7px;border-radius:4px;flex-shrink:0;height:18px}
     .exec-rec-priority.p-critical{background:rgba(255,59,48,.15);color:var(--red)}
     .exec-rec-priority.p-high{background:rgba(255,149,0,.15);color:var(--amber)}
     .exec-rec-priority.p-medium{background:rgba(0,212,255,.12);color:var(--cyan)}
-    .exec-rec-text{font:400 12px/1.5 var(--font-ui);color:var(--text)}
-
-    /* CVE rows */
+    .exec-rec-text{font:400 12px/1.5 var(--font-ui);color:var(--text);flex:1;min-width:0}
+    .exec-rec-urgency{font:500 9px/18px var(--font-mono);color:var(--text-muted);white-space:nowrap;flex-shrink:0}
     .exec-cve-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
     .exec-cve-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
     .exec-cve-id{font:700 11px/1 var(--font-mono);color:var(--cyan);margin-bottom:5px}
@@ -858,10 +863,12 @@
     .exec-cve-score.cvss-critical{background:rgba(255,59,48,.15);color:var(--red)}
     .exec-cve-score.cvss-high{background:rgba(255,149,0,.15);color:var(--amber)}
     .exec-cve-vendor{font:400 11px/1 var(--font-ui);color:var(--text-dim)}
-
-    /* Stagger entrance */
-    .exec-stagger{opacity:0;transform:translateY(8px);animation:execFadeIn 300ms var(--ease) forwards}
-    @keyframes execFadeIn{to{opacity:1;transform:translateY(0)}}
+    .exec-stagger{opacity:0;transform:translateY(10px) scale(0.98);animation:execFadeIn 360ms cubic-bezier(0.34,1.56,0.64,1) forwards}
+    @keyframes execFadeIn{to{opacity:1;transform:translateY(0) scale(1)}}
+    @media(prefers-reduced-motion:reduce){
+      .exec-stagger{animation:none!important;opacity:1!important;transform:none!important;}
+      .exec-velocity,.exec-kpi-delta{transition:none!important;}
+    }
   </style>
 </head>
 <body>
@@ -904,37 +911,37 @@
 
 <!-- Sidebar -->
 <nav class="sidebar" aria-label="Main navigation">
-  <button class="nav-btn active" id="tab-btn-home" data-tab="home" onclick="switchTab('home')" title="Home" aria-selected="true">
+  <button class="nav-btn active" id="tab-btn-home" onclick="switchTab('home')" title="Home" aria-selected="true">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
     </svg>
     <span class="nav-label">Home</span>
   </button>
-  <button class="nav-btn" id="tab-btn-sources" data-tab="sources" onclick="switchTab('sources')" title="Sources" aria-selected="false">
+  <button class="nav-btn" id="tab-btn-sources" onclick="switchTab('sources')" title="Sources" aria-selected="false">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
     </svg>
     <span class="nav-label">Sources</span>
   </button>
-  <button class="nav-btn" id="tab-btn-iocs" data-tab="iocs" onclick="switchTab('iocs')" title="IOCs">
+  <button class="nav-btn" id="tab-btn-iocs" onclick="switchTab('iocs')" title="IOCs">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
     </svg>
     <span class="nav-label">IOCs</span>
   </button>
-  <button class="nav-btn" id="tab-btn-ttps" data-tab="ttps" onclick="switchTab('ttps')" title="TTP Map">
+  <button class="nav-btn" id="tab-btn-ttps" onclick="switchTab('ttps')" title="TTP Map">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <polygon points="12 2 2 7 2 17 12 22 22 17 22 7 12 2"/><line x1="12" y1="22" x2="12" y2="12"/><line x1="2" y1="7" x2="12" y2="12"/><line x1="22" y1="7" x2="12" y2="12"/>
     </svg>
     <span class="nav-label">TTP Map</span>
   </button>
-  <button class="nav-btn" id="tab-btn-graph" data-tab="graph" onclick="switchTab('graph')" title="IOC Graph">
+  <button class="nav-btn" id="tab-btn-graph" onclick="switchTab('graph')" title="IOC Graph">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
     </svg>
     <span class="nav-label">Graph</span>
   </button>
-  <button class="nav-btn" id="tab-btn-vm" data-tab="vm" onclick="switchTab('vm')" title="Vulnerability Management">
+  <button class="nav-btn" id="tab-btn-vm" onclick="switchTab('vm')" title="Vulnerability Management">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
       <line x1="9" y1="12" x2="11" y2="14"/><line x1="15" y1="10" x2="11" y2="14"/>
@@ -1350,76 +1357,89 @@
       </div>
     </div>
 
-    <!-- EXEC TAB -->
+  </div>
+
+    <!-- Executive View Tab -->
     <div id="tab-exec" class="tab-pane" style="display:none">
-      <!-- Hero section -->
+      <!-- Hero: threat level + velocity -->
       <div class="exec-hero" id="exec-hero">
         <div class="exec-threat-level" id="exec-threat-level">HIGH</div>
         <div class="exec-hero-sub" id="exec-hero-sub">Loading threat assessment&hellip;</div>
         <div class="exec-hero-ts" id="exec-hero-ts"></div>
+        <div class="exec-velocity" id="exec-velocity" style="display:none"></div>
       </div>
-      <!-- KPI cards row -->
+      <!-- Situation Overview -->
+      <div class="exec-overview exec-stagger" id="exec-overview-panel">
+        <div class="exec-overview-label">// Situation Overview</div>
+        <div class="exec-overview-text" id="exec-overview-text">Loading assessment&hellip;</div>
+      </div>
+      <!-- KPI cards -->
       <div class="exec-kpi-row">
-        <div class="exec-kpi-card" id="ekpi-active">
+        <div class="exec-kpi-card exec-stagger" id="ekpi-active" style="animation-delay:60ms">
           <div class="exec-kpi-label">Active Threats</div>
           <div class="exec-kpi-val" id="ekpi-active-val">&mdash;</div>
-          <div class="exec-kpi-sub">IOCs with active score</div>
+          <div class="exec-kpi-sub">IOCs with active score (&ge;30)</div>
+          <div class="exec-kpi-delta d-neutral" id="ekpi-active-delta"></div>
         </div>
-        <div class="exec-kpi-card" id="ekpi-new">
+        <div class="exec-kpi-card exec-stagger" id="ekpi-new" style="animation-delay:120ms">
           <div class="exec-kpi-label">New This Week</div>
           <div class="exec-kpi-val" id="ekpi-new-val">&mdash;</div>
-          <div class="exec-kpi-sub">IOCs added in 7 days</div>
+          <div class="exec-kpi-sub">IOCs added in last 7 days</div>
+          <div class="exec-kpi-delta d-neutral" id="ekpi-new-delta"></div>
         </div>
-        <div class="exec-kpi-card" id="ekpi-critical">
+        <div class="exec-kpi-card exec-stagger" id="ekpi-critical" style="animation-delay:180ms">
           <div class="exec-kpi-label">Critical CVEs</div>
           <div class="exec-kpi-val" id="ekpi-critical-val">&mdash;</div>
-          <div class="exec-kpi-sub">CVSS 9.0 or higher</div>
+          <div class="exec-kpi-sub">CVSS 9.0+ unpatched</div>
+          <div class="exec-kpi-delta d-neutral" id="ekpi-critical-delta"></div>
         </div>
-        <div class="exec-kpi-card" id="ekpi-actors">
+        <div class="exec-kpi-card exec-stagger" id="ekpi-actors" style="animation-delay:240ms">
           <div class="exec-kpi-label">Threat Actors</div>
           <div class="exec-kpi-val" id="ekpi-actors-val">&mdash;</div>
-          <div class="exec-kpi-sub">Nation-state groups observed</div>
+          <div class="exec-kpi-sub">Active adversary groups</div>
+          <div class="exec-kpi-delta d-neutral" id="ekpi-actors-delta"></div>
         </div>
       </div>
-      <!-- Two-column middle -->
+      <!-- Attack Vectors + Threat Actors -->
       <div class="exec-mid-row">
-        <!-- Attack vectors -->
-        <div class="exec-panel" id="exec-vectors-panel">
+        <div class="exec-panel exec-stagger" id="exec-vectors-panel" style="animation-delay:80ms">
           <div class="exec-panel-title">Attack Vectors</div>
-          <div class="exec-panel-sub">How adversaries are operating</div>
+          <div class="exec-panel-sub">How adversaries are operating &mdash; and what it means for your business</div>
           <div id="exec-vectors"></div>
         </div>
-        <!-- Top threat actors -->
-        <div class="exec-panel" id="exec-actors-panel">
+        <div class="exec-panel exec-stagger" id="exec-actors-panel" style="animation-delay:140ms">
           <div class="exec-panel-title">Top Threat Actors</div>
-          <div class="exec-panel-sub">Most active this period</div>
+          <div class="exec-panel-sub">Most active adversary groups this period</div>
           <div id="exec-actors"></div>
         </div>
       </div>
-      <!-- Trend + recommendations row -->
+      <!-- Kill Chain Stage + Trend -->
       <div class="exec-mid-row">
-        <!-- Threat trend -->
-        <div class="exec-panel exec-panel-wide" id="exec-trend-panel">
+        <div class="exec-panel exec-stagger" id="exec-killchain-panel" style="animation-delay:100ms">
+          <div class="exec-panel-title">Attack Lifecycle Stage</div>
+          <div class="exec-panel-sub">Where adversary activity is concentrated in the breach lifecycle</div>
+          <div class="exec-killchain-stages" id="exec-killchain-stages"></div>
+        </div>
+        <div class="exec-panel exec-stagger" id="exec-trend-panel" style="animation-delay:160ms">
           <div class="exec-panel-title">Threat Activity Trend</div>
-          <div class="exec-panel-sub">New IOCs observed over 30 days</div>
+          <div class="exec-panel-sub">New IOCs observed over the past 30 days</div>
           <svg id="exec-trend-svg" width="100%" height="120"></svg>
         </div>
-        <!-- Recommendations -->
-        <div class="exec-panel" id="exec-rec-panel">
-          <div class="exec-panel-title">Recommendations</div>
-          <div class="exec-panel-sub">Prioritized actions</div>
-          <div id="exec-recs"></div>
-        </div>
+      </div>
+      <!-- Recommendations -->
+      <div class="exec-panel exec-panel-full exec-stagger" id="exec-rec-panel" style="animation-delay:120ms">
+        <div class="exec-panel-title">Recommended Actions</div>
+        <div class="exec-panel-sub">Prioritized by urgency based on live threat signals</div>
+        <div id="exec-recs"></div>
       </div>
       <!-- Critical CVEs -->
-      <div class="exec-panel exec-panel-full" id="exec-cve-panel" style="display:none">
+      <div class="exec-panel exec-panel-full exec-stagger" id="exec-cve-panel" style="display:none;animation-delay:140ms">
         <div class="exec-panel-title">Critical Vulnerabilities</div>
-        <div class="exec-panel-sub">Unpatched CVEs requiring immediate attention</div>
+        <div class="exec-panel-sub">Unpatched CVEs with CVSS 9.0+ requiring immediate attention</div>
         <div id="exec-cves"></div>
       </div>
     </div>
 
-  </div>
 </main>
 
 <div class="ttp-tooltip" id="ttp-tooltip"></div>
@@ -2551,7 +2571,7 @@ function renderHome({activeSites,quietSites,failingSites,weekTotal,iocExport,ttp
 
 function updateDashboard({sites,activeSites,quietSites,failingSites,weekTotal,sparkData,state,sevenDay,prevRunLinks,iocExport,ttpExport,updatedAt}){
   lastSevenDay=sevenDay;lastState=state;lastPrevRunLinks=prevRunLinks||[];
-  window._sourceCount=sites.length;
+  window._iocData=iocExport||[];window._ttpData=ttpExport||[];window._sourceCount=activeSites.length;
   document.getElementById("hdr-total").textContent=sites.length;
   document.getElementById("num-active").textContent=activeSites.length;
   document.getElementById("num-quiet").textContent=quietSites.length;
@@ -2594,6 +2614,7 @@ async function loadVmData(){
     document.getElementById("sb-kevs").textContent=vmData.totalKev||"—";
   }catch(e){
     vmData={kevEntries:[],cvssMap:{},totalKev:0,error:e.message};
+    window._vmData=vmData;
   }
   return vmData;
 }
@@ -2820,7 +2841,12 @@ async function refreshData(){
 
 /* ── Tab switching ── */
 function switchTab(name){
-  if(_execMode)return;
+  if(typeof _execMode !== 'undefined' && _execMode){
+    _execMode=false;
+    document.getElementById('vt-analyst').classList.add('active');
+    document.getElementById('vt-executive').classList.remove('active');
+    document.getElementById('tab-exec').style.display='none';
+  }
   ["home","sources","iocs","ttps","graph","vm"].forEach(t=>{document.getElementById(`tab-${t}`).classList.toggle("active",t===name);const btn=document.getElementById(`tab-btn-${t}`);if(btn){btn.classList.toggle("active",t===name);btn.setAttribute("aria-selected",t===name);}});
   if(name==="graph")requestAnimationFrame(rebuildGraph);
   if(name==="vm")renderVmTab();
@@ -2941,88 +2967,206 @@ function setViewMode(mode) {
   document.getElementById('vt-analyst').classList.toggle('active', !_execMode);
   document.getElementById('vt-executive').classList.toggle('active', _execMode);
   if (_execMode) {
-    // Hide all analyst tab panes
     document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
     const ep = document.getElementById('tab-exec');
     ep.style.display = 'block';
     renderExecView();
   } else {
     document.getElementById('tab-exec').style.display = 'none';
-    // Re-show whichever analyst tab was active last
-    const lastTab = document.querySelector('.nav-btn.active');
-    const name = lastTab ? lastTab.dataset.tab : 'home';
+    ["home","sources","iocs","ttps","graph","vm"].forEach(t => {
+      const p = document.getElementById(`tab-${t}`);
+      if (p) p.style.display = '';
+    });
+    const lastBtn = document.querySelector('.nav-btn.active');
+    const name = lastBtn ? lastBtn.dataset.tab : 'home';
     switchTab(name);
   }
 }
 
-// Tactic to business-friendly category mapping
 const _TACTIC_CATEGORY = {
-  'initial-access':        { label: 'Initial Compromise',      color: '#ff3b30' },
-  'execution':             { label: 'Malware Execution',        color: '#ff9500' },
-  'persistence':           { label: 'Establish Foothold',       color: '#ff9500' },
-  'privilege-escalation':  { label: 'Privilege Escalation',     color: '#ff9f0a' },
-  'defense-evasion':       { label: 'Detection Evasion',        color: '#ffd60a' },
-  'credential-access':     { label: 'Credential Theft',         color: '#bf5fff' },
-  'discovery':             { label: 'Internal Recon',           color: '#00d4ff' },
-  'lateral-movement':      { label: 'Lateral Movement',         color: '#00d4ff' },
-  'collection':            { label: 'Data Collection',          color: '#00ff41' },
-  'exfiltration':          { label: 'Data Exfiltration',        color: '#00ff41' },
-  'command-and-control':   { label: 'Remote Control',           color: '#67e8f9' },
-  'impact':                { label: 'Ransomware / Disruption',  color: '#ff3b30' },
-  'resource-development':  { label: 'Infrastructure Setup',     color: '#808080' },
-  'reconnaissance':        { label: 'Pre-Attack Recon',         color: '#808080' },
+  'reconnaissance':       {label:'Reconnaissance',        color:'#5e6ad2'},
+  'resource-development': {label:'Resource Development',  color:'#5e6ad2'},
+  'initial-access':       {label:'Initial Access',        color:'#ff453a'},
+  'execution':            {label:'Execution',             color:'#ff9500'},
+  'persistence':          {label:'Persistence',           color:'#ff9500'},
+  'privilege-escalation': {label:'Privilege Escalation',  color:'#ffd60a'},
+  'defense-evasion':      {label:'Defense Evasion',       color:'#ffd60a'},
+  'credential-access':    {label:'Credential Theft',      color:'#ff453a'},
+  'discovery':            {label:'Internal Discovery',    color:'#64d2ff'},
+  'lateral-movement':     {label:'Lateral Movement',      color:'#ff6961'},
+  'collection':           {label:'Data Collection',       color:'#bf5af2'},
+  'command-and-control':  {label:'C2 / Remote Control',   color:'#ff453a'},
+  'exfiltration':         {label:'Data Exfiltration',     color:'#ff453a'},
+  'impact':               {label:'Operational Impact',    color:'#ff453a'},
 };
 
-// APT actor descriptions for executives
-const _APT_DESCRIPTIONS = {
-  'APT29':      { flag: '🇷🇺', desc: 'Russian intelligence — targeting government & defense' },
-  'APT28':      { flag: '🇷🇺', desc: 'Russian military GRU — phishing & credential theft' },
-  'Sandworm':   { flag: '🇷🇺', desc: 'Russian GRU — critical infrastructure sabotage' },
-  'APT38':      { flag: '🇰🇵', desc: 'North Korean — financial crime & crypto theft' },
-  'APT43':      { flag: '🇰🇵', desc: 'North Korean — espionage & supply chain' },
-  'Lazarus':    { flag: '🇰🇵', desc: 'North Korean — ransomware & financial attacks' },
-  'APT41':      { flag: '🇨🇳', desc: 'Chinese state — espionage and financial crime' },
-  'APT40':      { flag: '🇨🇳', desc: 'Chinese naval intel — maritime & tech sector' },
-  'VoltTyphoon':{ flag: '🇨🇳', desc: 'Chinese — critical infrastructure pre-positioning' },
-  'APT33':      { flag: '🇮🇷', desc: 'Iranian — aerospace & energy sector targeting' },
-  'APT34':      { flag: '🇮🇷', desc: 'Iranian intelligence — credential phishing' },
-  'MuddyWater': { flag: '🇮🇷', desc: 'Iranian — government & telecom espionage' },
-  'Turla':      { flag: '🇷🇺', desc: 'Russian FSB — long-term stealth espionage' },
-  'Gamaredon':  { flag: '🇷🇺', desc: 'Russian FSB — Ukrainian & NATO targeting' },
-  'LockBit':    { flag: '💰', desc: 'Ransomware group — high-volume enterprise attacks' },
-  'ALPHV':      { flag: '💰', desc: 'BlackCat ransomware — double extortion campaigns' },
-  'RansomHub':  { flag: '💰', desc: 'Ransomware-as-a-service — critical sector focus' },
-  'Clop':       { flag: '💰', desc: 'Ransomware — mass exploitation of file transfer tools' },
-  'BlackBasta': { flag: '💰', desc: 'Ransomware — targeting healthcare & finance' },
+const _TACTIC_BUSINESS_RISK = {
+  'reconnaissance':       'Attacker researching your organization — targeting phase has begun',
+  'resource-development': 'Adversary building attack infrastructure — breach preparation underway',
+  'initial-access':       'Unauthorized entry into corporate network — perimeter breach risk',
+  'execution':            'Malicious code running on internal systems — active compromise',
+  'persistence':          'Attacker maintaining long-term foothold — extended dwell time risk',
+  'privilege-escalation': 'Adversary gaining admin rights — full system control possible',
+  'defense-evasion':      'Detection being actively bypassed — security tools may be blind',
+  'credential-access':    'Employee passwords or tokens being stolen — account takeover risk',
+  'discovery':            'Attacker mapping your internal network — reconnaissance before attack',
+  'lateral-movement':     'Spreading across systems — breach expanding beyond entry point',
+  'collection':           'Sensitive data being gathered — pre-exfiltration stage',
+  'command-and-control':  'Remote attacker control established — ongoing live intrusion',
+  'exfiltration':         'Data actively leaving your network — breach in progress',
+  'impact':               'Operational disruption or ransomware deployment — business continuity at risk',
 };
 
 function _aptMeta(name) {
-  if (_APT_DESCRIPTIONS[name]) return _APT_DESCRIPTIONS[name];
-  if (!name) return { flag: '🌐', desc: 'Unknown actor' };
-  const lc = name.toLowerCase();
-  if (lc.includes('apt') && lc.match(/apt\d*[0-9]/)) return { flag: '🌐', desc: 'Nation-state advanced persistent threat' };
-  return { flag: '💰', desc: 'Financially motivated threat actor' };
+  const n = (name || '').toLowerCase();
+  if (/lazarus|apt38|bluenoroff|moonstone|andariel|kimsuky|apt43|apt37/.test(n))
+    return {flag:'🇰🇵', desc:'North Korean state actor — financial theft and espionage'};
+  if (/apt28|apt29|sandworm|turla|gamaredon|energetic|dragonfly|star blizzard|indrik|evil corp/.test(n))
+    return {flag:'🇷🇺', desc:'Russian state actor — espionage and destructive attacks'};
+  if (/apt10|apt27|apt40|apt41|volt typhoon|salt typhoon|mustang|hafnium|mirrorface/.test(n))
+    return {flag:'🇨🇳', desc:'Chinese state actor — intellectual property and espionage'};
+  if (/apt33|apt34|apt35|apt42|muddywater|fox kitten|hexane|agrius|cyberav3ngers/.test(n))
+    return {flag:'🇮🇷', desc:'Iranian state actor — espionage and disruptive operations'};
+  if (/lockbit|alphv|blackcat|clop|revil|ransom|black basta|akira|play|hive/.test(n))
+    return {flag:'💰', desc:'Ransomware group — extortion and operational disruption'};
+  if (/fin7|fin8|carbanak|cobalt/.test(n))
+    return {flag:'💳', desc:'Financially motivated — targeting financial systems'};
+  return {flag:'⚠️', desc:'Threat actor — attributed to observed indicators'};
 }
 
 function _threatLevelClass(score) {
-  if (score >= 70) return 'level-critical';
+  if (score >= 75) return 'level-critical';
   if (score >= 50) return 'level-high';
-  if (score >= 30) return 'level-medium';
+  if (score >= 25) return 'level-medium';
   return 'level-low';
 }
+
 function _threatLevelLabel(score) {
-  if (score >= 70) return 'CRITICAL THREAT LEVEL';
-  if (score >= 50) return 'HIGH THREAT LEVEL';
-  if (score >= 30) return 'MEDIUM THREAT LEVEL';
-  return 'LOW THREAT LEVEL';
+  if (score >= 75) return 'CRITICAL';
+  if (score >= 50) return 'HIGH';
+  if (score >= 25) return 'MEDIUM';
+  return 'LOW';
+}
+
+function animateCount(el, target, duration) {
+  if (!el || isNaN(target)) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = target; return; }
+  const start = performance.now();
+  const d = duration || 600;
+  function step(now) {
+    const t = Math.min((now - start) / d, 1);
+    const ease = 1 - Math.pow(1 - t, 4);
+    el.textContent = Math.round(ease * target);
+    if (t < 1) requestAnimationFrame(step);
+    else el.textContent = target;
+  }
+  requestAnimationFrame(step);
+}
+
+function _execWeekDelta(iocs) {
+  const now = Date.now();
+  const msDay = 86400000;
+  const weekAgo = new Date(now - 7 * msDay).toISOString().slice(0, 10);
+  const twoWeeksAgo = new Date(now - 14 * msDay).toISOString().slice(0, 10);
+  const thisWeek = iocs.filter(r => r.first_seen >= weekAgo).length;
+  const prevWeek = iocs.filter(r => r.first_seen >= twoWeeksAgo && r.first_seen < weekAgo).length;
+  if (!prevWeek) return {pct: null, thisWeek, prevWeek};
+  const pct = Math.round(((thisWeek - prevWeek) / prevWeek) * 100);
+  return {pct, thisWeek, prevWeek};
+}
+
+function _renderDeltaBadge(el, pct) {
+  if (!el || pct === null || pct === undefined) { el && (el.textContent = ''); return; }
+  const up = pct > 0;
+  const arrow = up ? '↑' : '↓';
+  const absPct = Math.abs(pct);
+  const cls = up ? (absPct >= 30 ? 'd-up-high' : 'd-up') : 'd-down';
+  el.className = 'exec-kpi-delta ' + cls;
+  el.textContent = `${arrow} ${absPct}% vs last week`;
+}
+
+function renderExecOverview(iocs, ttps, aptSet) {
+  const el = document.getElementById('exec-overview-text');
+  if (!el) return;
+  const msDay = 86400000;
+  const weekAgo = new Date(Date.now() - 7 * msDay).toISOString().slice(0, 10);
+  const activeCount = iocs.filter(r => (r.score || 0) >= 30).length;
+  const newThisWeek = iocs.filter(r => r.first_seen >= weekAgo).length;
+  const sources = window._sourceCount || '—';
+  const topApt = aptSet.size ? [...aptSet].slice(0, 1)[0] : null;
+  const aptCounts = {};
+  iocs.forEach(r => { if (r.apt) aptCounts[r.apt] = (aptCounts[r.apt] || 0) + 1; });
+  const topAptEntry = Object.entries(aptCounts).sort((a,b) => b[1]-a[1])[0];
+  const topTactic = ttps.length ? [...ttps].sort((a,b) => (b.total_observations||0) - (a.total_observations||0))[0] : null;
+  const topTacticLabel = topTactic ? (_TACTIC_CATEGORY[topTactic.tactic]||{label:topTactic.tactic}).label : null;
+  const topTacticRisk = topTactic ? (_TACTIC_BUSINESS_RISK[topTactic.tactic] || '') : '';
+  const vmd = window._vmData;
+  const criticalCves = vmd && vmd.kevEntries ? vmd.kevEntries.filter(e => parseFloat((vmd.cvssMap||{})[e.cveID]||0) >= 9.0).length : 0;
+
+  let text = `As of ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}, `;
+  text += `${activeCount} active threat indicator${activeCount !== 1 ? 's are' : ' is'} being monitored across ${sources} intelligence sources`;
+  if (newThisWeek > 0) text += `, with ${newThisWeek} new indicator${newThisWeek !== 1 ? 's' : ''} identified this week`;
+  text += '. ';
+  if (topAptEntry) {
+    text += `${topAptEntry[0]} is the most active adversary group with ${topAptEntry[1]} attributed indicator${topAptEntry[1] !== 1 ? 's' : ''}. `;
+  }
+  if (topTacticLabel) {
+    text += `${topTacticLabel} is the dominant attack technique — ${topTacticRisk.toLowerCase()}. `;
+  }
+  if (criticalCves > 0) {
+    text += `${criticalCves} unpatched critical vulnerabilit${criticalCves !== 1 ? 'ies' : 'y'} (CVSS 9.0+) pose immediate exposure risk requiring urgent patching.`;
+  }
+  el.textContent = text;
+}
+
+function renderExecKillChain(ttps) {
+  const el = document.getElementById('exec-killchain-stages');
+  if (!el) return;
+  const stages = [
+    {
+      key: 'early',
+      label: 'Early Stage',
+      desc: 'Recon, initial access, resource development',
+      color: '#64d2ff',
+      tactics: ['reconnaissance','resource-development','initial-access','execution'],
+    },
+    {
+      key: 'active',
+      label: 'Active Intrusion',
+      desc: 'Persistence, privilege escalation, lateral movement, C2',
+      color: '#ff9500',
+      tactics: ['persistence','privilege-escalation','defense-evasion','credential-access','discovery','lateral-movement','collection','command-and-control'],
+    },
+    {
+      key: 'impact',
+      label: 'Data / Impact',
+      desc: 'Exfiltration, disruption, ransomware deployment',
+      color: '#ff453a',
+      tactics: ['exfiltration','impact'],
+    },
+  ];
+  const counts = stages.map(s => {
+    const obs = ttps.filter(t => s.tactics.includes(t.tactic)).reduce((a, t) => a + (t.total_observations||1), 0);
+    return {...s, obs};
+  });
+  const maxObs = Math.max(...counts.map(s => s.obs), 1);
+  const dominantIdx = counts.reduce((mi, s, i) => s.obs > counts[mi].obs ? i : mi, 0);
+  el.innerHTML = counts.map((s, i) => {
+    const pct = Math.round((s.obs / maxObs) * 100);
+    return `<div class="exec-kc-stage${i === dominantIdx && s.obs > 0 ? ' kc-dominant' : ''} exec-stagger" style="animation-delay:${i*60}ms">
+      <div class="exec-kc-label">${s.label}</div>
+      <div class="exec-kc-val">${s.obs}</div>
+      <div class="exec-kc-desc">${s.desc}</div>
+      <div class="exec-kc-bar"><div class="exec-kc-fill" style="width:${pct}%;background:${s.color}"></div></div>
+    </div>`;
+  }).join('');
 }
 
 function renderExecView() {
-  const iocs = (_iocData || []);
-  const ttps = (_ttpData || []);
-  const msPerDay = 86400000;
+  const iocs = window._iocData || [];
+  const ttps = window._ttpData || [];
+  const msDay = 86400000;
 
-  // Hero
   const liveScores = iocs.map(r => typeof liveScore === 'function' ? liveScore(r) : (r.score || 0));
   const avgTopScore = liveScores.length ? liveScores.slice(0, 10).reduce((a,b)=>a+b,0) / Math.min(10, liveScores.length) : 0;
   const heroScore = Math.round(avgTopScore);
@@ -3034,33 +3178,50 @@ function renderExecView() {
   const activeCount = liveScores.filter(s => s >= 30).length;
   const aptSet = new Set(iocs.filter(r => r.apt).map(r => r.apt));
   document.getElementById('exec-hero-sub').textContent =
-    `${activeCount} active threats monitored across ${aptSet.size || 0} threat actor group${aptSet.size !== 1 ? 's' : ''}, drawn from ${(window._sourceCount||0) || '—'} intelligence sources`;
+    `${activeCount} active threat${activeCount !== 1 ? 's' : ''} monitored across ${aptSet.size || 0} adversary group${aptSet.size !== 1 ? 's' : ''}, drawn from ${window._sourceCount || '—'} intelligence sources`;
   document.getElementById('exec-hero-ts').textContent =
-    'Assessment as of ' + new Date().toUTCString().replace(' GMT','  UTC');
+    'Assessment as of ' + new Date().toUTCString().replace(' GMT', '  UTC');
 
-  // KPI cards
-  const oneWeekAgo = new Date(Date.now() - 7 * msPerDay).toISOString().slice(0, 10);
-  const newThisWeek = iocs.filter(r => r.first_seen >= oneWeekAgo).length;
-  document.getElementById('ekpi-active-val').textContent = activeCount;
-  document.getElementById('ekpi-new-val').textContent = newThisWeek;
-  document.getElementById('ekpi-actors-val').textContent = aptSet.size || 0;
+  // Threat velocity
+  const delta = _execWeekDelta(iocs);
+  const velEl = document.getElementById('exec-velocity');
+  if (velEl && delta.pct !== null) {
+    const up = delta.pct > 0;
+    const arrow = up ? '↑' : '↓';
+    const absPct = Math.abs(delta.pct);
+    velEl.className = 'exec-velocity ' + (up ? (absPct >= 30 ? 'vel-up-high' : 'vel-up') : 'vel-down');
+    velEl.textContent = `${arrow} Threat volume ${up ? 'rising' : 'declining'} · ${up ? '+' : '-'}${absPct}% vs last 7 days`;
+    velEl.style.display = 'inline-flex';
+  }
 
-  // Critical CVEs from vm data if available
+  // Situation Overview
+  renderExecOverview(iocs, ttps, aptSet);
+
+  // KPI values
+  const weekAgo = new Date(Date.now() - 7 * msDay).toISOString().slice(0, 10);
+  const newThisWeek = iocs.filter(r => r.first_seen >= weekAgo).length;
+  animateCount(document.getElementById('ekpi-active-val'), activeCount);
+  animateCount(document.getElementById('ekpi-new-val'), newThisWeek);
+  animateCount(document.getElementById('ekpi-actors-val'), aptSet.size);
+
+  // KPI deltas
+  _renderDeltaBadge(document.getElementById('ekpi-active-delta'), delta.pct);
+  _renderDeltaBadge(document.getElementById('ekpi-new-delta'), delta.pct);
+
+  // Critical CVEs
   const vmd = window._vmData || null;
   if (vmd && vmd.kevEntries) {
     const cvssMap = vmd.cvssMap || {};
-    const critical = vmd.kevEntries.filter(e => {
-      const cvss = parseFloat(cvssMap[e.cveID] || 0);
-      return cvss >= 9.0;
-    });
-    document.getElementById('ekpi-critical-val').textContent = critical.length;
-    document.getElementById('exec-cve-panel').style.display = critical.length ? 'block' : 'none';
+    const critical = vmd.kevEntries.filter(e => parseFloat(cvssMap[e.cveID]||0) >= 9.0);
+    animateCount(document.getElementById('ekpi-critical-val'), critical.length);
+    const cvePanel = document.getElementById('exec-cve-panel');
+    if (cvePanel) cvePanel.style.display = critical.length ? 'block' : 'none';
     renderExecCves(critical.slice(0, 8), cvssMap);
   } else {
     document.getElementById('ekpi-critical-val').textContent = '—';
   }
 
-  // Attack vectors
+  // Attack vectors with business risk
   const tacticCounts = {};
   ttps.forEach(t => {
     const cat = _TACTIC_CATEGORY[t.tactic];
@@ -3070,10 +3231,11 @@ function renderExecView() {
   const sortedTactics = Object.entries(tacticCounts).sort((a, b) => b[1] - a[1]).slice(0, 6);
   const maxTactic = sortedTactics.length ? sortedTactics[0][1] : 1;
   const vectorsEl = document.getElementById('exec-vectors');
-  vectorsEl.innerHTML = sortedTactics.length ? sortedTactics.map(([ tactic, count ]) => {
+  vectorsEl.innerHTML = sortedTactics.length ? sortedTactics.map(([tactic, count], i) => {
     const cat = _TACTIC_CATEGORY[tactic];
+    const risk = _TACTIC_BUSINESS_RISK[tactic] || '';
     const pct = Math.round((count / maxTactic) * 100);
-    return `<div class="exec-vector-item exec-stagger">
+    return `<div class="exec-vector-item exec-stagger" style="animation-delay:${i*50}ms">
       <div class="exec-vector-label">
         <span class="exec-vector-name">${cat.label}</span>
         <span class="exec-vector-pct">${count} obs</span>
@@ -3081,20 +3243,18 @@ function renderExecView() {
       <div class="exec-vector-track">
         <div class="exec-vector-fill" style="width:${pct}%;background:${cat.color}"></div>
       </div>
+      ${risk ? `<div class="exec-vector-risk">${risk}</div>` : ''}
     </div>`;
   }).join('') : '<div style="color:var(--text-dim);font-size:12px">No TTP data available</div>';
-  vectorsEl.querySelectorAll('.exec-stagger').forEach((el, i) => {
-    el.style.animationDelay = `${i * 40}ms`;
-  });
 
   // Threat actors
   const aptCounts = {};
   iocs.forEach(r => { if (r.apt) aptCounts[r.apt] = (aptCounts[r.apt] || 0) + 1; });
   const topApts = Object.entries(aptCounts).sort((a, b) => b[1] - a[1]).slice(0, 6);
   const actorsEl = document.getElementById('exec-actors');
-  actorsEl.innerHTML = topApts.length ? topApts.map(([ apt, count ]) => {
+  actorsEl.innerHTML = topApts.length ? topApts.map(([apt, count], i) => {
     const meta = _aptMeta(apt);
-    return `<div class="exec-actor-item exec-stagger">
+    return `<div class="exec-actor-item exec-stagger" style="animation-delay:${i*50}ms">
       <div class="exec-actor-flag">${meta.flag}</div>
       <div class="exec-actor-info">
         <div class="exec-actor-name">${apt}</div>
@@ -3103,9 +3263,9 @@ function renderExecView() {
       <div class="exec-actor-count">${count}</div>
     </div>`;
   }).join('') : '<div style="color:var(--text-dim);font-size:12px">No attribution data</div>';
-  actorsEl.querySelectorAll('.exec-stagger').forEach((el, i) => {
-    el.style.animationDelay = `${i * 50}ms`;
-  });
+
+  // Kill chain stage
+  renderExecKillChain(ttps);
 
   // Trend chart
   renderExecTrend(iocs);
@@ -3119,9 +3279,7 @@ function renderExecTrend(iocs) {
   if (!svg) return;
   const W = svg.parentElement.offsetWidth || 600;
   svg.setAttribute('width', W);
-  const H = 120, PAD = { top: 10, right: 10, bottom: 24, left: 32 };
-
-  // Bucket IOCs by date (last 30 days)
+  const H = 120, PAD = {top:10, right:10, bottom:24, left:32};
   const buckets = {};
   const today = new Date(); today.setHours(0,0,0,0);
   for (let i = 29; i >= 0; i--) {
@@ -3129,44 +3287,34 @@ function renderExecTrend(iocs) {
     buckets[d.toISOString().slice(0,10)] = 0;
   }
   iocs.forEach(r => { if (r.first_seen && Object.prototype.hasOwnProperty.call(buckets, r.first_seen.slice(0,10))) buckets[r.first_seen.slice(0,10)]++; });
-
   const vals = Object.values(buckets);
   const keys = Object.keys(buckets);
   const maxV = Math.max(...vals, 1);
   const cW = W - PAD.left - PAD.right;
   const cH = H - PAD.top - PAD.bottom;
   const xStep = cW / (vals.length - 1);
-
   const points = vals.map((v, i) => [PAD.left + i * xStep, PAD.top + cH - (v / maxV) * cH]);
-  const pathD = points.map((p, i) => (i === 0 ? `M${p[0]},${p[1]}` : `L${p[0]},${p[1]}`)).join(' ');
-  const fillD = pathD + ` L${points[points.length-1][0]},${PAD.top+cH} L${points[0][0]},${PAD.top+cH} Z`;
-
+  const pathD = points.map((p, i) => (i === 0 ? `M${p[0].toFixed(1)},${p[1].toFixed(1)}` : `L${p[0].toFixed(1)},${p[1].toFixed(1)}`)).join(' ');
+  const fillD = pathD + ` L${points[points.length-1][0].toFixed(1)},${(PAD.top+cH).toFixed(1)} L${points[0][0].toFixed(1)},${(PAD.top+cH).toFixed(1)} Z`;
   const xLabels = keys.filter((_,i) => i % 7 === 0 || i === keys.length-1)
-    .map(k => { const i = keys.indexOf(k); return `<text x="${PAD.left + i*xStep}" y="${H-4}" text-anchor="middle" font-size="9" fill="var(--text-muted)" font-family="var(--font-mono)">${k.slice(5)}</text>`; }).join('');
-
-  svg.innerHTML = `
-    <defs>
-      <linearGradient id="execTrendGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="var(--green)" stop-opacity="0.25"/>
-        <stop offset="100%" stop-color="var(--green)" stop-opacity="0.02"/>
-      </linearGradient>
-    </defs>
+    .map(k => { const i = keys.indexOf(k); return `<text x="${(PAD.left+i*xStep).toFixed(1)}" y="${H-4}" text-anchor="middle" font-size="9" fill="var(--text-muted)" font-family="var(--font-mono)">${k.slice(5)}</text>`; }).join('');
+  svg.innerHTML = `<defs><linearGradient id="execTrendGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--green)" stop-opacity="0.25"/><stop offset="100%" stop-color="var(--green)" stop-opacity="0.02"/></linearGradient></defs>
     <path d="${fillD}" fill="url(#execTrendGrad)"/>
     <path d="${pathD}" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linejoin="round"/>
     ${xLabels}
-    <text x="${PAD.left - 4}" y="${PAD.top + 4}" text-anchor="end" font-size="9" fill="var(--text-muted)" font-family="var(--font-mono)">${maxV}</text>
-    <text x="${PAD.left - 4}" y="${PAD.top + cH}" text-anchor="end" font-size="9" fill="var(--text-muted)" font-family="var(--font-mono)">0</text>`;
+    <text x="${PAD.left-4}" y="${PAD.top+4}" text-anchor="end" font-size="9" fill="var(--text-muted)" font-family="var(--font-mono)">${maxV}</text>
+    <text x="${PAD.left-4}" y="${PAD.top+cH}" text-anchor="end" font-size="9" fill="var(--text-muted)" font-family="var(--font-mono)">0</text>`;
 }
 
 function renderExecCves(cves, cvssMap) {
   const el = document.getElementById('exec-cves');
   if (!el) return;
-  el.innerHTML = `<div class="exec-cve-grid">${cves.map(e => {
+  el.innerHTML = `<div class="exec-cve-grid">${cves.map((e, i) => {
     const score = parseFloat(cvssMap[e.cveID] || 0);
     const cls = score >= 9 ? 'cvss-critical' : 'cvss-high';
     const product = (e.product || e.vendorProject || '').replace(/_/g,' ');
     const title = (e.vulnerabilityName || e.shortDescription || product || 'Vulnerability').slice(0, 60);
-    return `<div class="exec-cve-card exec-stagger">
+    return `<div class="exec-cve-card exec-stagger" style="animation-delay:${i*30}ms">
       <div class="exec-cve-id">${e.cveID}</div>
       <div class="exec-cve-title">${title}</div>
       <div class="exec-cve-meta">
@@ -3175,7 +3323,6 @@ function renderExecCves(cves, cvssMap) {
       </div>
     </div>`;
   }).join('')}</div>`;
-  el.querySelectorAll('.exec-stagger').forEach((el2, i) => { el2.style.animationDelay = `${i * 30}ms`; });
 }
 
 function renderExecRecs(iocs, ttps, aptSet) {
@@ -3184,39 +3331,44 @@ function renderExecRecs(iocs, ttps, aptSet) {
   const criticalCount = liveScores.filter(s => s >= 70).length;
 
   if (criticalCount > 0)
-    recs.push({ p: 'p-critical', label: 'CRITICAL', text: `${criticalCount} high-confidence IOC${criticalCount>1?'s':''} with active threat scores — block at perimeter immediately` });
+    recs.push({p:'p-critical', label:'CRITICAL', urgency:'Act within 24h', text:`${criticalCount} high-confidence active threat indicator${criticalCount>1?'s':''} — block at perimeter immediately and verify detection rules are current`});
 
   const hasRansomware = ttps.some(t => t.tactic === 'impact' && t.total_observations > 2);
   if (hasRansomware)
-    recs.push({ p: 'p-critical', label: 'CRITICAL', text: 'Ransomware TTPs observed — verify offline backup integrity and test restore procedures' });
+    recs.push({p:'p-critical', label:'CRITICAL', urgency:'Act within 24h', text:'Ransomware-related techniques actively observed — verify offline backup integrity and test restoration procedures now'});
 
   const credTheft = ttps.some(t => t.tactic === 'credential-access');
   if (credTheft)
-    recs.push({ p: 'p-high', label: 'HIGH', text: 'Credential theft techniques active — enforce MFA across all privileged accounts now' });
+    recs.push({p:'p-high', label:'HIGH', urgency:'Act within 1 week', text:'Credential theft techniques are active — enforce MFA across all privileged and remote-access accounts immediately'});
 
   const initAccess = ttps.some(t => t.tactic === 'initial-access');
   if (initAccess)
-    recs.push({ p: 'p-high', label: 'HIGH', text: 'Initial access methods observed — audit VPN and remote desktop exposure' });
+    recs.push({p:'p-high', label:'HIGH', urgency:'Act within 1 week', text:'Initial access methods observed — audit VPN, remote desktop, and public-facing application exposure'});
 
   const kevValEl = document.getElementById('ekpi-critical-val');
   const hasKEVs = kevValEl && kevValEl.textContent !== '—' && parseInt(kevValEl.textContent) > 0;
   if (hasKEVs)
-    recs.push({ p: 'p-high', label: 'HIGH', text: 'CISA Known Exploited Vulnerabilities active — prioritize patching over routine maintenance' });
+    recs.push({p:'p-high', label:'HIGH', urgency:'Act within 1 week', text:'CISA Known Exploited Vulnerabilities present — prioritize patching over routine maintenance; these are actively exploited in the wild'});
 
   if (aptSet.size > 3)
-    recs.push({ p: 'p-medium', label: 'MEDIUM', text: `${aptSet.size} distinct threat actors observed — brief security leadership on threat landscape` });
+    recs.push({p:'p-medium', label:'MEDIUM', urgency:'Act within 30 days', text:`${aptSet.size} distinct threat actor groups observed — schedule a threat briefing with security leadership on current landscape`});
 
   const c2Active = ttps.some(t => t.tactic === 'command-and-control');
   if (c2Active)
-    recs.push({ p: 'p-medium', label: 'MEDIUM', text: 'C2 infrastructure techniques observed — review network egress rules and DNS monitoring' });
+    recs.push({p:'p-medium', label:'MEDIUM', urgency:'Act within 30 days', text:'Command-and-control infrastructure techniques observed — review network egress rules, DNS monitoring, and proxy logs'});
+
+  const lateralMove = ttps.some(t => t.tactic === 'lateral-movement');
+  if (lateralMove)
+    recs.push({p:'p-medium', label:'MEDIUM', urgency:'Act within 30 days', text:'Lateral movement techniques active — review network segmentation and ensure east-west traffic monitoring is in place'});
 
   if (!recs.length)
-    recs.push({ p: 'p-medium', label: 'INFO', text: 'No critical immediate actions required — continue standard monitoring cadence' });
+    recs.push({p:'p-medium', label:'INFO', urgency:'Routine', text:'No critical immediate actions required — continue standard monitoring cadence and review intelligence weekly'});
 
-  document.getElementById('exec-recs').innerHTML = recs.slice(0, 6).map((r, i) =>
+  document.getElementById('exec-recs').innerHTML = recs.slice(0, 7).map((r, i) =>
     `<div class="exec-rec-item exec-stagger" style="animation-delay:${i*40}ms">
       <span class="exec-rec-priority ${r.p}">${r.label}</span>
       <span class="exec-rec-text">${r.text}</span>
+      <span class="exec-rec-urgency">${r.urgency}</span>
     </div>`).join('');
 }
 </script>
