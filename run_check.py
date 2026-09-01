@@ -1076,8 +1076,6 @@ def send_digest_email(new_items, failures, duplicate_links=None, ai_run_cost=0.0
         ioc_html = (
             f"<hr><h3>IOC Extraction — This Run</h3>"
             f"<h4>New ({len(ioc_results['new'])})</h4>{_ioc_table(ioc_results['new'])}"
-            f"<h4>Active — Score &ge; 30 ({len(ioc_results['active'])})</h4>{_ioc_table(ioc_results['active'])}"
-            f"<h4>Expiring — Score &lt; 30 ({len(ioc_results['expiring'])})</h4>{_ioc_table(ioc_results['expiring'])}"
         )
 
     ai_cost_html = (
