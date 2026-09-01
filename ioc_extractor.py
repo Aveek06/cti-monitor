@@ -353,7 +353,20 @@ def fetch_article_text(url: str) -> str | None:
         soup = BeautifulSoup(resp.text, "html.parser")
         for tag in soup(["nav", "header", "footer", "script", "style", "aside", "form"]):
             tag.decompose()
-        return soup.get_text(separator=" ", strip=True)
+        text = soup.get_text(separator=" ", strip=True)
+        # Discard WAF/bot-challenge pages — they produce false summaries
+        _lc = text.lower()
+        if len(text) < 400:
+            return None
+        if ("access denied" in _lc or "403 forbidden" in _lc) and "cloudflare" in _lc:
+            return None
+        if "ray id" in _lc and ("cloudflare" in _lc or "blocked" in _lc):
+            return None
+        if "attention required" in _lc and "cloudflare" in _lc:
+            return None
+        if "please enable cookies" in _lc and "cloudflare" in _lc:
+            return None
+        return text
     except Exception:
         return None
 
