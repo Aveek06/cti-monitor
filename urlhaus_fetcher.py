@@ -2,7 +2,7 @@ import os
 import requests
 from datetime import datetime, timezone
 
-URLHAUS_API = "https://urlhaus-api.abuse.ch/v1/urls/recent/"
+URLHAUS_API = "https://urlhaus-api.abuse.ch/v1/urls/recent/limit/{limit}/"
 MAX_URLS = 500
 
 
@@ -10,9 +10,9 @@ def fetch_url_iocs(api_key: str) -> list[dict]:
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     try:
         resp = requests.post(
-            URLHAUS_API,
-            headers={"Auth-Key": api_key},
-            data={"limit": MAX_URLS},
+            URLHAUS_API.format(limit=MAX_URLS),
+            headers={"Auth-Key": api_key, "Content-Type": "application/json"},
+            json={},
             timeout=30,
         )
         resp.raise_for_status()

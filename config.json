@@ -38,7 +38,7 @@
     {
       "name": "Check Point Research",
       "type": "feed",
-      "url": "https://research.checkpoint.com/feed"
+      "url": "https://blog.checkpoint.com/feed/"
     },
     {
       "name": "Check Point Exposure Management",
@@ -125,7 +125,7 @@
     },
     {
       "name": "Cybereason",
-      "type": "feed",
+      "type": "skip",
       "url": "https://www.cybereason.com/blog/rss.xml"
     },
     {
@@ -476,14 +476,14 @@
     },
     {
       "name": "Praetorian",
-      "type": "scrapling",
+      "type": "scrapling_stealthy",
       "url": "https://www.praetorian.com/blog/",
       "link_path_prefix": "/blog/"
     },
     {
       "name": "Red Canary",
       "type": "feed",
-      "url": "https://redcanary.com/feed/"
+      "url": "https://redcanary.com/blog/feed/"
     },
     {
       "name": "Netlify",
@@ -1282,7 +1282,7 @@
     },
     {
       "name": "StrongestLayer",
-      "type": "scrapling",
+      "type": "scrapling_stealthy",
       "url": "https://www.strongestlayer.com/blog",
       "link_path_prefix": "/blog/"
     },
