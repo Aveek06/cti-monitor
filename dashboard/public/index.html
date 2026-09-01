@@ -229,6 +229,32 @@
     .ioc-export-opt:last-child{border-bottom:none;}
     .ioc-export-opt:hover{background:var(--surface3);color:var(--text);}
     .ioc-export-opt-desc{display:block;font-size:8px;font-weight:400;color:var(--text-muted);letter-spacing:.04em;text-transform:none;margin-top:1px;}
+    /* URLhaus live feed */
+    .uh-panel{margin-top:28px;border:1px solid var(--border);background:var(--surface);}
+    .uh-header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid transparent;cursor:default;}
+    .uh-label{font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--green);font-family:var(--font-ui);}
+    .uh-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;animation:none;}
+    .uh-dot.live{animation:uhPulse 2s ease-in-out infinite;}
+    @keyframes uhPulse{0%,100%{opacity:1}50%{opacity:.3}}
+    .uh-ts{font-size:8px;color:var(--text-muted);font-family:var(--font-ui);margin-left:auto;}
+    .uh-count{font-size:9px;color:var(--amber);font-family:var(--font-mono);font-weight:700;}
+    .uh-refresh-btn{display:flex;align-items:center;gap:5px;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-family:var(--font-ui);padding:4px 10px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;transition:border-color .12s,color .12s,background .12s;}
+    .uh-refresh-btn:hover{border-color:var(--green);color:var(--green);}
+    .uh-refresh-btn:active{background:rgba(0,255,65,.08);}
+    .uh-refresh-btn svg{transition:transform .5s ease;}
+    .uh-refresh-btn.spinning svg{animation:uhSpin .7s linear infinite;}
+    @keyframes uhSpin{to{transform:rotate(360deg)}}
+    .uh-body{padding:0 14px 14px;}
+    .uh-status{font-size:9px;color:var(--text-muted);font-family:var(--font-ui);padding:14px 0;text-align:center;font-style:italic;}
+    .uh-table{width:100%;border-collapse:collapse;font-size:9px;font-family:var(--font-mono);margin-top:10px;}
+    .uh-table th{font-size:7px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);padding:5px 10px 5px 0;border-bottom:1px solid var(--border);text-align:left;font-family:var(--font-ui);}
+    .uh-table td{padding:6px 10px 6px 0;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text);}
+    .uh-table tr:last-child td{border-bottom:none;}
+    .uh-table tr:hover td{background:rgba(0,255,65,.04);}
+    .uh-url{color:var(--cyan);cursor:pointer;user-select:all;word-break:break-all;font-size:8.5px;}
+    .uh-url:hover{color:var(--text-hi);}
+    .uh-threat{display:inline-block;font-size:7px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:1px 5px;border-radius:2px;background:rgba(255,59,48,.15);color:var(--red);font-family:var(--font-ui);}
+    .uh-tag{display:inline-block;font-size:7px;padding:1px 5px;border:1px solid var(--border);color:var(--text-dim);border-radius:2px;margin:1px 2px 1px 0;font-family:var(--font-ui);}
     .ioc-table-wrap{overflow-x:auto;}
     .ioc-table{width:100%;border-collapse:collapse;font-size:10px;}
     .ioc-table th{text-align:left;font-size:8px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);padding:0 12px 8px 0;border-bottom:1px solid var(--border);white-space:nowrap;}
@@ -1181,6 +1207,32 @@
           </div>
           <p class="ioc-empty" id="ioc-empty" style="display:none">No matching IOCs.</p>
           <p class="ioc-none" id="ioc-none">No IOC data yet.<br><span style="color:var(--text-muted);font-size:9px">IOCs are extracted from articles on each daily run.</span></p>
+        </div>
+      </div>
+
+      <!-- URLhaus live feed -->
+      <div class="uh-panel">
+        <div class="uh-header">
+          <span class="uh-dot" id="uh-dot"></span>
+          <span class="uh-label">// Live URLhaus Feed</span>
+          <span class="uh-count" id="uh-count" style="display:none"></span>
+          <span class="uh-ts" id="uh-ts"></span>
+          <button class="uh-refresh-btn" id="uh-refresh-btn" onclick="refreshUrlhaus()">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 5A4 4 0 1 1 5.5 1.1"/>
+              <polyline points="7 1 9.5 1 9.5 3.5"/>
+            </svg>
+            Refresh
+          </button>
+        </div>
+        <div class="uh-body">
+          <div class="uh-status" id="uh-status">Press Refresh to load live URLhaus URLs.</div>
+          <div id="uh-table-wrap" style="display:none;overflow-x:auto;">
+            <table class="uh-table">
+              <thead><tr><th>URL</th><th>Threat</th><th>Tags</th><th>Added</th></tr></thead>
+              <tbody id="uh-tbody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -2396,6 +2448,62 @@ function exportIocs(fmt){
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);
 }
 
+/* ── URLhaus live feed ── */
+async function refreshUrlhaus(){
+  const btn=document.getElementById("uh-refresh-btn");
+  const status=document.getElementById("uh-status");
+  const tableWrap=document.getElementById("uh-table-wrap");
+  const tbody=document.getElementById("uh-tbody");
+  const dot=document.getElementById("uh-dot");
+  const countEl=document.getElementById("uh-count");
+  const tsEl=document.getElementById("uh-ts");
+
+  btn.classList.add("spinning");
+  btn.disabled=true;
+  status.style.display="block";
+  status.textContent="Fetching live data from URLhaus…";
+  tableWrap.style.display="none";
+  dot.classList.remove("live");
+  countEl.style.display="none";
+
+  try{
+    const res=await fetch("/api/urlhaus-live");
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||"Request failed");
+
+    const urls=data.urls||[];
+    if(!urls.length){
+      status.textContent=`No online URLs returned (${data.total} total checked).`;
+      btn.classList.remove("spinning");btn.disabled=false;
+      return;
+    }
+
+    tbody.innerHTML=urls.map(u=>{
+      const threat=u.threat?`<span class="uh-threat">${u.threat}</span>`:"—";
+      const tags=(u.tags||[]).map(t=>`<span class="uh-tag">${t}</span>`).join("")||"—";
+      return `<tr>
+        <td><span class="uh-url" onclick="navigator.clipboard.writeText('${u.url.replace(/'/g,"\\'")}').then(()=>{this.style.color='var(--green)';setTimeout(()=>this.style.color='',800)})" title="Click to copy">${u.url}</span></td>
+        <td>${threat}</td>
+        <td>${tags}</td>
+        <td style="white-space:nowrap;color:var(--text-muted)">${u.date_added||"—"}</td>
+      </tr>`;
+    }).join("");
+
+    const fetched=new Date(data.fetched_at);
+    tsEl.textContent="Refreshed "+fetched.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+    countEl.textContent=`${data.online} online`;
+    countEl.style.display="";
+    dot.classList.add("live");
+    status.style.display="none";
+    tableWrap.style.display="block";
+  }catch(e){
+    status.textContent="Error: "+e.message;
+  }finally{
+    btn.classList.remove("spinning");
+    btn.disabled=false;
+  }
+}
+
 /* ── TTP Heat Map ── */
 let _ttpById={},_ttpExport=[],_ttpDays=0;
 const TACTIC_LABELS={"reconnaissance":"Recon","resource-development":"Resource Dev","initial-access":"Initial Access","execution":"Execution","persistence":"Persistence","privilege-escalation":"Priv. Esc.","defense-evasion":"Defense Eva.","credential-access":"Cred. Access","discovery":"Discovery","lateral-movement":"Lateral Mvmt","collection":"Collection","command-and-control":"C2","exfiltration":"Exfil","impact":"Impact"};
@@ -3071,8 +3179,8 @@ function _execWeekDelta(iocs) {
   const twoWeeksAgo = new Date(now - 14 * msDay).toISOString().slice(0, 10);
   const thisWeek = iocs.filter(r => r.first_seen >= weekAgo).length;
   const prevWeek = iocs.filter(r => r.first_seen >= twoWeeksAgo && r.first_seen < weekAgo).length;
-  if (!prevWeek) return {pct: null, thisWeek, prevWeek};
-  const pct = Math.round(((thisWeek - prevWeek) / prevWeek) * 100);
+  if (!prevWeek || prevWeek < 10) return {pct: null, thisWeek, prevWeek};
+  const pct = Math.max(-99, Math.min(999, Math.round(((thisWeek - prevWeek) / prevWeek) * 100)));
   return {pct, thisWeek, prevWeek};
 }
 
@@ -3102,7 +3210,7 @@ function renderExecOverview(iocs, ttps, aptSet) {
   const topTacticLabel = topTactic ? (_TACTIC_CATEGORY[topTactic.tactic]||{label:topTactic.tactic}).label : null;
   const topTacticRisk = topTactic ? (_TACTIC_BUSINESS_RISK[topTactic.tactic] || '') : '';
   const vmd = window._vmData;
-  const criticalCves = vmd && vmd.kevEntries ? vmd.kevEntries.filter(e => parseFloat((vmd.cvssMap||{})[e.cveID]||0) >= 9.0).length : 0;
+  const criticalCves = vmd && vmd.kevEntries ? vmd.kevEntries.filter(e => parseFloat(((vmd.cvssMap||{})[e.cveID]||{}).score||0) >= 9.0).length : 0;
 
   let text = `As of ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}, `;
   text += `${activeCount} active threat indicator${activeCount !== 1 ? 's are' : ' is'} being monitored across ${sources} intelligence sources`;
@@ -3168,7 +3276,7 @@ function renderExecView() {
   const ttps = window._ttpData || [];
   const msDay = 86400000;
 
-  const liveScores = iocs.map(r => typeof liveScore === 'function' ? liveScore(r) : (r.score || 0));
+  const liveScores = iocs.map(r => typeof liveScore === 'function' ? liveScore(r.last_seen, r.tau, r.ltv) : (r.score || 0));
   const avgTopScore = liveScores.length ? liveScores.slice(0, 10).reduce((a,b)=>a+b,0) / Math.min(10, liveScores.length) : 0;
   const heroScore = Math.round(avgTopScore);
 
@@ -3213,7 +3321,7 @@ function renderExecView() {
   const vmd = window._vmData || null;
   if (vmd && vmd.kevEntries) {
     const cvssMap = vmd.cvssMap || {};
-    const critical = vmd.kevEntries.filter(e => parseFloat(cvssMap[e.cveID]||0) >= 9.0);
+    const critical = vmd.kevEntries.filter(e => parseFloat((cvssMap[e.cveID]||{}).score||0) >= 9.0);
     animateCount(document.getElementById('ekpi-critical-val'), critical.length);
     const cvePanel = document.getElementById('exec-cve-panel');
     if (cvePanel) cvePanel.style.display = critical.length ? 'block' : 'none';
@@ -3311,7 +3419,7 @@ function renderExecCves(cves, cvssMap) {
   const el = document.getElementById('exec-cves');
   if (!el) return;
   el.innerHTML = `<div class="exec-cve-grid">${cves.map((e, i) => {
-    const score = parseFloat(cvssMap[e.cveID] || 0);
+    const score = parseFloat((cvssMap[e.cveID]||{}).score || 0);
     const cls = score >= 9 ? 'cvss-critical' : 'cvss-high';
     const product = (e.product || e.vendorProject || '').replace(/_/g,' ');
     const title = (e.vulnerabilityName || e.shortDescription || product || 'Vulnerability').slice(0, 60);
