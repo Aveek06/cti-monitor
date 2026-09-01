@@ -2142,12 +2142,17 @@ function filterIocs(q){
   const isUrl=r.type==="url";
   const displayVal=isUrl&&r.value.length>50?r.value.slice(0,48)+"…":r.value;
   const tags=(r.url_tags||[]).slice(0,3).map(t=>`<span class="ioc-tag">${esc(t)}</span>`).join("");
+  const isIp=r.type==="ipv4"||r.type==="ipv6";
+  const shodanBits=[];
+  if(isIp&&(r.shodan_tags||[]).length)shodanBits.push((r.shodan_tags||[]).slice(0,2).map(t=>esc(t)).join(", "));
+  if(isIp&&(r.shodan_ports||[]).length)shodanBits.push("ports: "+(r.shodan_ports||[]).slice(0,5).join(", "));
+  const shodan=shodanBits.length?`<br><span class="ioc-vt">${shodanBits.join(" · ")}</span>`:"";
   const sourceCell=isUrl
     ?`<td title="${esc(r.value)}"><span class="ioc-online">online</span>${r.url_threat?` <span class="ioc-threat">${esc(r.url_threat.replace(/_/g," "))}</span>`:""} ${tags}</td>`
     :`<td class="ioc-site" title="${esc(r.source_blog||'')}">${r.source_article?`<a href="${esc(r.source_article)}" target="_blank" rel="noopener">${esc(r.source_blog||'—')}</a>`:esc(r.source_blog||'—')}</td>`;
   const clipSvg=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M17 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>`;
   const delay=i<25?`animation-delay:${i*22}ms`:"animation-fill-mode:both;opacity:1";
-  return`<tr class="ioc-tbody-row" style="${delay}"><td onclick="copyIoc(this,'${esc(r.value)}')" title="${isUrl?esc(r.value):'Click to copy'}" style="white-space:nowrap"><span class="ioc-val">${esc(displayVal)}</span><button class="ioc-copy-btn" onclick="event.stopPropagation();copyIoc(this,'${esc(r.value)}')" title="Copy to clipboard">${clipSvg}</button><span class="ioc-copied">✓</span></td><td><span class="ioc-badge">${esc(r.type)}</span></td>${sourceCell}<td>${apt}</td><td><span style="font-variant-numeric:tabular-nums;color:${col};font-weight:600">${s.toFixed(1)}</span>${vt?`<br>${vt}`:""}</td><td><div class="ioc-decay-track"><div class="ioc-decay-fill" style="width:${bar}%;background:${col}"></div></div><span style="font-size:8px;color:var(--text-muted)">${r.last_seen||""}</span></td></tr>`;}).join("");
+  return`<tr class="ioc-tbody-row" style="${delay}"><td onclick="copyIoc(this,'${esc(r.value)}')" title="${isUrl?esc(r.value):'Click to copy'}" style="white-space:nowrap"><span class="ioc-val">${esc(displayVal)}</span><button class="ioc-copy-btn" onclick="event.stopPropagation();copyIoc(this,'${esc(r.value)}')" title="Copy to clipboard">${clipSvg}</button><span class="ioc-copied">✓</span></td><td><span class="ioc-badge">${esc(r.type)}</span></td>${sourceCell}<td>${apt}</td><td><span style="font-variant-numeric:tabular-nums;color:${col};font-weight:600">${s.toFixed(1)}</span>${vt?`<br>${vt}`:""}${shodan}</td><td><div class="ioc-decay-track"><div class="ioc-decay-fill" style="width:${bar}%;background:${col}"></div></div><span style="font-size:8px;color:var(--text-muted)">${r.last_seen||""}</span></td></tr>`;}).join("");
 }
 
 /* ── IOC Export ── */
