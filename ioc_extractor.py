@@ -122,6 +122,11 @@ _FP_DOMAINS = {
     "wired.com", "techcrunch.com",
     "arstechnica.com", "thehackernews.com",
     "threatpost.com", "helpnetsecurity.com", "cyberscoop.com",
+    # File-extension gTLDs — almost always filenames in CTI articles, not C2 domains
+    # e.g. "malware.zip", "payload.exe", "document.pdf" extracted as FQDNs
+    "zip", "exe", "dll", "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx",
+    "ps1", "bat", "cmd", "sh", "py", "js", "vbs", "hta", "jar", "msi",
+    "iso", "img", "tar", "gz", "rar", "7z", "cab", "mov", "mp4", "app",
 }
 
 
