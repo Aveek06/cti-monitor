@@ -36,7 +36,7 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
         conn.close()
         return results
 
-    # Auto-prune any FP domains that slipped into the DB before filtering was tightened
+    # Auto-prune FP domains and version-number IPs that slipped in before filtering was tightened
     try:
         with conn.cursor() as cur:
             cur.execute("SELECT id, value FROM ioc_indicators WHERE type = 'domain'")
@@ -49,6 +49,26 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
             print(f"IOC pipeline: pruned {len(fp_ids)} false-positive domain(s) from DB.")
     except Exception as e:
         print(f"IOC pipeline: FP domain cleanup failed: {e}")
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id, value FROM ioc_indicators WHERE type = 'ipv4'")
+            rows = cur.fetchall()
+        bogon_ids = []
+        for row_id, val in rows:
+            if val in ioc_extractor._FP_IPS:
+                bogon_ids.append(row_id)
+                continue
+            parts = val.split(".")
+            if len(parts) == 4 and all(int(x) <= 20 for x in parts):
+                bogon_ids.append(row_id)
+        if bogon_ids:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM ioc_indicators WHERE id = ANY(%s)", (bogon_ids,))
+            conn.commit()
+            print(f"IOC pipeline: pruned {len(bogon_ids)} version-number/bogon IPv4(s) from DB.")
+    except Exception as e:
+        print(f"IOC pipeline: IPv4 bogon cleanup failed: {e}")
 
     today          = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     total_iocs     = 0
@@ -94,6 +114,15 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
                     continue
                 if t == "domain" and ioc_extractor.is_benign_domain(v):
                     continue
+                if t == "ipv4" and v in ioc_extractor._FP_IPS:
+                    continue
+                if t == "ipv4":
+                    try:
+                        parts = v.split(".")
+                        if len(parts) == 4 and all(int(x) <= 20 for x in parts):
+                            continue
+                    except ValueError:
+                        pass
                 if (v, t) not in _seen:
                     iocs.append({"value": v, "type": t})
                     _seen.add((v, t))

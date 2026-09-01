@@ -67,6 +67,14 @@ def _domain_from_url(url: str) -> str | None:
 
 _load_tranco()
 
+_FP_IPS = {
+    "8.8.8.8", "8.8.4.4",      # Google Public DNS
+    "1.1.1.1", "1.0.0.1",      # Cloudflare DNS
+    "9.9.9.9", "149.112.112.112",  # Quad9 DNS
+    "208.67.222.222", "208.67.220.220",  # OpenDNS
+    "127.0.0.1",                # Loopback
+}
+
 _FP_DOMAINS = {
     # Infrastructure / CDN
     "example.com", "cloudflare.com", "amazonaws.com", "akamai.com", "fastly.com",
@@ -374,6 +382,17 @@ def extract_iocs(text: str, source_url: str | None = None) -> list[dict]:
                 continue
             if _in_tranco(v):
                 continue
+        if t == "ipv4":
+            if v in _FP_IPS:
+                continue
+            # Version-number strings like "2.10.3.2" or "7.3.7.4" are extracted as IPv4.
+            # Real C2 IPs almost always have at least one octet > 20.
+            try:
+                parts = v.split(".")
+                if len(parts) == 4 and all(int(x) <= 20 for x in parts):
+                    continue
+            except ValueError:
+                pass
         k = (t, v)
         if k not in seen:
             seen.add(k)
