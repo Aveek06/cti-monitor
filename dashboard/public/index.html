@@ -524,6 +524,12 @@
     .hm-banner-status{margin-left:auto;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);font-family:var(--font-ui);}
     .hm-banner-status.amber{color:var(--amber);}
     .hm-banner-status.red{color:var(--red);}
+    .hm-banner-health{display:flex;align-items:center;gap:10px;margin-left:auto;}
+    .hm-health-stat{display:flex;align-items:center;gap:4px;font-size:8px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);font-family:var(--font-ui);}
+    .hm-health-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+    .hm-health-dot.green{background:var(--green);box-shadow:0 0 4px var(--green);}
+    .hm-health-dot.amber{background:var(--amber);box-shadow:0 0 4px var(--amber);}
+    .hm-health-dot.red{background:var(--red);box-shadow:0 0 4px var(--red);}
     .hm-metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px;}
     .hm-metric{background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--border-hi);padding:16px 14px 12px;display:flex;flex-direction:column;gap:6px;animation:kpiCardIn 240ms var(--ease) calc(var(--i,0)*55ms) both;}
     .hm-metric-num{font-size:28px;font-weight:700;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--text-hi);font-family:var(--font-mono);}
@@ -533,11 +539,16 @@
     .hm-metric-num.cyan{color:var(--cyan);text-shadow:0 0 20px rgba(0,212,255,.38);}
     .hm-metric-lbl{font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);font-family:var(--font-ui);}
     .hm-metric-sub{font-size:9px;color:var(--text-muted);letter-spacing:.03em;font-family:var(--font-ui);}
+    .hm-metric-row{display:flex;align-items:baseline;gap:6px;}
+    .hm-metric-delta{font-size:8px;font-weight:700;letter-spacing:.04em;font-family:var(--font-mono);padding:1px 4px;}
+    .hm-metric-delta.up{color:var(--green);background:rgba(0,255,65,.08);}
+    .hm-metric-delta.dn{color:var(--red);background:rgba(255,59,48,.08);}
+    .hm-metric-delta.eq{color:var(--text-muted);background:var(--surface2);}
     #hm-m-iocs{border-top-color:rgba(0,255,65,.5);}
     #hm-m-signals{border-top-color:rgba(255,149,0,.5);}
     #hm-m-ttps{border-top-color:rgba(0,212,255,.5);}
     #hm-m-kev{border-top-color:rgba(255,59,48,.5);}
-    .hm-grid{display:grid;grid-template-columns:1fr 300px;gap:16px;margin-bottom:16px;align-items:start;}
+    .hm-grid{display:grid;grid-template-columns:1fr 360px;gap:16px;margin-bottom:16px;align-items:start;}
     .hm-panel{background:var(--surface);border:1px solid var(--border);}
     .hm-panel-hd{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border);}
     .hm-panel-count{font-size:9px;color:var(--text-muted);letter-spacing:.06em;font-family:var(--font-ui);}
@@ -545,13 +556,15 @@
     .hm-sub-label::before{content:'';display:block;width:8px;height:1px;background:var(--green);box-shadow:0 0 4px var(--green);}
     .hm-sub-label.cyan::before{background:var(--cyan);box-shadow:0 0 4px var(--cyan);}
     .hm-sub-label.red::before{background:var(--red);box-shadow:0 0 4px var(--red);}
-    .hm-signal{display:grid;grid-template-columns:90px 1fr 42px;align-items:start;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer;text-decoration:none;color:inherit;transition:background .1s;animation:rowIn .26s var(--ease) calc(var(--i,0)*28ms) both;}
+    .hm-signal{display:grid;grid-template-columns:1fr 40px;align-items:start;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer;text-decoration:none;color:inherit;transition:background .1s;animation:rowIn .26s var(--ease) calc(var(--i,0)*28ms) both;}
     .hm-signal:hover{background:var(--surface2);}
     .hm-signal:hover .hm-signal-site{opacity:1;}
-    .hm-signal-site{font-size:8px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--green);opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-top:1px;font-family:var(--font-ui);}
-    .hm-signal-body{display:flex;flex-direction:column;gap:2px;min-width:0;}
-    .hm-signal-title{font-size:10px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .hm-signal-summary{font-size:9px;color:var(--text-dim);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+    .hm-signal-src{display:flex;align-items:center;gap:7px;margin-bottom:3px;}
+    .hm-signal-site{font-size:8px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--green);opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--font-ui);}
+    .hm-signal-ts{font-size:8px;color:var(--text-muted);font-family:var(--font-mono);}
+    .hm-signal-body{display:flex;flex-direction:column;gap:0;min-width:0;}
+    .hm-signal-title{font-size:10px;font-weight:500;color:var(--text-hi);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--font-ui);letter-spacing:.01em;}
+    .hm-signal-summary{font-size:8.5px;color:var(--text-dim);line-height:1.45;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;font-family:var(--font-ui);margin-top:2px;}
     .hm-signal-date{font-size:9px;color:var(--text-muted);font-family:var(--font-mono);text-align:right;padding-top:1px;}
     .hm-ioc-row{display:grid;grid-template-columns:38px 1fr 54px 28px;align-items:center;gap:6px;padding:7px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;animation:rowIn .24s var(--ease) calc(var(--i,0)*38ms) both;}
     .hm-ioc-row:hover{background:var(--surface2);}
@@ -573,6 +586,22 @@
     .hm-chip-dot.amber{background:var(--amber);box-shadow:0 0 4px var(--amber);}
     .hm-chip-dot.red{background:var(--red);box-shadow:0 0 4px var(--red);}
     .hm-sep{color:var(--border-hi);}
+    /* Threat panel section separators */
+    .hm-threat-section{border-bottom:1px solid var(--border);}
+    .hm-threat-section:last-child{border-bottom:none;}
+    .hm-section-hd{display:flex;align-items:center;justify-content:space-between;padding:8px 14px 4px;}
+    .hm-section-label{font-size:7.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--text-muted);display:flex;align-items:center;gap:5px;font-family:var(--font-ui);}
+    .hm-section-label::before{content:'';display:block;width:6px;height:1px;background:var(--green);box-shadow:0 0 3px var(--green);}
+    .hm-section-label.cyan::before{background:var(--cyan);box-shadow:0 0 3px var(--cyan);}
+    .hm-section-label.purple::before{background:var(--purple);box-shadow:0 0 3px var(--purple);}
+    .hm-section-count{font-size:8px;color:var(--text-muted);font-family:var(--font-mono);font-variant-numeric:tabular-nums;}
+    /* APT Activity bars */
+    .hm-apt-row{display:flex;align-items:center;gap:6px;padding:5px 14px;}
+    .hm-apt-row:last-child{padding-bottom:10px;}
+    .hm-apt-name{font-size:7.5px;color:var(--text-dim);width:72px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--font-mono);letter-spacing:.02em;}
+    .hm-apt-track{flex:1;height:2px;background:var(--surface3);position:relative;overflow:hidden;}
+    .hm-apt-fill{position:absolute;top:0;left:0;bottom:0;right:100%;background:var(--purple);box-shadow:0 0 5px var(--purple);transition:right .6s cubic-bezier(.16,1,.3,1);transition-delay:calc(var(--i,0)*70ms);}
+    .hm-apt-count{font-size:9px;font-variant-numeric:tabular-nums;color:var(--text-muted);min-width:18px;text-align:right;font-family:var(--font-mono);}
 
     /* KEYFRAMES */
     @keyframes spin{to{transform:rotate(360deg);}}
@@ -589,6 +618,8 @@
       @keyframes linkIn{from{opacity:0;}to{opacity:1;}}
       @keyframes tabIn{from{opacity:0;}to{opacity:1;}}
       .site-row,.link-item{opacity:1!important;animation:none!important;}
+      .hm-signal,.hm-ioc-row,.hm-ttp-row,.hm-apt-row{animation:none!important;opacity:1!important;}
+      .hm-ioc-bar-fill,.hm-apt-fill{transition:none!important;}
       .ts-bar{transition:none!important;}
       .drawer{transition:opacity 180ms ease!important;}
       .drawer:not(.open){opacity:0;pointer-events:none;}
@@ -1011,35 +1042,40 @@
     <div id="tab-home" class="tab-pane active">
       <div class="hm-status-banner" id="hm-banner">
         <div class="hm-pulse" id="hm-pulse"></div>
-        <span class="hm-banner-name">CTI Monitor</span>
+        <span class="hm-banner-status" id="hm-health">LIVE</span>
         <span class="hm-banner-sep">//</span>
         <span class="hm-banner-meta" id="hm-last-run">Syncing…</span>
+        <span class="hm-banner-sep">·</span>
         <span class="hm-banner-meta" id="hm-src-total"></span>
-        <span class="hm-banner-status" id="hm-health">LIVE</span>
+        <div class="hm-banner-health" id="hm-banner-health">
+          <div class="hm-health-stat"><div class="hm-health-dot green"></div><span id="hm-bh-active">—</span></div>
+          <div class="hm-health-stat"><div class="hm-health-dot amber"></div><span id="hm-bh-quiet">—</span></div>
+          <div class="hm-health-stat"><div class="hm-health-dot red"></div><span id="hm-bh-failing">—</span></div>
+        </div>
       </div>
       <div class="hm-metrics">
         <div class="hm-metric" id="hm-m-iocs" style="--i:0">
-          <span class="hm-metric-num green" id="hm-n-iocs">—</span>
+          <div class="hm-metric-row"><span class="hm-metric-num green" id="hm-n-iocs">—</span><span class="hm-metric-delta" id="hm-d-iocs"></span></div>
           <span class="hm-metric-lbl">Active IOCs</span>
           <span class="hm-metric-sub">Decay-scored</span>
         </div>
         <div class="hm-metric" id="hm-m-signals" style="--i:1">
-          <span class="hm-metric-num amber" id="hm-n-signals">—</span>
+          <div class="hm-metric-row"><span class="hm-metric-num amber" id="hm-n-signals">—</span><span class="hm-metric-delta" id="hm-d-signals"></span></div>
           <span class="hm-metric-lbl">New Signals</span>
           <span class="hm-metric-sub">Articles this run</span>
         </div>
         <div class="hm-metric" id="hm-m-ttps" style="--i:2">
-          <span class="hm-metric-num cyan" id="hm-n-ttps">—</span>
+          <div class="hm-metric-row"><span class="hm-metric-num cyan" id="hm-n-ttps">—</span><span class="hm-metric-delta" id="hm-d-ttps"></span></div>
           <span class="hm-metric-lbl">TTPs Observed</span>
           <span class="hm-metric-sub">MITRE ATT&amp;CK</span>
         </div>
         <div class="hm-metric" style="--i:3">
-          <span class="hm-metric-num" id="hm-n-sources">—</span>
+          <div class="hm-metric-row"><span class="hm-metric-num" id="hm-n-sources">—</span><span class="hm-metric-delta" id="hm-d-sources"></span></div>
           <span class="hm-metric-lbl">Sources Active</span>
           <span class="hm-metric-sub" id="hm-n-src-sub">of — monitored</span>
         </div>
         <div class="hm-metric" id="hm-m-kev" style="--i:4">
-          <span class="hm-metric-num red" id="hm-n-kev">—</span>
+          <div class="hm-metric-row"><span class="hm-metric-num red" id="hm-n-kev">—</span><span class="hm-metric-delta" id="hm-d-kev"></span></div>
           <span class="hm-metric-lbl">CISA KEV</span>
           <span class="hm-metric-sub">Known exploited</span>
         </div>
@@ -1056,10 +1092,27 @@
           <div class="hm-panel-hd">
             <span class="sec-title sec-title--red">Threat Landscape</span>
           </div>
-          <div class="hm-sub-label">Top IOCs by Score</div>
-          <div id="hm-top-iocs"></div>
-          <div class="hm-sub-label cyan" style="margin-top:4px">Top TTPs</div>
-          <div id="hm-top-ttps"></div>
+          <div class="hm-threat-section">
+            <div class="hm-section-hd">
+              <span class="hm-section-label">Top IOCs by Score</span>
+              <span class="hm-section-count" id="hm-ioc-section-count"></span>
+            </div>
+            <div id="hm-top-iocs"></div>
+          </div>
+          <div class="hm-threat-section">
+            <div class="hm-section-hd">
+              <span class="hm-section-label cyan">Top TTPs</span>
+              <span class="hm-section-count" id="hm-ttp-section-count"></span>
+            </div>
+            <div id="hm-top-ttps"></div>
+          </div>
+          <div class="hm-threat-section">
+            <div class="hm-section-hd">
+              <span class="hm-section-label purple">APT Activity</span>
+              <span class="hm-section-count" id="hm-apt-section-count"></span>
+            </div>
+            <div id="hm-apt-bars"></div>
+          </div>
         </div>
       </div>
       <div class="hm-footer">
@@ -2627,39 +2680,75 @@ function renderHome({activeSites,quietSites,failingSites,weekTotal,iocExport,ttp
   if(lastRunEl&&updatedAt)lastRunEl.textContent=`Last sync: ${relTime(updatedAt)}`;
   const totalSites=activeSites.length+quietSites.length+failingSites.length;
   const srcTotalEl=document.getElementById('hm-src-total');
-  if(srcTotalEl)srcTotalEl.textContent=`· ${totalSites} sources`;
+  if(srcTotalEl)srcTotalEl.textContent=`${totalSites} sources`;
+  // Banner health dots
+  const setT=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setT('hm-bh-active',`${activeSites.length} active`);
+  setT('hm-bh-quiet',`${quietSites.length} quiet`);
+  setT('hm-bh-failing',`${failingSites.length} failing`);
+  // Counts for deltas
+  const iocCount=(iocExport||[]).length;
+  const sigCount=(prevRunLinks||[]).length;
+  const ttpCount=(ttpExport||[]).length;
+  const srcCount=activeSites.length;
+  const kevCount=vmData&&vmData.totalKev?vmData.totalKev:null;
+  // Delta badges: compare to last render stored in localStorage
+  let prev={};
+  try{prev=JSON.parse(localStorage.getItem('hm-prev-counts')||'{}');}catch(_){}
+  const applyDelta=(id,cur,key)=>{
+    const el=document.getElementById(id);if(!el)return;
+    const p=prev[key];
+    if(p==null){el.textContent='';el.className='hm-metric-delta';return;}
+    const d=cur-p;
+    if(d>0){el.textContent=`↑${d}`;el.className='hm-metric-delta up';}
+    else if(d<0){el.textContent=`↓${Math.abs(d)}`;el.className='hm-metric-delta dn';}
+    else{el.textContent='\xb10';el.className='hm-metric-delta eq';}
+  };
+  applyDelta('hm-d-iocs',iocCount,'iocs');
+  applyDelta('hm-d-signals',sigCount,'signals');
+  applyDelta('hm-d-ttps',ttpCount,'ttps');
+  applyDelta('hm-d-sources',srcCount,'sources');
+  if(kevCount!=null)applyDelta('hm-d-kev',kevCount,'kev');
+  const nextCounts={iocs:iocCount,signals:sigCount,ttps:ttpCount,sources:srcCount};
+  if(kevCount!=null)nextCounts.kev=kevCount;
+  try{localStorage.setItem('hm-prev-counts',JSON.stringify(nextCounts));}catch(_){}
   // Metrics
-  animateCountUp(document.getElementById('hm-n-iocs'),(iocExport||[]).length);
-  animateCountUp(document.getElementById('hm-n-signals'),(prevRunLinks||[]).length);
-  animateCountUp(document.getElementById('hm-n-ttps'),(ttpExport||[]).length);
-  animateCountUp(document.getElementById('hm-n-sources'),activeSites.length);
+  animateCountUp(document.getElementById('hm-n-iocs'),iocCount);
+  animateCountUp(document.getElementById('hm-n-signals'),sigCount);
+  animateCountUp(document.getElementById('hm-n-ttps'),ttpCount);
+  animateCountUp(document.getElementById('hm-n-sources'),srcCount);
   const subEl=document.getElementById('hm-n-src-sub');
   if(subEl)subEl.textContent=`of ${totalSites} monitored`;
   // KEV: try vmData global if loaded
   const kevEl=document.getElementById('hm-n-kev');
   if(kevEl){if(vmData&&vmData.totalKev)animateCountUp(kevEl,vmData.totalKev);else kevEl.textContent='—';}
   // Footer chips
-  const setT=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
   setT('hm-f-active',activeSites.length);setT('hm-f-quiet',quietSites.length);setT('hm-f-failing',failingSites.length);
   if(updatedAt)setT('hm-footer-date',fmtIso(updatedAt));
-  // Recent signals
-  const sigList=document.getElementById('hm-signals-list');
-  const sigCount=document.getElementById('hm-signals-count');
+  // Recent signals — 2-column layout: body (site+title+summary) | date
+  const sigListEl=document.getElementById('hm-signals-list');
+  const sigCountEl=document.getElementById('hm-signals-count');
   const sigs=(prevRunLinks||[]).slice(0,16);
-  if(sigCount)sigCount.textContent=prevRunLinks.length?`${prevRunLinks.length} signals`:'';
-  if(sigList){
-    sigList.innerHTML=sigs.length?sigs.map((s,i)=>{
+  if(sigCountEl)sigCountEl.textContent=prevRunLinks.length?`${prevRunLinks.length} signals`:'';
+  if(sigListEl){
+    sigListEl.innerHTML=sigs.length?sigs.map((s,i)=>{
       const url=s.url||s.link||'';
-      const urlShort=url.replace(/^https?:\/\//,'').replace(/^www\./,'');
-      const titleLine=`<span class="hm-signal-title">${esc(urlShort.length>54?urlShort.slice(0,52)+'…':urlShort)}</span>`;
-      const sumLine=s.summary?`<span class="hm-signal-summary">${esc(s.summary)}</span>`:'';
+      const site=s.site||(url.replace(/^https?:\/\//,'').replace(/^www\./,'').split('/')[0]);
+      let title=s.title||'';
+      if(!title){
+        const seg=url.replace(/^https?:\/\/[^/]+/,'').replace(/\/$/,'').split('/').filter(Boolean).pop()||site;
+        title=seg.replace(/[-_]/g,' ').replace(/\.(html?|php|aspx?)$/i,'');
+      }
       const date=s.date?s.date.slice(5):'';
-      return`<a class="hm-signal" href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="--i:${Math.min(i,14)}"><span class="hm-signal-site" title="${esc(s.site)}">${esc(s.site)}</span><div class="hm-signal-body">${titleLine}${sumLine}</div><span class="hm-signal-date">${date}</span></a>`;
+      const srcHtml=`<div class="hm-signal-src"><span class="hm-signal-site">${esc(site)}</span>${date?`<span class="hm-signal-ts">${esc(date)}</span>`:''}</div>`;
+      const sumHtml=s.summary?`<span class="hm-signal-summary">${esc(s.summary)}</span>`:'';
+      return`<a class="hm-signal" href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="--i:${Math.min(i,14)}"><div class="hm-signal-body">${srcHtml}<span class="hm-signal-title">${esc(title.length>58?title.slice(0,56)+'…':title)}</span>${sumHtml}</div></a>`;
     }).join(''):`<div class="panel-footer">// No signals in last run</div>`;
   }
-  // Top IOCs
+  // Top IOCs with section count
   const iocEl=document.getElementById('hm-top-iocs');
   const topIocs=(iocExport||[]).slice(0,6);
+  setT('hm-ioc-section-count',topIocs.length?`${topIocs.length} shown`:'');
   if(iocEl){
     const maxS=topIocs[0]?.score||100;
     iocEl.innerHTML=topIocs.length?topIocs.map((ioc,i)=>{
@@ -2671,10 +2760,30 @@ function renderHome({activeSites,quietSites,failingSites,weekTotal,iocExport,ttp
     }).join(''):`<div class="panel-footer">// No active IOCs</div>`;
     requestAnimationFrame(()=>iocEl.querySelectorAll('.hm-ioc-bar-fill').forEach(b=>b.style.right=`${100-+b.dataset.pct}%`));
   }
-  // Top TTPs
+  // Top TTPs with section count
   const ttpEl=document.getElementById('hm-top-ttps');
   const topTtps=(ttpExport||[]).slice(0,5);
+  setT('hm-ttp-section-count',topTtps.length?`${topTtps.length} shown`:'');
   if(ttpEl)ttpEl.innerHTML=topTtps.length?topTtps.map((t,i)=>`<div class="hm-ttp-row" style="--i:${i}" onclick="switchTab('ttps')" title="View in TTP Map"><span class="hm-ttp-id">${esc(t.technique_id)}</span><span class="hm-ttp-name" title="${esc(t.technique_name)}">${esc(t.technique_name)}</span><span class="hm-ttp-obs">${t.article_count||0}×</span></div>`).join(''):`<div class="panel-footer">// No TTPs observed</div>`;
+  // APT bars — aggregate apt_tags across all IOCs
+  const aptEl=document.getElementById('hm-apt-bars');
+  if(aptEl){
+    const aptMap={};
+    (iocExport||[]).forEach(ioc=>{(ioc.apt_tags||[]).forEach(tag=>{aptMap[tag]=(aptMap[tag]||0)+1;});});
+    const aptList=Object.entries(aptMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
+    if(aptList.length){
+      setT('hm-apt-section-count',`${aptList.length} group${aptList.length!==1?'s':''}`);
+      const maxApt=aptList[0][1];
+      aptEl.innerHTML=aptList.map(([name,count],i)=>{
+        const pct=Math.round((count/maxApt)*100);
+        return`<div class="hm-apt-row" style="--i:${i}"><span class="hm-apt-name" title="${esc(name)}">${esc(name)}</span><div class="hm-apt-track"><div class="hm-apt-fill" data-pct="${pct}" style="--i:${i}"></div></div><span class="hm-apt-count">${count}</span></div>`;
+      }).join('');
+      requestAnimationFrame(()=>aptEl.querySelectorAll('.hm-apt-fill').forEach(b=>b.style.right=`${100-+b.dataset.pct}%`));
+    }else{
+      setT('hm-apt-section-count','');
+      aptEl.innerHTML=`<div class="panel-footer">// No APT data</div>`;
+    }
+  }
 }
 
 function updateDashboard({sites,activeSites,quietSites,failingSites,weekTotal,sparkData,state,sevenDay,prevRunLinks,iocExport,ttpExport,updatedAt}){
