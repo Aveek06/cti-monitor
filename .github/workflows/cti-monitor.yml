@@ -36,7 +36,7 @@ jobs:
               NOW=$(date +%s)
               AGO=$(( (NOW - LAST_TS) / 3600 ))
               echo "Last workflow_dispatch was ${AGO}h ago."
-              if [ "$AGO" -lt 6 ]; then
+              if [ "$AGO" -lt 20 ]; then
                 echo "should_run=false" >> $GITHUB_OUTPUT
                 echo "cron-job.org ran ${AGO}h ago — schedule fallback skipping."
               else
