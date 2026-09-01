@@ -1409,33 +1409,32 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
         for item in new_items
     ])
 
-    # Run IOC extraction pipeline on fresh articles
+    # Run IOC extraction pipeline: always run so DB export is written even on quiet runs
     ioc_results = {"new": [], "active": [], "expiring": []}
-    if fresh_items:
+    try:
+        from ioc_pipeline import run as run_ioc_pipeline
+        # Build per-site reliability lookup so pipeline can weight LTV
+        _rel_lookup = {}
         try:
-            from ioc_pipeline import run as run_ioc_pipeline
-            # Build per-site reliability lookup so pipeline can weight LTV
-            _rel_lookup = {}
-            try:
-                _rel_ratings   = _digest_fetch_ratings()
-                _rel_ioc_by    = _digest_build_ioc_by_site([])
-                _rel_failing   = set(last_active.get("_currently_failing", []))
-                _rel_seven_day = last_active.get("_seven_day_counts", {})
-                _rel_cutoff    = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d")
-                for _site_cfg in config.get("sites", []):
-                    _sn = _site_cfg["name"]
-                    _wk = sum(v for k, v in _rel_seven_day.get(_sn, {}).items() if k >= _rel_cutoff)
-                    _rel_lookup[_sn] = _digest_compute_reliability(_sn, _wk, last_active.get(_sn), _sn in _rel_failing, _rel_ioc_by, _rel_ratings)
-            except Exception as _re:
-                print(f"Reliability lookup build failed: {_re}")
-            ioc_results = run_ioc_pipeline(fresh_items, rel_lookup=_rel_lookup)
-            # Persist snapshot for degradation detection in weekly digest
-            snap = ioc_results.get("rel_snapshot") or _rel_lookup
-            if snap:
-                last_active["_reliability_snapshot"] = snap
-                save_json(last_active_path, last_active)
-        except Exception as e:
-            print(f"IOC pipeline skipped: {e}")
+            _rel_ratings   = _digest_fetch_ratings()
+            _rel_ioc_by    = _digest_build_ioc_by_site([])
+            _rel_failing   = set(last_active.get("_currently_failing", []))
+            _rel_seven_day = last_active.get("_seven_day_counts", {})
+            _rel_cutoff    = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d")
+            for _site_cfg in config.get("sites", []):
+                _sn = _site_cfg["name"]
+                _wk = sum(v for k, v in _rel_seven_day.get(_sn, {}).items() if k >= _rel_cutoff)
+                _rel_lookup[_sn] = _digest_compute_reliability(_sn, _wk, last_active.get(_sn), _sn in _rel_failing, _rel_ioc_by, _rel_ratings)
+        except Exception as _re:
+            print(f"Reliability lookup build failed: {_re}")
+        ioc_results = run_ioc_pipeline(fresh_items, rel_lookup=_rel_lookup)
+        # Persist snapshot for degradation detection in weekly digest
+        snap = ioc_results.get("rel_snapshot") or _rel_lookup
+        if snap:
+            last_active["_reliability_snapshot"] = snap
+            save_json(last_active_path, last_active)
+    except Exception as e:
+        print(f"IOC pipeline skipped: {e}")
 
     print(f"Run complete: {len(fresh_items)} new post(s) in digest ({len(stale_items)} stale suppressed), {len(failures)} site(s) failed.")
     send_digest_email(fresh_items, failures, duplicate_links or None, ai_run_cost, ioc_results, ai_status,
