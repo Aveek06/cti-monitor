@@ -60,7 +60,7 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
                 bogon_ids.append(row_id)
                 continue
             parts = val.split(".")
-            if len(parts) == 4 and all(int(x) <= 20 for x in parts):
+            if len(parts) == 4 and max(int(x) for x in parts) < 60:
                 bogon_ids.append(row_id)
         if bogon_ids:
             with conn.cursor() as cur:
@@ -119,7 +119,7 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
                 if t == "ipv4":
                     try:
                         parts = v.split(".")
-                        if len(parts) == 4 and all(int(x) <= 20 for x in parts):
+                        if len(parts) == 4 and max(int(x) for x in parts) < 60:
                             continue
                     except ValueError:
                         pass

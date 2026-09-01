@@ -385,11 +385,12 @@ def extract_iocs(text: str, source_url: str | None = None) -> list[dict]:
         if t == "ipv4":
             if v in _FP_IPS:
                 continue
-            # Version-number strings like "2.10.3.2" or "7.3.7.4" are extracted as IPv4.
-            # Real C2 IPs almost always have at least one octet > 20.
+            # Version-number strings like "2.10.3.2", "5.29.0.1", "1.55.0.2" are extracted
+            # as IPv4 by iocsearcher. Real C2 IPs virtually always have at least one
+            # octet > 60; version strings rarely do.
             try:
                 parts = v.split(".")
-                if len(parts) == 4 and all(int(x) <= 20 for x in parts):
+                if len(parts) == 4 and max(int(x) for x in parts) < 60:
                     continue
             except ValueError:
                 pass
