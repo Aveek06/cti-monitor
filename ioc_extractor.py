@@ -133,6 +133,12 @@ def _is_fp(domain: str) -> bool:
             return True
     return False
 
+
+def is_benign_domain(domain: str) -> bool:
+    """Public filter: True if the domain should be excluded (FP list or Tranco top-N)."""
+    return _is_fp(domain) or _in_tranco(domain)
+
+
 APT_ALIASES = {
     # ── Jakusz-scored groups (LTV coefficients in ioc_scorer.py) ──────────────
     "APT10":    ["apt10", "apt-10", "menupass", "menu pass", "stone panda", "cloud hopper",

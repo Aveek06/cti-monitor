@@ -90,7 +90,11 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
             _seen = {(r["value"], r["type"]) for r in iocs}
             for ai_ioc in (ai["iocs"] or []):
                 v, t = ai_ioc.get("value", "").strip(), ai_ioc.get("type", "").strip()
-                if v and t and (v, t) not in _seen:
+                if not v or not t:
+                    continue
+                if t == "domain" and ioc_extractor.is_benign_domain(v):
+                    continue
+                if (v, t) not in _seen:
                     iocs.append({"value": v, "type": t})
                     _seen.add((v, t))
             if ai["apt"]:
