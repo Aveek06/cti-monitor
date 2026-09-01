@@ -756,6 +756,35 @@
     .pa-ttp-tactic{font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;background:var(--surface3);border:1px solid var(--border-hi);color:var(--text-dim);font-family:var(--font-ui);}
     .pa-empty{text-align:center;padding:24px;color:var(--text-muted);font-size:9px;letter-spacing:.08em;}
     @media(max-width:700px){.pv-charts-row{grid-template-columns:1fr;}.pv-body{padding:16px 16px 40px;}.pv-kpi-chip{min-width:100px;}}
+
+    /* ── Drill-down stagger animations ── */
+    @keyframes pvChipIn{from{opacity:0;transform:translateY(7px);}to{opacity:1;transform:none;}}
+    @keyframes pvRowIn{from{opacity:0;transform:translateX(5px);}to{opacity:1;transform:none;}}
+    /* KPI chips stagger on site page entry */
+    #page-site.active:not(.pv-exit) .pv-kpi-chip:nth-child(1){animation:pvChipIn 260ms var(--ease-drawer) 55ms both;}
+    #page-site.active:not(.pv-exit) .pv-kpi-chip:nth-child(2){animation:pvChipIn 260ms var(--ease-drawer) 95ms both;}
+    #page-site.active:not(.pv-exit) .pv-kpi-chip:nth-child(3){animation:pvChipIn 260ms var(--ease-drawer) 135ms both;}
+    #page-site.active:not(.pv-exit) .pv-kpi-chip:nth-child(4){animation:pvChipIn 260ms var(--ease-drawer) 175ms both;}
+    /* KPI chips stagger on article page entry */
+    #page-article.active:not(.pv-exit) .pv-kpi-chip:nth-child(1){animation:pvChipIn 260ms var(--ease-drawer) 55ms both;}
+    #page-article.active:not(.pv-exit) .pv-kpi-chip:nth-child(2){animation:pvChipIn 260ms var(--ease-drawer) 95ms both;}
+    #page-article.active:not(.pv-exit) .pv-kpi-chip:nth-child(3){animation:pvChipIn 260ms var(--ease-drawer) 135ms both;}
+    /* Chart cards stagger */
+    #page-site.active:not(.pv-exit) .pv-chart-card:nth-child(1),
+    #page-article.active:not(.pv-exit) .pv-chart-card:nth-child(1){animation:pvChipIn 300ms var(--ease-drawer) 190ms both;}
+    #page-site.active:not(.pv-exit) .pv-chart-card:nth-child(2),
+    #page-article.active:not(.pv-exit) .pv-chart-card:nth-child(2){animation:pvChipIn 300ms var(--ease-drawer) 230ms both;}
+    /* Table rows: delay set via JS --row-i custom property */
+    .pv-row-enter{animation:pvRowIn 200ms var(--ease-drawer) calc(var(--row-i,0)*28ms) both;}
+    /* TTP cards: delay set via JS */
+    .pa-ttp-enter{animation:pvChipIn 200ms var(--ease-drawer) calc(var(--card-i,0)*35ms) both;}
+    /* Reduced motion: collapse all page-view animations to opacity fades */
+    @media(prefers-reduced-motion:reduce){
+      #page-site,#page-article{animation:none!important;}
+      .pv-kpi-chip,.pv-chart-card{animation:none!important;opacity:1!important;}
+      .pv-row-enter,.pa-ttp-enter{animation:none!important;opacity:1!important;}
+      .pv-tac-fill{transition:none!important;}
+    }
   </style>
 </head>
 <body>
@@ -1831,7 +1860,8 @@ function renderPvTacBars(containerId,ttps){
   for(const t of ttps){const tac=(t.tactic||"unknown").toLowerCase();byTac[tac]=(byTac[tac]||0)+(t.total_observations||t.article_count||1);}
   const entries=Object.entries(byTac).sort((a,b)=>b[1]-a[1]).slice(0,10);
   const maxV=entries[0]?.[1]||1;
-  el.innerHTML=entries.map(([tac,val])=>{const label=TACTIC_SHORT[tac]||tac;const pct=Math.round(val/maxV*100);return`<div class="pv-tac-row"><span class="pv-tac-lbl" title="${tac}">${esc(label)}</span><div class="pv-tac-track"><div class="pv-tac-fill" style="width:${pct}%"></div></div><span class="pv-tac-val">${val}</span></div>`;}).join("");
+  el.innerHTML=entries.map(([tac,val])=>{const label=TACTIC_SHORT[tac]||tac;const pct=Math.round(val/maxV*100);return`<div class="pv-tac-row"><span class="pv-tac-lbl" title="${tac}">${esc(label)}</span><div class="pv-tac-track"><div class="pv-tac-fill" data-pct="${pct}" style="width:0%"></div></div><span class="pv-tac-val">${val}</span></div>`;}).join("");
+  requestAnimationFrame(()=>{el.querySelectorAll(".pv-tac-fill").forEach((bar,i)=>{setTimeout(()=>{bar.style.width=bar.dataset.pct+"%";},i*45);});});
 }
 
 /* ── Site Detail Page ── */
@@ -1885,7 +1915,9 @@ function renderSitePage(name){
   const tbody=document.getElementById("pv-links-tbody");
   document.getElementById("pv-article-count").textContent=articles.length+" article"+(articles.length!==1?"s":"");
   if(!articles.length){tbody.innerHTML=`<tr><td colspan="5" class="pv-empty">// No articles captured yet</td></tr>`;return;}
-  tbody.innerHTML=articles.slice(0,200).map(a=>{
+  tbody.innerHTML=articles.slice(0,200).map((a,i)=>{
+    const rowDelay=i<12?`style="--row-i:${i}"`:"";;
+    const rowCls=i<12?"pv-row-enter":"";
     const dateStr=a.date?fmtDate(a.date):"—";
     const slug=urlToSlug(a.url);
     const iocCt=iocByArt[a.url]||0;
@@ -1893,14 +1925,14 @@ function renderSitePage(name){
     const iocChip=iocCt?`<span class="pv-count-chip green">${iocCt}</span>`:`<span class="pv-count-chip none">—</span>`;
     const ttpChip=ttpCt?`<span class="pv-count-chip cyan">${ttpCt}</span>`:`<span class="pv-count-chip none">—</span>`;
     const summary=a.summary?`<span class="pv-link-summary">${esc(a.summary)}</span>`:`<span style="color:var(--text-muted);font-size:9px;font-family:var(--font-ui)">—</span>`;
-    return`<tr onclick="location.hash='#article/'+encodeURIComponent('${esc(a.url).replace(/'/g,"\\'")}')"><td class="pv-link-date">${dateStr}</td><td><span class="pv-link-title">${esc(slug)}</span></td><td>${iocChip}</td><td>${ttpChip}</td><td>${summary}</td></tr>`;
+    return`<tr class="${rowCls}" ${rowDelay} onclick="location.hash='#article/'+encodeURIComponent('${esc(a.url).replace(/'/g,"\\'")}')"><td class="pv-link-date">${dateStr}</td><td><span class="pv-link-title">${esc(slug)}</span></td><td>${iocChip}</td><td>${ttpChip}</td><td>${summary}</td></tr>`;
   }).join("");
 }
 
 /* ── Article Detail Page ── */
 function renderArticlePage(url){
   const meta=resolveArticleMeta(url);
-  const siteName=(meta&&(meta.site||meta.source_blog))||_allIocs.find(r=>r.source_article===url)?.source_blog||"";
+  const siteName=(meta&&(meta.site||meta.source_blog))||_allIocs.find(r=>r.source_article===url)?.source_blog||_pvSiteName||"";
   const date=(meta&&meta.date)||"";
   const summary=(meta&&typeof meta==="object"&&meta.summary)||"";
 
@@ -1966,9 +1998,9 @@ function renderArticlePage(url){
   const ttpEl=document.getElementById("pa-ttp-list");
   if(!ttps.length){ttpEl.innerHTML=`<div class="pa-empty">// No ATT&CK techniques identified in this article</div>`;}
   else{
-    ttpEl.innerHTML=ttps.map(t=>{
+    ttpEl.innerHTML=ttps.map((t,i)=>{
       const tLabel=(t.tactic||"").split("-").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" ");
-      return`<div class="pa-ttp-card"><span class="pa-ttp-id">${esc(t.technique_id)}</span><span class="pa-ttp-name">${esc(t.technique_name||t.technique_id)}</span>${tLabel?`<span class="pa-ttp-tactic">${esc(tLabel)}</span>`:""}</div>`;
+      return`<div class="pa-ttp-card pa-ttp-enter" style="--card-i:${i}"><span class="pa-ttp-id">${esc(t.technique_id)}</span><span class="pa-ttp-name">${esc(t.technique_name||t.technique_id)}</span>${tLabel?`<span class="pa-ttp-tactic">${esc(tLabel)}</span>`:""}</div>`;
     }).join("");
   }
 }
