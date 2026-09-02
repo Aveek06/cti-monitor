@@ -3,6 +3,15 @@ import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 
+# AI extractor sometimes returns STIX SCO type names; normalize to internal names.
+_AI_TYPE_NORM = {
+    "ipv4-addr": "ipv4",
+    "ipv6-addr": "ipv6",
+    "domain-name": "domain",
+    "email-addr": "email",
+    "url": "url",
+}
+
 import ioc_extractor
 import ioc_scorer
 import stix_converter
@@ -110,6 +119,7 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
             _seen = {(r["value"], r["type"]) for r in iocs}
             for ai_ioc in (ai["iocs"] or []):
                 v, t = ai_ioc.get("value", "").strip(), ai_ioc.get("type", "").strip()
+                t = _AI_TYPE_NORM.get(t, t)
                 if not v or not t:
                     continue
                 if t == "domain" and ioc_extractor.is_benign_domain(v):

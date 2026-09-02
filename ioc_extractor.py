@@ -1,4 +1,5 @@
 import io
+import ipaddress
 import re
 import zipfile
 import urllib.request
@@ -343,47 +344,89 @@ APT_ALIASES = {
 }
 
 
+_FETCH_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/125.0.0.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none",
+    "Sec-Fetch-User": "?1",
+}
+
+
+def _soup_to_text(html: str) -> str | None:
+    soup = BeautifulSoup(html, "html.parser")
+    for tag in soup(["nav", "header", "footer", "script", "style", "aside", "form"]):
+        tag.decompose()
+    text = soup.get_text(separator=" ", strip=True)
+    _lc = text.lower()
+    if len(text) < 400:
+        return None
+    if ("access denied" in _lc or "403 forbidden" in _lc) and "cloudflare" in _lc:
+        return None
+    if "ray id" in _lc and ("cloudflare" in _lc or "blocked" in _lc):
+        return None
+    if "attention required" in _lc and "cloudflare" in _lc:
+        return None
+    if "please enable cookies" in _lc and "cloudflare" in _lc:
+        return None
+    return text
+
+
+# Sites where even headless Playwright fails — Cloudflare interactive challenges or H2 blocks.
+_PLAYWRIGHT_SKIP_HOSTS = {
+    "www.humansecurity.com",   # Cloudflare "Press & Hold" bot challenge
+    "www.sophos.com",          # net::ERR_HTTP2_PROTOCOL_ERROR from headless Chrome
+}
+
+
+def _fetch_with_playwright(url: str) -> str | None:
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser = p.chromium.launch(
+                headless=True, args=["--no-sandbox", "--disable-dev-shm-usage"]
+            )
+            page = browser.new_page(user_agent=_FETCH_HEADERS["User-Agent"])
+            page.goto(url, timeout=30_000, wait_until="domcontentloaded")
+            content = page.content()
+            browser.close()
+        return _soup_to_text(content)
+    except Exception:
+        return None
+
+
 def fetch_article_text(url: str) -> str | None:
-    _HEADERS = {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/125.0.0.0 Safari/537.36"
-        ),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Connection": "keep-alive",
-        "Upgrade-Insecure-Requests": "1",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
-    }
+    host = urlparse(url).hostname or ""
     try:
         session = requests.Session()
-        resp = session.get(url, timeout=15, headers=_HEADERS, allow_redirects=True)
-        if resp.status_code != 200:
+        resp = session.get(url, timeout=20, headers=_FETCH_HEADERS, allow_redirects=True)
+        if resp.status_code == 404:
             return None
+        if resp.status_code != 200:
+            if host in _PLAYWRIGHT_SKIP_HOSTS:
+                return None
+            return _fetch_with_playwright(url)
         if "html" not in resp.headers.get("content-type", ""):
             return None
-        soup = BeautifulSoup(resp.text, "html.parser")
-        for tag in soup(["nav", "header", "footer", "script", "style", "aside", "form"]):
-            tag.decompose()
-        text = soup.get_text(separator=" ", strip=True)
-        # Discard WAF/bot-challenge pages — they produce false summaries
-        _lc = text.lower()
-        if len(text) < 400:
-            return None
-        if ("access denied" in _lc or "403 forbidden" in _lc) and "cloudflare" in _lc:
-            return None
-        if "ray id" in _lc and ("cloudflare" in _lc or "blocked" in _lc):
-            return None
-        if "attention required" in _lc and "cloudflare" in _lc:
-            return None
-        if "please enable cookies" in _lc and "cloudflare" in _lc:
-            return None
+        text = _soup_to_text(resp.text)
+        if text is None:
+            if host in _PLAYWRIGHT_SKIP_HOSTS:
+                return None
+            return _fetch_with_playwright(url)
         return text
+    except requests.Timeout:
+        if host in _PLAYWRIGHT_SKIP_HOSTS:
+            return None
+        return _fetch_with_playwright(url)
     except Exception:
         return None
 
@@ -421,6 +464,12 @@ def extract_iocs(text: str, source_url: str | None = None) -> list[dict]:
             try:
                 parts = v.split(".")
                 if len(parts) == 4 and max(int(x) for x in parts) < 60:
+                    continue
+            except ValueError:
+                pass
+            # Filter private/loopback/link-local IPs — never valid CTI indicators.
+            try:
+                if ipaddress.ip_address(v).is_private:
                     continue
             except ValueError:
                 pass
