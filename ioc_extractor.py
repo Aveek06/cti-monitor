@@ -407,31 +407,37 @@ def _fetch_with_playwright(url: str) -> str | None:
         return None
 
 
+_MIN_MEANINGFUL_CHARS = 1500  # below this from requests → likely a JS-rendered shell
+
+
 def fetch_article_text(url: str) -> str | None:
     host = urlparse(url).hostname or ""
+    skip_playwright = host in _PLAYWRIGHT_SKIP_HOSTS
+
+    requests_text: str | None = None
     try:
         session = requests.Session()
         resp = session.get(url, timeout=20, headers=_FETCH_HEADERS, allow_redirects=True)
         if resp.status_code == 404:
             return None
-        if resp.status_code != 200:
-            if host in _PLAYWRIGHT_SKIP_HOSTS:
-                return None
-            return _fetch_with_playwright(url)
-        if "html" not in resp.headers.get("content-type", ""):
-            return None
-        text = _soup_to_text(resp.text)
-        if text is None:
-            if host in _PLAYWRIGHT_SKIP_HOSTS:
-                return None
-            return _fetch_with_playwright(url)
-        return text
+        if resp.status_code == 200 and "html" in resp.headers.get("content-type", ""):
+            requests_text = _soup_to_text(resp.text)
     except requests.Timeout:
-        if host in _PLAYWRIGHT_SKIP_HOSTS:
-            return None
-        return _fetch_with_playwright(url)
+        pass
     except Exception:
-        return None
+        pass
+
+    # If we got substantial content from requests, use it.
+    if requests_text and len(requests_text) >= _MIN_MEANINGFUL_CHARS:
+        return requests_text
+
+    # Otherwise (WAF block, 403, JS shell too short, or timeout): try Playwright.
+    if skip_playwright:
+        return requests_text  # None or short shell — can't do better
+    playwright_text = _fetch_with_playwright(url)
+    if playwright_text and (not requests_text or len(playwright_text) > len(requests_text)):
+        return playwright_text
+    return requests_text
 
 
 def undefang(text: str) -> str:
