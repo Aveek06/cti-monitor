@@ -203,6 +203,37 @@ def check_feed_site(site):
                     continue
             entries.append((link, date_str))
     except Exception as ex:
+        # Log the actual error so it appears in GitHub Actions output.
+        print(f"  [FEED] {site['name']} fetch error: {ex} — trying feedparser direct fallback")
+        try:
+            parsed = feedparser.parse(site["url"])
+            if parsed.entries:
+                keywords = [kw.lower() for kw in site.get("title_keywords", [])]
+                excludes = site.get("path_exclude", [])
+                prefixes = site.get("link_path_prefix", [])
+                if isinstance(prefixes, str):
+                    prefixes = [prefixes]
+                max_entries = site.get("max_feed_entries", 25)
+                for e in parsed.entries:
+                    if len(entries) >= max_entries:
+                        break
+                    link = e.get("link", "")
+                    date_str = e.get("published", e.get("updated", ""))
+                    if not link:
+                        continue
+                    if excludes and any(ex2 in link for ex2 in excludes):
+                        continue
+                    if prefixes and not any(p in link for p in prefixes):
+                        continue
+                    if keywords:
+                        title = e.get("title", "").lower()
+                        if not any(kw in title for kw in keywords):
+                            continue
+                    entries.append((link, date_str))
+                if entries:
+                    return entries, None
+        except Exception as ex2:
+            print(f"  [FEED] {site['name']} feedparser fallback also failed: {ex2}")
         return entries, f"feed parse error: {ex}"
     return entries, None
 
