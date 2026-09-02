@@ -2,6 +2,7 @@
 // Uses DATABASE_URL (same Supabase connection as other pipeline code).
 
 const { Pool } = require("pg");
+const { jwtVerify } = require("jose");
 
 let _pool;
 function pool() {
@@ -9,6 +10,28 @@ function pool() {
   return _pool;
 }
 
+function parseCookie(header) {
+  if (!header) return {};
+  const out = {};
+  for (const part of header.split(';')) {
+    const idx = part.indexOf('=');
+    if (idx < 0) continue;
+    out[part.slice(0, idx).trim()] = decodeURIComponent(part.slice(idx + 1).trim());
+  }
+  return out;
+}
+
+async function getSessionEmail(req) {
+  try {
+    const token = parseCookie(req.headers.cookie)['cti_session'];
+    if (!token || !process.env.SESSION_SECRET) return null;
+    const secret = new TextEncoder().encode(process.env.SESSION_SECRET);
+    const { payload } = await jwtVerify(token, secret);
+    return payload.email || null;
+  } catch {
+    return null;
+  }
+}
 
 module.exports = async function handler(req, res) {
   if (!process.env.DATABASE_URL)
@@ -35,17 +58,19 @@ module.exports = async function handler(req, res) {
   }
 
   if (req.method === "POST") {
-    const { site_name, rating, note, rater } = req.body || {};
+    const { site_name, rating, note } = req.body || {};
     if (!site_name || !Number.isInteger(+rating) || +rating < 1 || +rating > 5)
       return res.status(400).json({ error: "site_name and rating (1–5) required" });
     if (typeof site_name !== "string" || site_name.length > 120)
       return res.status(400).json({ error: "site_name must be a string ≤ 120 chars" });
     if (/[<>"'`]/.test(site_name))
       return res.status(400).json({ error: "site_name contains disallowed characters" });
-    if (note   && (typeof note   !== "string" || note.length   > 500))
+    if (note && (typeof note !== "string" || note.length > 500))
       return res.status(400).json({ error: "note must be ≤ 500 chars" });
-    if (rater  && (typeof rater  !== "string" || rater.length  > 100))
-      return res.status(400).json({ error: "rater must be ≤ 100 chars" });
+
+    // Rater comes from the verified session, not the request body
+    const rater = await getSessionEmail(req);
+
     const ip = (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "unknown";
     try {
       const { rows: recent } = await pool().query(
