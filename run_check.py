@@ -32,6 +32,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from urllib.parse import urljoin, urlparse
 from playwright.sync_api import sync_playwright
+import ioc_extractor
 
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
@@ -129,11 +130,11 @@ def summarize_article(url, client):
     """Fetch article and return (summary, input_tokens, output_tokens). Summary is '' on skip/failure."""
     try:
         slug = url.rstrip("/").split("/")[-1].replace("-", " ").replace("_", " ")
-        resp = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
-        soup = BeautifulSoup(resp.text, "html.parser")
-        for tag in soup(["nav", "header", "footer", "script", "style", "aside", "form"]):
-            tag.decompose()
-        text = soup.get_text(separator=" ", strip=True)[:4000]
+        text = ioc_extractor.fetch_article_text(url)
+        if not text:
+            print(f"  [summarize] skipped (blocked or unreadable): {url[:70]}")
+            return "", 0, 0
+        text = text[:4000]
 
         if len(text) < _MIN_READABLE_CHARS:
             print(f"  [summarize] skipped (non-readable, {len(text)} chars): {url[:70]}")

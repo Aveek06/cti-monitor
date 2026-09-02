@@ -378,6 +378,9 @@ def _soup_to_text(html: str) -> str | None:
         return None
     if "please enable cookies" in _lc and "cloudflare" in _lc:
         return None
+    # WP Engine WAF (wpewaf.com) block pages
+    if "wpewaf.com" in _lc:
+        return None
     return text
 
 
