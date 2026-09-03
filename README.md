@@ -1,6 +1,6 @@
 # CTI Monitor
 
-An automated Cyber Threat Intelligence pipeline that monitors **187 security research sources**, sends daily email digests with AI-generated article summaries, extracts IOCs and MITRE ATT&CK techniques with AI, and surfaces everything on a live dashboard.
+An automated Cyber Threat Intelligence pipeline that monitors **187 security research sources**, sends daily email digests with AI-generated article summaries, extracts IOCs and MITRE ATT&CK techniques with AI, surfaces everything on a live dashboard, and exports a **read-only TAXII 2.1 / STIX 2.1 feed** for downstream platforms.
 
 ---
 
@@ -11,12 +11,14 @@ An automated Cyber Threat Intelligence pipeline that monitors **187 security res
 | **Source monitoring** | 187 configured sources — RSS feeds, JSON APIs, JS-heavy SPAs, WAF-protected blogs |
 | **Scraper diversity** | 9 scraper types: feed, api, nextjs, html, html_auto, crawl4ai, scrapling_fetcher, scrapling_stealthy, playwright_api |
 | **Parallel scraping** | 15 concurrent HTTP workers; 6 concurrent crawl4ai browser tabs; Playwright sites sequential under one browser |
+| **WAF bypass** | Full Chrome 125 browser headers + `requests.Session()`; automatic Playwright upgrade when responses are too short (< 1,500 chars) to be real article content |
 | **AI article summaries** | 1–2 sentence CTI summary per article via Claude Haiku 4.5 |
 | **AI combined extraction** | Single Claude Haiku call per article returns TTPs + IOCs + APT attribution as structured JSON |
 | **IOC extraction** | SHA-256 / SHA-1 / MD5 / domain / IPv4 / IPv6 via iocsearcher (defang, IANA TLD validation, overlap removal) |
-| **False positive filtering** | ~120-entry hardcoded FP list + source-domain filter + Tranco top-100k popularity list (cached 30 days) |
+| **False positive filtering** | ~120-entry FP list + source-domain filter + Tranco top-100k + RFC1918 private IP filter + version-number IP heuristic |
 | **APT attribution** | 80+ threat actor aliases (Chinese, Russian, Iranian, North Korean, financial) with word-boundary matching |
-| **STIX 2.1 storage** | Each IOC stored as a deterministic STIX 2.1 Indicator in Supabase PostgreSQL |
+| **STIX 2.1 storage** | Each IOC stored as a deterministic STIX 2.1 Indicator in Supabase PostgreSQL (JSONB column) |
+| **TAXII 2.1 export** | Read-only TAXII 2.1 endpoint (`/api/taxii/*`) serving the full STIX feed; optional Bearer token auth; pagination and `added_after` filtering |
 | **Decay scoring** | Jakusz (2025) adversary-aware quadratic decay with APT10/29/38 LTV coefficients |
 | **Site reliability scoring** | 0–100 score per source (availability + content quality + analyst feedback) |
 | **Reliability-weighted LTV** | IOC lifetime extended 1.3× from high-reliability sources; shortened 0.7× from low-reliability sources |
@@ -47,10 +49,10 @@ GitHub Actions (daily 21:30 IST via cron-job.org + schedule fallback)
   │     │     ├── Resolve publish dates (URL pattern → requests+htmldate → crawl4ai)
   │     │     └── Suppress articles older than 7 days from digest
   │     ├── Summarise fresh articles → Claude Haiku 4.5 (1-2 sentences)
-  │     │     └── Skip if article text < 200 chars (non-readable)
+  │     │     └── Fetches article text via fetch_article_text() (WAF-bypass headers + Playwright fallback)
   │     ├── Build site reliability scores (availability + content quality + analyst ratings)
   │     └── ioc_pipeline.py
-  │           ├── Parallel fetch article texts (up to 10 workers)
+  │           ├── Parallel fetch article texts (up to 10 workers, full browser headers)
   │           ├── Sort by reliability → high-reliability sites get Claude API budget priority
   │           ├── Per article:
   │           │     ├── ioc_extractor.py   — regex IOC extraction + APT detection
@@ -77,8 +79,10 @@ GitHub Actions (daily 21:30 IST via cron-job.org + schedule fallback)
         ioc_export.json / ttp_export.json / .tranco_cache.txt
 
 Dashboard (Vercel)
-  ├── /api/data.js     — fetches latest artifact from GitHub, returns merged JSON
-  ├── /api/ratings.js  — analyst rating API (GET averages / POST new 1-5 star rating)
+  ├── /api/data.js           — fetches latest artifact from GitHub, returns merged JSON
+  ├── /api/ratings.js        — analyst rating API (GET averages / POST new 1-5 star rating)
+  ├── /api/taxii.js          — TAXII 2.1 server discovery (GET /api/taxii)
+  ├── /api/taxii/[...].js    — TAXII 2.1 collections + objects (GET /api/taxii/*)
   └── /public/index.html
         ├── Home tab    — KPI cards, daily volume sparkline, IOC donut chart, ATT&CK radar
         ├── Sources tab — active / quiet / failing panels with reliability badges and site drawers
@@ -92,16 +96,28 @@ Dashboard (Vercel)
 
 | Type | Method | Used for |
 |---|---|---|
-| `feed` | feedparser | Standard RSS / Atom feeds |
+| `feed` | feedparser (+ direct fallback on fetch failure) | Standard RSS / Atom feeds |
 | `api` | requests + JSON | Sites with a public JSON API |
 | `nextjs` | Playwright + `__NEXT_DATA__` extraction | Next.js-rendered blogs |
 | `scrapling_fetcher` | curl_cffi TLS fingerprinting | Fast fetching without a browser |
-| `scrapling_stealthy` | Patchright stealth browser | WAF / Cloudflare-protected sites |
+| `scrapling_stealthy` | Patchright stealth browser (+ Playwright domcontentloaded fallback on timeout) | WAF / Cloudflare-protected sites |
 | `crawl4ai` | AsyncWebCrawler with stealth mode | JS-heavy SPAs |
 | `html` | Playwright + CSS selectors | Dynamic HTML with known selectors |
 | `html_auto` | Playwright + heuristic link diffing | Dynamic HTML without known selectors |
 | `playwright_api` | Playwright + response interception | Sites that load content via API calls |
 | `skip` | No-op | Disabled sources |
+
+---
+
+## WAF Bypass and Article Fetching
+
+All article text (for summaries and IOC extraction) goes through `fetch_article_text()` in `ioc_extractor.py`, which runs a two-stage fetch:
+
+1. **Stage 1 — requests with full browser headers**: Full Chrome 125 `User-Agent`, `Accept`, `Accept-Language`, `Sec-Fetch-*` headers via a `requests.Session()`. Response is cleaned by stripping nav/header/footer/script tags and checked for block-page signatures (Cloudflare, WP Engine WAF).
+
+2. **Stage 2 — Playwright upgrade**: If the cleaned text is under 1,500 characters (JS shell, blank response, or block page), headless Chromium is launched with `wait_until="domcontentloaded"` to render the full page. The longer result wins.
+
+Sites where even Playwright fails (interactive Cloudflare challenges, H2 rejection) are in `_PLAYWRIGHT_SKIP_HOSTS` and only the requests result is returned.
 
 ---
 
@@ -136,13 +152,15 @@ Articles are fetched with up to 10 parallel workers, then processed sequentially
 | SHA-1 | 40-char hex |
 | MD5 | 32-char hex (extracted; not sent to VirusTotal) |
 | Domain / FQDN | IANA TLD validation, subdomain dedup |
-| IPv4 / IPv6 | IANA validated, private/reserved excluded |
+| IPv4 / IPv6 | IANA validated; RFC1918 private ranges excluded; version-number strings filtered (max octet < 60) |
 
 **False positive filtering** runs after both passes:
 
 1. ~120-entry FP list — security vendors, CDNs, major platforms, news sites (exact + subdomain match)
 2. Source-domain filter — the article's own domain is never extracted as an IOC
 3. Tranco top-100k — popular domains filtered out; list cached locally for 30 days
+4. RFC1918 private IP filter — `10.x`, `172.16–31.x`, `192.168.x`, loopback excluded
+5. Version-number heuristic — dotted-quad strings where the largest octet is < 60 (e.g. `2.10.3.2`) are dropped
 
 ### Enrichment
 
@@ -181,6 +199,44 @@ Each article runs two passes:
 2. **Claude AI** (`ai_extractor.py`) — combined call also returns TTPs; falls back to `ttp_extractor` regex-only when AI budget is exhausted or no API key is set
 
 Techniques are stored in Supabase `ttp_observations` with technique ID, name, tactic, APT attribution, source URL, and observation count. The dashboard TTPs tab renders a MITRE ATT&CK heatmap filterable by time window (7 / 14 / 30 / all days) with one-click Navigator JSON export.
+
+---
+
+## TAXII 2.1 Export
+
+CTI Monitor exposes a read-only TAXII 2.1 endpoint that serves the full STIX 2.1 feed from Supabase. Any compatible platform (OpenCTI, MISP, Anomali, etc.) can point a TAXII client connector at it.
+
+### Endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/api/taxii` | Server discovery |
+| GET | `/api/taxii/collections` | Collections list |
+| GET | `/api/taxii/collections/cti-monitor-iocs` | Collection info |
+| GET | `/api/taxii/collections/cti-monitor-iocs/objects` | Paginated STIX objects |
+
+### Objects returned
+
+- **`indicator`** — one per IOC, full STIX 2.1 dict from `ioc_indicators.stix_object` (JSONB)
+- **`threat-actor`** — one per distinct attributed APT, deterministic UUID keyed on the actor name
+
+### Query parameters (objects endpoint)
+
+| Parameter | Default | Description |
+|---|---|---|
+| `added_after` | — | ISO 8601 datetime; filters to IOCs updated on or after this timestamp |
+| `limit` | 200 | Page size (max 1,000) |
+| `page` | 0 | Zero-indexed page number |
+
+### Authentication
+
+Set `TAXII_API_KEY` in the Vercel environment to gate the feed behind a Bearer token:
+
+```
+Authorization: Bearer <your-key>
+```
+
+If the variable is not set, the endpoint is open (useful during initial testing). The JWT cookie gate used by the main dashboard is bypassed entirely for all `/api/taxii/*` paths — no browser session required.
 
 ---
 
@@ -227,14 +283,14 @@ Sent every **Friday between 16:00–20:00 UTC** (or on demand via `force_weekly=
 | File | Purpose |
 |---|---|
 | `run_check.py` | Main orchestrator: scrape → diff → summarise → reliability → IOC pipeline → email |
-| `config.json` | All 187 site definitions (type, URL, selectors, filters) |
+| `config.json` | All 187 site definitions (type, URL, selectors, filters, per-site timeouts) |
 | `state_seeds.json` | Seed URLs for new or force-replaced sites (applied on first run or cache reset) |
 | `state.json` | Seen-link history per site (GitHub Actions cache, max 2,000 URLs/site) |
 | `last_active.json` | Per-site timestamps, 7-day counts, daily AI cost, reliability snapshot |
 | `prev_run_links.json` | Enriched link objects `{url, site, date, summary}` for dashboard |
 | `ioc_export.json` | Scored IOC list `{value, type, apt, score, tau, ltv, shodan_tags, …}` |
 | `ttp_export.json` | TTP observations `{technique_id, tactic, total_observations, apts, …}` |
-| `ioc_extractor.py` | Article text fetch, iocsearcher extraction, FP filtering, APT detection |
+| `ioc_extractor.py` | Article text fetch (WAF bypass + Playwright upgrade), iocsearcher extraction, FP filtering, APT detection |
 | `ai_extractor.py` | Single Haiku call: returns TTPs + IOCs + APT as structured JSON |
 | `stix_converter.py` | Build STIX 2.1 Indicator / ThreatActor / Relationship objects |
 | `ioc_scorer.py` | Jakusz decay formula + APT LTV coefficients |
@@ -247,6 +303,9 @@ Sent every **Friday between 16:00–20:00 UTC** (or on demand via `force_weekly=
 | `weekly_report.py` | Friday report: narrative generation + stale sites + degradation alerts |
 | `dashboard/api/data.js` | Vercel function: fetches latest GitHub artifact, returns merged JSON |
 | `dashboard/api/ratings.js` | Vercel function: analyst rating GET/POST backed by Supabase |
+| `dashboard/api/taxii.js` | Vercel function: TAXII 2.1 server discovery (`GET /api/taxii`) |
+| `dashboard/api/taxii/[...segments].js` | Vercel function: TAXII 2.1 collections and objects endpoints |
+| `dashboard/middleware.js` | Vercel edge middleware: JWT cookie gate (bypassed for `/api/taxii/*`) |
 | `dashboard/public/index.html` | Live dashboard (Home / Sources / IOCs / TTPs tabs) |
 | `.github/workflows/cti-monitor.yml` | Daily workflow with guard job (21:30 IST primary + 20:00 UTC fallback) |
 
@@ -268,10 +327,35 @@ Create a project at [supabase.com](https://supabase.com). The `ioc_indicators`, 
 ### 3. Dashboard (Vercel)
 
 1. Import the repo into [Vercel](https://vercel.com), set **Root Directory** to `dashboard`
-2. Add your GitHub personal access token (with `repo` read scope) as a Vercel environment variable
+2. Add the required environment variables:
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `DATABASE_URL` | Yes | Supabase Postgres connection string |
+| `SESSION_SECRET` | Yes | HMAC secret for dashboard JWT signing |
+| `GITHUB_TOKEN` | Yes | GitHub PAT (`repo` read scope) for artifact fetching |
+| `NVD_API_KEY` | Optional | NVD rate limit: 50 req/30s with key vs 5 without |
+| `URLHAUS_API_KEY` | Optional | abuse.ch API key for URLhaus live feed |
+| `TAXII_API_KEY` | Optional | If set, gates `/api/taxii/*` behind Bearer token auth |
+
 3. Vercel auto-deploys on every push; the dashboard reads the latest GitHub Actions artifact
 
-### 4. Trigger a test run
+### 4. GitHub Actions secrets
+
+Set these in **Settings → Secrets and variables → Actions**:
+
+| Secret | Purpose |
+|---|---|
+| `ANTHROPIC_API_KEY` | Claude Haiku for summaries, extraction, weekly narrative |
+| `EMAIL_FROM` / `EMAIL_TO` | Digest and weekly report recipients |
+| `SMTP_USERNAME` / `SMTP_PASSWORD` | Gmail SMTP credentials |
+| `DATABASE_URL` | Same Supabase URL as Vercel |
+| `VT_API_KEY` | VirusTotal (free tier) |
+| `SHODAN_API_KEY` | Shodan API |
+| `URLHAUS_API_KEY` | URLhaus abuse.ch |
+| `GITHUB_TOKEN` | Auto-provided by Actions (no setup needed) |
+
+### 5. Trigger a test run
 
 Go to **Actions → CTI Monitor → Run workflow** to run manually and confirm you receive an email.
 
