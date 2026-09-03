@@ -687,39 +687,6 @@
     .vm-sev-text.UNKNOWN{color:var(--text-muted);}
     .vm-ransom-known{font-size:7.5px;font-weight:700;letter-spacing:.08em;padding:2px 6px;border:1px solid rgba(255,149,0,.35);background:rgba(255,149,0,.08);color:var(--amber);}
     .vm-epss-badge{font-size:10px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em;white-space:nowrap;}
-    /* ── PIR / Watchlist ── */
-    .pir-badge{display:inline-block;font-size:6px;font-weight:800;letter-spacing:.1em;padding:1px 5px;border-radius:2px;vertical-align:middle;text-transform:uppercase;margin-left:4px;}
-    .pir-badge.apt    {background:rgba(255,59,48,.18);color:var(--red);border:1px solid rgba(255,59,48,.35);}
-    .pir-badge.malware{background:rgba(255,149,0,.15);color:var(--amber);border:1px solid rgba(255,149,0,.3);}
-    .pir-badge.sector {background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid rgba(0,212,255,.25);}
-    .pir-badge.keyword{background:rgba(0,255,65,.1);color:var(--green);border:1px solid rgba(0,255,65,.25);}
-    tr.pir-hit td:first-child{border-left:2px solid rgba(255,59,48,.7)!important;}
-    .hm-signal.pir-signal{border-left:2px solid rgba(255,59,48,.7);padding-left:8px;}
-    /* Watchlist panel */
-    .wl-panel{background:var(--surface2);border:1px solid var(--border);border-radius:6px;margin:6px 0 10px;overflow:hidden;transition:max-height .2s ease;}
-    .wl-panel.collapsed{max-height:32px;}
-    .wl-panel.expanded{max-height:500px;}
-    .wl-panel-hd{display:flex;align-items:center;gap:8px;padding:6px 12px;cursor:pointer;user-select:none;font:600 8px/1 var(--font-ui);letter-spacing:.1em;text-transform:uppercase;color:var(--red);}
-    .wl-panel-hd .wl-toggle{margin-left:auto;font-size:9px;color:var(--text-muted);}
-    .wl-panel-body{padding:8px 12px 12px;border-top:1px solid var(--border);}
-    .wl-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;min-height:20px;}
-    .wl-chip{display:inline-flex;align-items:center;gap:4px;font:600 8px/1 var(--font-ui);letter-spacing:.04em;padding:3px 7px;border-radius:12px;cursor:default;}
-    .wl-chip.apt    {background:rgba(255,59,48,.14);color:var(--red);border:1px solid rgba(255,59,48,.3);}
-    .wl-chip.malware{background:rgba(255,149,0,.12);color:var(--amber);border:1px solid rgba(255,149,0,.25);}
-    .wl-chip.sector {background:rgba(0,212,255,.08);color:var(--cyan);border:1px solid rgba(0,212,255,.2);}
-    .wl-chip.keyword{background:rgba(0,255,65,.08);color:var(--green);border:1px solid rgba(0,255,65,.2);}
-    .wl-chip-rm{background:none;border:none;color:inherit;opacity:.6;cursor:pointer;padding:0;font-size:10px;line-height:1;margin-left:1px;}
-    .wl-chip-rm:hover{opacity:1;}
-    .wl-add-row{display:flex;gap:6px;align-items:center;}
-    .wl-add-row input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font:11px var(--font-mono);color:var(--text);}
-    .wl-add-row input:focus{outline:none;border-color:var(--green);}
-    .wl-add-row select{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 6px;font:9px var(--font-ui);color:var(--text);cursor:pointer;}
-    .wl-add-btn{background:var(--surface3);border:1px solid var(--border);border-radius:4px;padding:3px 10px;font:600 8px/1 var(--font-ui);letter-spacing:.06em;color:var(--green);cursor:pointer;}
-    .wl-add-btn:hover{background:rgba(0,255,65,.08);}
-    .wl-reset-btn{background:none;border:none;font:9px var(--font-ui);color:var(--text-muted);cursor:pointer;padding:0;text-decoration:underline;}
-    .wl-reset-btn:hover{color:var(--text);}
-    .ioc-type-btn.pir-filter-btn{border-color:rgba(255,59,48,.35);color:var(--text-muted);}
-    .ioc-type-btn.pir-filter-btn.active{background:rgba(255,59,48,.18);border-color:var(--red);color:var(--red);}
     .vm-action-cell{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-muted);font-size:8px;}
     .vm-empty{text-align:center;padding:32px;color:var(--text-muted);font-size:9px;letter-spacing:.08em;}
     .vm-loading{text-align:center;padding:32px;color:var(--text-muted);font-size:9px;letter-spacing:.08em;}
@@ -1266,7 +1233,6 @@
               <button class="ioc-type-btn" data-type="sha256" onclick="setIocType(this)">SHA256</button>
               <button class="ioc-type-btn" data-type="sha1" onclick="setIocType(this)">SHA1</button>
               <button class="ioc-type-btn" data-type="md5" onclick="setIocType(this)">MD5</button>
-              <button class="ioc-type-btn pir-filter-btn" data-type="PIR" onclick="setIocType(this)" title="Show only PIR watchlist matches">PIR</button>
             </div>
             <div class="ioc-rel-filters">
               <button class="ioc-rel-btn active" data-rel="0" onclick="setIocRelFilter(this)">All</button>
@@ -1284,28 +1250,6 @@
                 <button class="ioc-export-opt" onclick="exportIocs('txt')">TXT — Values only<span class="ioc-export-opt-desc">One indicator per line</span></button>
                 <button class="ioc-export-opt" onclick="exportIocs('json')">JSON<span class="ioc-export-opt-desc">Full data with all fields</span></button>
                 <button class="ioc-export-opt" onclick="exportIocs('urls')">URLs only<span class="ioc-export-opt-desc">Extract URL indicators</span></button>
-              </div>
-            </div>
-          </div>
-          <!-- PIR Watchlist Panel -->
-          <div id="wl-panel" class="wl-panel collapsed">
-            <div class="wl-panel-hd" onclick="toggleWlPanel()">
-              ▸ PRIORITY INTELLIGENCE REQUIREMENTS
-              <span id="wl-match-count" style="font-size:8px;color:var(--text-muted);font-weight:400;letter-spacing:.02em"></span>
-              <span class="wl-toggle" id="wl-toggle-icon">▾ expand</span>
-            </div>
-            <div class="wl-panel-body">
-              <div class="wl-chips" id="wl-chips"></div>
-              <div class="wl-add-row">
-                <input id="wl-input" placeholder="Add term (e.g. BlackCat, energy sector)…" onkeydown="if(event.key==='Enter')addWlTerm()">
-                <select id="wl-cat">
-                  <option value="apt">APT</option>
-                  <option value="malware">Malware</option>
-                  <option value="sector">Sector</option>
-                  <option value="keyword" selected>Keyword</option>
-                </select>
-                <button class="wl-add-btn" onclick="addWlTerm()">Add</button>
-                <button class="wl-reset-btn" onclick="resetWatchlist()">Reset to defaults</button>
               </div>
             </div>
           </div>
@@ -1781,8 +1725,6 @@ const STALE_DAYS=7,SKIP_TYPES=new Set(["skip","html_TODO"]),REFRESH_MS=15*60*100
 let lastUpdatedAt=null,lastSevenDay={},lastState={},lastPrevRunLinks=[],_lmAllLinks=[];
 let _ratings={},_iocBySite={},_ttpSiteSet=new Set(),_lastDerived=null,_lastActive={},_pendingRating=0,_openSiteName=null;
 let _minReliability=0,_relScoreCache={};
-let _watchlist=[]; // [{term, category}] — viewer's PIR watchlist (persisted in localStorage)
-let _configDefaultWatchlist=[]; // seed terms from config.json
 /* ── Page view state ── */
 let _pvDays=30,_pvSiteName="",_pvArticleUrl="",_allTtps=[],_currentUserEmail="";
 
@@ -2464,64 +2406,6 @@ function openTtpDrawer(tid){
   animateDrawer(true);document.getElementById("backdrop").classList.add("visible");document.body.style.overflow="hidden";
 }
 
-/* ── PIR / Watchlist ── */
-function loadWatchlist(config){
-  _configDefaultWatchlist=(config?.watchlist?.terms)||[];
-  try{
-    const stored=localStorage.getItem("cti_watchlist");
-    _watchlist=stored?JSON.parse(stored):null;
-    if(!Array.isArray(_watchlist))_watchlist=null;
-  }catch{_watchlist=null;}
-  if(!_watchlist)_watchlist=_configDefaultWatchlist.map(t=>({...t}));
-  renderWlPanel();
-}
-function saveWatchlist(){try{localStorage.setItem("cti_watchlist",JSON.stringify(_watchlist));}catch{}}
-function pirMatch(text){
-  if(!_watchlist.length||!text)return[];
-  const lc=text.toLowerCase();
-  const seen=new Set();
-  return _watchlist.filter(w=>{
-    if(seen.has(w.category))return false;
-    if(lc.includes(w.term.toLowerCase())){seen.add(w.category);return true;}
-    return false;
-  });
-}
-function iocPirText(r){return`${r.value} ${r.apt||""} ${r.url_threat||""} ${(r.url_tags||[]).join(" ")} ${r.source_blog||""}`;}
-function articlePirText(s){return`${s.title||s.url||""} ${s.summary||""} ${s.site||""}`;}
-function renderPirBadges(matches){return matches.map(m=>`<span class="pir-badge ${m.category}">${m.category}</span>`).join("");}
-function renderWlPanel(){
-  const chips=document.getElementById("wl-chips");
-  if(!chips)return;
-  chips.innerHTML=_watchlist.map(w=>
-    `<span class="wl-chip ${w.category}">${esc(w.term)}<button class="wl-chip-rm" onclick="removeWlTerm(${JSON.stringify(w.term)})" title="Remove">×</button></span>`
-  ).join("")||`<span style="color:var(--text-muted);font-size:9px">No terms — add one below or reset to defaults.</span>`;
-}
-function addWlTerm(){
-  const inp=document.getElementById("wl-input");
-  const cat=document.getElementById("wl-cat")?.value||"keyword";
-  const term=(inp?.value||"").trim();
-  if(!term)return;
-  if(_watchlist.some(w=>w.term.toLowerCase()===term.toLowerCase()))return;
-  _watchlist.push({term,category:cat});
-  if(inp)inp.value="";
-  saveWatchlist();renderWlPanel();filterIocs(document.getElementById("ioc-search")?.value||"");
-}
-function removeWlTerm(term){
-  _watchlist=_watchlist.filter(w=>w.term!==term);
-  saveWatchlist();renderWlPanel();filterIocs(document.getElementById("ioc-search")?.value||"");
-}
-function resetWatchlist(){
-  _watchlist=_configDefaultWatchlist.map(t=>({...t}));
-  saveWatchlist();renderWlPanel();filterIocs(document.getElementById("ioc-search")?.value||"");
-}
-function toggleWlPanel(){
-  const p=document.getElementById("wl-panel");
-  const ico=document.getElementById("wl-toggle-icon");
-  const expanded=p.classList.toggle("expanded");
-  p.classList.toggle("collapsed",!expanded);
-  if(ico)ico.textContent=expanded?"▴ collapse":"▾ expand";
-}
-
 /* ── IOC rendering ── */
 let _allIocs=[];
 function liveScore(lastSeen,tau,ltv){const t=(Date.now()-new Date(lastSeen+"T00:00:00Z"))/86400000;return Math.max(0,Math.min(100,100*(1-(t/((tau||30)*(ltv||1.0)))**2)));}
@@ -2561,28 +2445,13 @@ function setIocType(btn){document.querySelectorAll(".ioc-type-btn").forEach(b=>b
 function setIocRelFilter(btn){document.querySelectorAll(".ioc-rel-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");_minReliability=+btn.dataset.rel;filterIocs(document.getElementById("ioc-search")?.value||"");}
 function filterIocs(q){
   const lq=(q||"").toLowerCase();
-  const pirOnly=_activeTypeFilter==="PIR";
-  const _typeMatch=t=>!_activeTypeFilter||pirOnly||(_activeTypeFilter==="ip"?(t==="ipv4"||t==="ipv6"):t===_activeTypeFilter);
-  const withLive=_allIocs.filter(r=>{
-    if(!pirOnly&&!_typeMatch(r.type))return false;
-    if(_minReliability>0){const _s=_relScoreCache[r.source_blog];if(_s==null||_s<_minReliability)return false;}
-    if(lq&&!r.value.toLowerCase().includes(lq)&&!(r.type||"").includes(lq)&&!(r.source_blog||"").toLowerCase().includes(lq)&&!(r.apt||"").toLowerCase().includes(lq)&&!(r.url_threat||"").toLowerCase().includes(lq)&&!(r.url_tags||[]).join(" ").toLowerCase().includes(lq))return false;
-    return true;
-  }).map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv),_pir:pirMatch(iocPirText(r))}));
-  const rows=pirOnly?withLive.filter(r=>r._pir.length>0):withLive;
-  // PIR matches sort to top; within each group sort by descending live score
-  rows.sort((a,b)=>(b._pir.length>0)-(a._pir.length>0)||b._live-a._live);
-  // Update match count chip in watchlist panel header
-  const pirCount=withLive.filter(r=>r._pir.length>0).length;
-  const mcEl=document.getElementById("wl-match-count");
-  if(mcEl)mcEl.textContent=pirCount?`— ${pirCount} match${pirCount!==1?"es":""}  ▸ click PIR filter to isolate`:"";
+  const _typeMatch=t=>!_activeTypeFilter||(_activeTypeFilter==="ip"?(t==="ipv4"||t==="ipv6"):t===_activeTypeFilter);
+  const rows=(_allIocs.filter(r=>{if(!_typeMatch(r.type))return false;if(_minReliability>0){const _s=_relScoreCache[r.source_blog];if(_s==null||_s<_minReliability)return false;}return!lq||r.value.toLowerCase().includes(lq)||(r.type||"").includes(lq)||(r.source_blog||"").toLowerCase().includes(lq)||(r.apt||"").toLowerCase().includes(lq)||(r.url_threat||"").toLowerCase().includes(lq)||((r.url_tags||[]).join(" ").toLowerCase().includes(lq));}).map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((a,b)=>b._live-a._live));
   document.getElementById("ioc-count").textContent=`${rows.length} IOC${rows.length!==1?"s":""}`;
   const empty=document.getElementById("ioc-empty"),tbody=document.getElementById("ioc-tbody");
   if(!rows.length){empty.style.display="block";tbody.innerHTML="";return;}
   empty.style.display="none";
   tbody.innerHTML=rows.map((r,i)=>{const s=r._live,col=scoreColor(s),bar=Math.round(s),apt=r.apt?`<span class="ioc-apt">${esc(r.apt)}</span>`:`<span class="ioc-dim">—</span>`,vt=r.vt_malicious!=null&&r.vt_malicious>0?`<span class="ioc-vt">${r.vt_malicious} engines</span>`:"";
-  const pirBadges=r._pir.length?renderPirBadges(r._pir):"";
-  const pirRowCls=r._pir.length?" pir-hit":"";
   const isUrl=r.type==="url";
   const displayVal=isUrl&&r.value.length>50?r.value.slice(0,48)+"…":r.value;
   const tags=(r.url_tags||[]).slice(0,3).map(t=>`<span class="ioc-tag">${esc(t)}</span>`).join("");
@@ -2595,7 +2464,7 @@ function filterIocs(q){
     :`<td class="ioc-site" title="${esc(r.source_blog||'')}">${r.source_article?`<a href="${esc(r.source_article)}" target="_blank" rel="noopener">${esc(r.source_blog||'—')}</a>`:esc(r.source_blog||'—')}</td>`;
   const clipSvg=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M17 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>`;
   const delay=i<25?`animation-delay:${i*22}ms`:"animation-fill-mode:both;opacity:1";
-  return`<tr class="ioc-tbody-row${pirRowCls}" style="${delay}"><td onclick="copyIoc(this,'${esc(r.value)}')" title="${isUrl?esc(r.value):'Click to copy'}"><div style="white-space:nowrap"><span class="ioc-val">${esc(displayVal)}</span><button class="ioc-copy-btn" onclick="event.stopPropagation();copyIoc(this,'${esc(r.value)}')" title="Copy to clipboard">${clipSvg}</button><span class="ioc-copied">✓</span></div>${shodanRow}</td><td><span class="ioc-badge">${esc(r.type)}</span>${pirBadges}</td>${sourceCell}<td>${apt}</td><td><span style="font-variant-numeric:tabular-nums;color:${col};font-weight:600">${s.toFixed(1)}</span>${vt?`<br>${vt}`:""}</td><td><div class="ioc-decay-track"><div class="ioc-decay-fill" style="width:${bar}%;background:${col}"></div></div><span style="font-size:8px;color:var(--text-muted)">${r.last_seen||""}</span></td></tr>`;}).join("");
+  return`<tr class="ioc-tbody-row" style="${delay}"><td onclick="copyIoc(this,'${esc(r.value)}')" title="${isUrl?esc(r.value):'Click to copy'}"><div style="white-space:nowrap"><span class="ioc-val">${esc(displayVal)}</span><button class="ioc-copy-btn" onclick="event.stopPropagation();copyIoc(this,'${esc(r.value)}')" title="Copy to clipboard">${clipSvg}</button><span class="ioc-copied">✓</span></div>${shodanRow}</td><td><span class="ioc-badge">${esc(r.type)}</span></td>${sourceCell}<td>${apt}</td><td><span style="font-variant-numeric:tabular-nums;color:${col};font-weight:600">${s.toFixed(1)}</span>${vt?`<br>${vt}`:""}</td><td><div class="ioc-decay-track"><div class="ioc-decay-fill" style="width:${bar}%;background:${col}"></div></div><span style="font-size:8px;color:var(--text-muted)">${r.last_seen||""}</span></td></tr>`;}).join("");
 }
 
 /* ── IOC Export ── */
@@ -2877,12 +2746,9 @@ function renderHome({activeSites,quietSites,failingSites,weekTotal,iocExport,ttp
         title=seg.replace(/[-_]/g,' ').replace(/\.(html?|php|aspx?)$/i,'');
       }
       const date=s.date?s.date.slice(5):'';
-      const pirMs=pirMatch(articlePirText({...s,title,site}));
-      const pirCls=pirMs.length?" pir-signal":"";
-      const pirBdgs=pirMs.length?renderPirBadges(pirMs):"";
       const srcHtml=`<div class="hm-signal-src"><span class="hm-signal-site">${esc(site)}</span>${date?`<span class="hm-signal-ts">${esc(date)}</span>`:''}</div>`;
       const sumHtml=s.summary?`<span class="hm-signal-summary">${esc(s.summary)}</span>`:'';
-      return`<a class="hm-signal${pirCls}" href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="--i:${Math.min(i,14)}"><div class="hm-signal-body">${srcHtml}<span class="hm-signal-title">${esc(title.length>58?title.slice(0,56)+'…':title)}${pirBdgs}</span>${sumHtml}</div></a>`;
+      return`<a class="hm-signal" href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="--i:${Math.min(i,14)}"><div class="hm-signal-body">${srcHtml}<span class="hm-signal-title">${esc(title.length>58?title.slice(0,56)+'…':title)}</span>${sumHtml}</div></a>`;
     }).join(''):`<div class="panel-footer">// No signals in last run</div>`;
   }
   // Top IOCs with section count
@@ -3211,7 +3077,7 @@ async function _refreshLiveUsers(){
 
 /* ── Refresh ── */
 async function refreshData(){
-  try{const raw=await loadData();if(raw.updatedAt===lastUpdatedAt)return;lastUpdatedAt=raw.updatedAt;resetUI();loadWatchlist(raw.config);updateDashboard(derive(raw));flashUpdated(raw.updatedAt);}
+  try{const raw=await loadData();if(raw.updatedAt===lastUpdatedAt)return;lastUpdatedAt=raw.updatedAt;resetUI();updateDashboard(derive(raw));flashUpdated(raw.updatedAt);}
   catch(err){console.warn("Refresh failed:",err.message);}
 }
 
@@ -3233,7 +3099,7 @@ function switchTab(name){
 /* ── Init ── */
 async function init(){
   try{
-    const raw=await loadData();lastUpdatedAt=raw.updatedAt;loadWatchlist(raw.config);updateDashboard(derive(raw));
+    const raw=await loadData();lastUpdatedAt=raw.updatedAt;updateDashboard(derive(raw));
     document.getElementById("card-active").addEventListener("click",()=>togglePanel("card-active","panel-active"));
     document.getElementById("card-quiet").addEventListener("click",()=>togglePanel("card-quiet","panel-quiet"));
     document.getElementById("card-failing").addEventListener("click",()=>togglePanel("card-failing","panel-failing"));

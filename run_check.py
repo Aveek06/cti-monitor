@@ -1071,28 +1071,14 @@ def normalize_date(date_str):
 
 
 def send_digest_email(new_items, failures, duplicate_links=None, ai_run_cost=0.0, ioc_results=None, ai_status="",
-                      last_active=None, config_sites=None, watchlist_terms=None):
-    # PIR matching — case-insensitive substring against title + summary + site
-    wl_terms = [t["term"].lower() for t in (watchlist_terms or []) if isinstance(t, dict) and t.get("term")]
-
-    def _pir_matches(item):
-        if not wl_terms:
-            return []
-        haystack = f"{item.get('title','') or ''} {item.get('summary','') or ''} {item.get('site','') or ''}".lower()
-        return [t for t in wl_terms if t in haystack]
-
-    pir_items    = [it for it in new_items if _pir_matches(it)]
-    normal_items = [it for it in new_items if not _pir_matches(it)]
-
-    def _make_row(item, pir=False):
+                      last_active=None, config_sites=None):
+    rows_html = ""
+    for item in new_items:
         summary_html = (f"<br><span style='color:#888;font-size:11px;font-style:italic'>"
                         f"{item['summary']}</span>" if item.get("summary") else "")
-        row_style = " style='border-left:3px solid #cc3333;'" if pir else ""
-        return (f"<tr{row_style}><td>{item['date']}</td><td>{item['date_source']}</td>"
-                f"<td><a href='{item['link']}'>{item['link']}</a>{summary_html}</td>"
-                f"<td>{item['site']}</td></tr>")
-
-    rows_html = "".join(_make_row(it) for it in normal_items)
+        rows_html += (f"<tr><td>{item['date']}</td><td>{item['date_source']}</td>"
+                       f"<td><a href='{item['link']}'>{item['link']}</a>{summary_html}</td>"
+                       f"<td>{item['site']}</td></tr>")
 
     failures_html = ""
     if failures:
@@ -1111,34 +1097,15 @@ def send_digest_email(new_items, failures, duplicate_links=None, ai_run_cost=0.0
             f"which may indicate a state-persistence bug.</p><ul>{dup_rows}</ul>"
         )
 
-    pir_section_html = ""
-    if pir_items:
-        pir_rows = "".join(_make_row(it, pir=True) for it in pir_items)
-        pir_section_html = f"""
-        <div style="border:1px solid #cc3333;border-radius:4px;padding:12px 16px;margin-bottom:16px;background:#1a0000;">
-          <h3 style="color:#ff4444;margin:0 0 8px;font-size:13px;letter-spacing:.05em">
-            ▸ PRIORITY INTEL MATCHES ({len(pir_items)})
-          </h3>
-          <p style="color:#cc8888;font-size:11px;margin:0 0 10px">
-            These articles matched your watchlist terms.
-          </p>
-          <table border="1" cellpadding="6" cellspacing="0" style="width:100%">
-            <tr><th>Date</th><th>Date Source</th><th>Link</th><th>Parent Website</th></tr>
-            {pir_rows}
-          </table>
-        </div>
-        """
-
     if not new_items:
         body_html = "<p>No new blog posts were observed in this run.</p>"
     else:
-        normal_table = (f"""
+        body_html = f"""
         <table border="1" cellpadding="6" cellspacing="0">
           <tr><th>Date</th><th>Date Source</th><th>Link</th><th>Parent Website</th></tr>
           {rows_html}
         </table>
-        """ if normal_items else "")
-        body_html = pir_section_html + normal_table
+        """
 
     ioc_html = ""
     if ioc_results:
@@ -1522,8 +1489,7 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
 
     print(f"Run complete: {len(fresh_items)} new post(s) in digest ({len(stale_items)} stale suppressed), {len(failures)} site(s) failed.")
     send_digest_email(fresh_items, failures, duplicate_links or None, ai_run_cost, ioc_results, ai_status,
-                      last_active=last_active, config_sites=config["sites"],
-                      watchlist_terms=config.get("watchlist", {}).get("terms", []))
+                      last_active=last_active, config_sites=config["sites"])
 
 
 if __name__ == "__main__":
