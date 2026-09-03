@@ -453,10 +453,23 @@ def extract_iocs(text: str, source_url: str | None = None) -> list[dict]:
     seen = set()
     results = []
     for ioc in _searcher.search_data(
-        text, targets=["fqdn", "ip4", "ip6", "sha256", "sha1", "md5"], no_overlaps=True
+        text, targets=["url", "fqdn", "ip4", "ip6", "sha256", "sha1", "md5"], no_overlaps=True
     ):
         t = _TYPE_MAP.get(ioc.name, ioc.name)
         v = ioc.value
+        if t == "url":
+            url_host = _domain_from_url(v)
+            if not url_host:
+                continue
+            if _is_fp(url_host):
+                continue
+            if src_host and (url_host == src_host or url_host.endswith("." + src_host)):
+                continue
+            if _in_tranco(url_host):
+                continue
+            # Skip the source article URL itself
+            if source_url and v == source_url:
+                continue
         if t == "domain":
             if _is_fp(v):
                 continue
