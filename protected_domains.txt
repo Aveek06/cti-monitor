@@ -23,3 +23,31 @@ docusign.com
 chase.com
 wellsfargo.com
 bankofamerica.com
+
+# Thomas Jefferson University and Jefferson Health System
+jefferson.edu
+jeffersonhealth.org
+jeffersonhealthnj.org
+kimmelcancercenter.org
+
+# Lehigh Valley Health Network (merged August 2024)
+lvhn.org
+lvh.org
+lvhhn.org
+
+# Einstein Healthcare Network (merged October 2021)
+einstein.edu
+einsteinmed.edu
+einsteinmed.org
+mossrehab.com
+
+# Abington Jefferson Health (joined 2015)
+abingtonhealth.org
+amh.org
+
+# Jefferson Health Plans / Insurance
+jeffersonhealthplans.com
+healthpartnersplans.com
+
+# Rothman Orthopaedics (major affiliate)
+rothmanortho.com
