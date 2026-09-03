@@ -686,6 +686,7 @@
     .vm-sev-text.LOW{color:var(--text-dim);}
     .vm-sev-text.UNKNOWN{color:var(--text-muted);}
     .vm-ransom-known{font-size:7.5px;font-weight:700;letter-spacing:.08em;padding:2px 6px;border:1px solid rgba(255,149,0,.35);background:rgba(255,149,0,.08);color:var(--amber);}
+    .vm-epss-badge{font-size:10px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em;white-space:nowrap;}
     .vm-action-cell{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-muted);font-size:8px;}
     .vm-empty{text-align:center;padding:32px;color:var(--text-muted);font-size:9px;letter-spacing:.08em;}
     .vm-loading{text-align:center;padding:32px;color:var(--text-muted);font-size:9px;letter-spacing:.08em;}
@@ -1401,6 +1402,11 @@
           <span class="stat-label">Ransomware Linked</span>
           <div class="kpi-bar"><div class="kpi-bar-fill" id="vm-bar-ransom" style="background:var(--amber)"></div></div>
         </div>
+        <div class="kpi-card">
+          <span class="stat-num" id="vm-num-epss" style="color:var(--red)">—</span>
+          <span class="stat-label">High EPSS (&ge;50%)</span>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="vm-bar-epss" style="background:var(--red)"></div></div>
+        </div>
       </div>
       <!-- Toolbar -->
       <div class="vm-toolbar">
@@ -1452,7 +1458,7 @@
             <thead><tr>
               <th>CVE ID</th><th>Vendor / Product</th><th>Date Added</th>
               <th>Due Date</th><th>CVSS</th><th>Severity</th>
-              <th>Ransomware</th><th>Required Action</th>
+              <th>EPSS</th><th>Ransomware</th><th>Required Action</th>
             </tr></thead>
             <tbody id="vm-tbody">
               <tr><td colspan="8" class="vm-loading">// Loading vulnerability data from CISA KEV + NVD...</td></tr>
@@ -2830,7 +2836,7 @@ async function loadVmData(){
     window._vmData=vmData;
     document.getElementById("sb-kevs").textContent=vmData.totalKev||"—";
   }catch(e){
-    vmData={kevEntries:[],cvssMap:{},totalKev:0,error:e.message};
+    vmData={kevEntries:[],cvssMap:{},epssMap:{},totalKev:0,error:e.message};
     window._vmData=vmData;
   }
   return vmData;
@@ -2839,8 +2845,8 @@ async function loadVmData(){
 function setVmDays(d){
   vmDays=d;
   document.querySelectorAll(".vm-days-btn").forEach(b=>b.classList.toggle("active",+b.dataset.days===d));
-  renderVmTable(getVmFiltered(),vmData?.cvssMap||{});
-  renderVmKpis(getVmFiltered(),vmData?.kevEntries||[],vmData?.cvssMap||{});
+  renderVmTable(getVmFiltered(),vmData?.cvssMap||{},vmData?.epssMap||{});
+  renderVmKpis(getVmFiltered(),vmData?.kevEntries||[],vmData?.cvssMap||{},vmData?.epssMap||{});
   renderVmSeverityDonut(getVmFiltered(),vmData?.cvssMap||{});
   renderVmVendorBars(getVmFiltered());
 }
@@ -2873,28 +2879,33 @@ async function renderVmTab(){
     return;
   }
   const f=getVmFiltered();
-  renderVmKpis(f,data.kevEntries,data.cvssMap);
+  renderVmKpis(f,data.kevEntries,data.cvssMap,data.epssMap||{});
   renderVmSeverityDonut(f,data.cvssMap);
   renderVmVendorBars(f);
   renderVmTimeline(data.kevEntries);
-  renderVmTable(f,data.cvssMap);
+  renderVmTable(f,data.cvssMap,data.epssMap||{});
 }
 
-function renderVmKpis(f,all,cvssMap){
+function renderVmKpis(f,all,cvssMap,epssMap){
   const now=Date.now();
   const w7=all.filter(e=>new Date(e.dateAdded)>new Date(now-7*864e5)).length;
   const crit=f.filter(e=>vmCvssSev(e.cveID,cvssMap)==="CRITICAL").length;
   const ran=f.filter(e=>e.knownRansomwareCampaignUse==="Known").length;
+  // High-risk EPSS: entries with exploit probability ≥ 50%
+  const highEpss=f.filter(e=>(epssMap[e.cveID]?.epss||0)>=0.5).length;
   document.getElementById("vm-num-total").textContent=f.length;
   document.getElementById("vm-num-7d").textContent=w7;
   document.getElementById("vm-num-critical").textContent=crit;
   document.getElementById("vm-num-ransom").textContent=ran;
+  const epssEl=document.getElementById("vm-num-epss");
+  if(epssEl)epssEl.textContent=highEpss;
   requestAnimationFrame(()=>setTimeout(()=>{
     const sb=(id,p)=>{const el=document.getElementById(id);if(el)el.style.transform=`scaleX(${Math.min(p,100)/100})`;};
     sb("vm-bar-total",Math.round((f.length/Math.max(all.length,1))*100));
     sb("vm-bar-7d",Math.min(100,Math.round((w7/30)*100)));
     sb("vm-bar-critical",Math.round((crit/Math.max(f.length,1))*100));
     sb("vm-bar-ransom",Math.round((ran/Math.max(f.length,1))*100));
+    sb("vm-bar-epss",Math.round((highEpss/Math.max(f.length,1))*100));
   },80));
 }
 
@@ -2960,10 +2971,18 @@ function renderVmTimeline(all){
   el.innerHTML=`<svg viewBox="0 0 ${W} ${H+8}" width="100%" preserveAspectRatio="none"><defs><linearGradient id="vm-tl-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#00ff41" stop-opacity=".22"/><stop offset="100%" stop-color="#00ff41" stop-opacity="0"/></linearGradient></defs><path d="${area}" fill="url(#vm-tl-g)"/><polyline points="${pts}" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linejoin="round"/>${labels.join("")}</svg>`;
 }
 
-function renderVmTable(f,cvssMap){
+function vmEpssCell(epss){
+  if(epss==null)return`<span style="color:var(--text-muted);font-size:10px">—</span>`;
+  const pct=Math.round(epss.epss*100);
+  const col=pct>=50?"var(--red)":pct>=10?"var(--amber)":"var(--text-dim)";
+  const ptile=Math.round(epss.percentile*100);
+  return`<span class="vm-epss-badge" style="color:${col}" title="EPSS ${(epss.epss*100).toFixed(2)}% exploit probability · ${ptile}th percentile">${pct}%<span style="font-size:8px;opacity:.6"> p${ptile}</span></span>`;
+}
+
+function renderVmTable(f,cvssMap,epssMap){
   const tbody=document.getElementById("vm-tbody");if(!tbody)return;
   const cntEl=document.getElementById("vm-count");if(cntEl)cntEl.textContent=`${f.length} entries`;
-  if(!f.length){tbody.innerHTML=`<tr><td colspan="8" class="vm-empty">// No vulnerabilities match the current filters</td></tr>`;return;}
+  if(!f.length){tbody.innerHTML=`<tr><td colspan="9" class="vm-empty">// No vulnerabilities match the current filters</td></tr>`;return;}
   const now=new Date();
   tbody.innerHTML=f.map(e=>{
     const cvss=cvssMap[e.cveID];
@@ -2981,6 +3000,7 @@ function renderVmTable(f,cvssMap){
 <td class="vm-due ${dueCls}">${e.dueDate||"—"}</td>
 <td><span class="vm-cvss-badge ${sev}">${score}</span></td>
 <td><span class="vm-sev-text ${sev}" style="font-size:8px;font-weight:700;letter-spacing:.06em">${sev}</span></td>
+<td>${vmEpssCell(epssMap[e.cveID]||null)}</td>
 <td>${ransomCell}</td>
 <td class="vm-action-cell" title="${esc(e.requiredAction||"")}">${esc(action)}</td>
 </tr>`;
@@ -2991,6 +3011,7 @@ function openVmDrawer(cveId){
   if(!vmData)return;
   const e=vmData.kevEntries.find(k=>k.cveID===cveId);if(!e)return;
   const cvss=vmData.cvssMap[cveId];
+  const epss=vmData.epssMap?vmData.epssMap[cveId]:null;
   const sev=cvss?cvss.severity:"UNKNOWN";
   const sevColor={CRITICAL:"var(--red)",HIGH:"var(--amber)",MEDIUM:"#f5c518",LOW:"rgba(0,255,65,.7)",UNKNOWN:"var(--text-muted)"};
   const due=e.dueDate?new Date(e.dueDate):null;
@@ -3005,11 +3026,15 @@ function openVmDrawer(cveId){
   totLbl.textContent="CVSS Score";totEl.textContent=cvss?cvss.score.toFixed(1):"N/A";totEl.style.color=sevColor[sev];
   const wkEl=document.getElementById("d-week"),wkLbl=wkEl.previousElementSibling;
   wkLbl.textContent="Severity";wkEl.textContent=sev;wkEl.style.color=sevColor[sev];wkEl.className="d-stat-num";
+  const epssProb=epss?(epss.epss*100).toFixed(2)+"%":"N/A";
+  const epssCol=epss?(epss.epss>=0.5?"var(--red)":epss.epss>=0.1?"var(--amber)":"var(--text-dim)"):"var(--text-muted)";
+  const epssText=epss?`${epssProb} exploit probability (${Math.round(epss.percentile*100)}th percentile)`:"Not scored";
   document.getElementById("links-list").innerHTML=`<div class="vm-drawer-grid">
 <div class="vm-drawer-field"><div class="lbl">Vendor</div><div class="val" style="font-weight:600;color:var(--text-hi)">${esc(e.vendorProject||"—")}</div></div>
 <div class="vm-drawer-field"><div class="lbl">Product</div><div class="val" style="color:var(--text-hi)">${esc(e.product||"—")}</div></div>
 <div class="vm-drawer-field"><div class="lbl">Date Added to KEV</div><div class="val" style="font-variant-numeric:tabular-nums">${e.dateAdded||"—"}</div></div>
 <div class="vm-drawer-field"><div class="lbl">Due Date</div><div class="val">${e.dueDate||"—"}${dueSuffix}</div></div>
+<div class="vm-drawer-field full"><div class="lbl">EPSS (FIRST v4)</div><div class="val" style="color:${epssCol};font-variant-numeric:tabular-nums">${epssText}</div></div>
 ${cvss?`<div class="vm-drawer-field"><div class="lbl">CVSS Version</div><div class="val">${esc(cvss.version)}</div></div>
 <div class="vm-drawer-field"><div class="lbl">Ransomware</div><div class="val" style="color:${e.knownRansomwareCampaignUse==="Known"?"var(--amber)":"var(--text-muted)"}">${e.knownRansomwareCampaignUse==="Known"?"Known campaign":"Not known"}</div></div>
 <div class="vm-drawer-field full"><div class="lbl">CVSS Vector</div><div class="val" style="font-family:monospace;font-size:8px;word-break:break-all;color:var(--text-muted)">${esc(cvss.vector||"—")}</div></div>`:`<div class="vm-drawer-field full"><div class="lbl">Ransomware</div><div class="val" style="color:${e.knownRansomwareCampaignUse==="Known"?"var(--amber)":"var(--text-muted)"}">${e.knownRansomwareCampaignUse==="Known"?"Known campaign":"Not known"}</div></div>`}

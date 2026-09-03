@@ -1,9 +1,10 @@
-// Vercel serverless function — proxies CISA KEV + NVD CVE API
-// Enriches the 90 most-recently-added KEV entries with NVD CVSS scores.
-// CDN-cached for 2 hours; bust with ?bust=1.
+// Vercel serverless function — proxies CISA KEV + NVD CVE API + FIRST EPSS
+// Enriches the 90 most-recently-added KEV entries with NVD CVSS scores and
+// EPSS v4 exploit-likelihood scores. CDN-cached for 2 hours; bust with ?bust=1.
 
-const KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json";
-const NVD_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0";
+const KEV_URL  = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json";
+const NVD_URL  = "https://services.nvd.nist.gov/rest/json/cves/2.0";
+const EPSS_URL = "https://api.first.org/data/v1/epss";
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -58,6 +59,28 @@ async function fetchNvdCvss(cveId, apiKey) {
   }
 }
 
+// FIRST EPSS v4 — free, unauthenticated, batch via comma-separated cve param.
+// Returns {CVE-ID: {epss, percentile}} where epss ∈ [0,1] and percentile ∈ [0,1].
+async function fetchEpssMap(cveIds) {
+  if (!cveIds.length) return {};
+  try {
+    const url = `${EPSS_URL}?cve=${cveIds.join(",")}&limit=${cveIds.length}`;
+    const r = await fetch(url, { headers: { "User-Agent": "cti-dashboard/1.0" } });
+    if (!r.ok) return {};
+    const d = await r.json();
+    const map = {};
+    for (const item of d.data || []) {
+      map[item.cve] = {
+        epss:       parseFloat(item.epss),
+        percentile: parseFloat(item.percentile),
+      };
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}
+
 async function buildCvssMap(cveIds, apiKey) {
   const map = {};
   const BATCH = 10;
@@ -88,15 +111,21 @@ module.exports = async function handler(req, res) {
   try {
     const kev = await fetchKev();
 
-    // Enrich the 90 most-recently-added entries with NVD CVSS
+    // Enrich the 90 most-recently-added entries with NVD CVSS and FIRST EPSS.
+    // Both are I/O-bound with no dependency on each other — run in parallel.
     const toEnrich = kev.slice(0, 90).map(e => e.cveID);
-    const cvssMap  = await buildCvssMap(toEnrich, apiKey);
+    const [cvssMap, epssMap] = await Promise.all([
+      buildCvssMap(toEnrich, apiKey),
+      fetchEpssMap(toEnrich),
+    ]);
 
     return res.json({
       kevEntries:    kev,
       cvssMap,
+      epssMap,
       totalKev:      kev.length,
       enrichedCount: Object.keys(cvssMap).length,
+      epssCount:     Object.keys(epssMap).length,
       updatedAt:     new Date().toISOString(),
     });
   } catch (err) {
