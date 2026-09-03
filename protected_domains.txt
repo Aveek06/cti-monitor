@@ -1,0 +1,25 @@
+# Domains to monitor for typosquatting and brand abuse.
+# One domain per line. Lines starting with # are ignored.
+# Add your own organization's domain here.
+microsoft.com
+google.com
+apple.com
+amazon.com
+paypal.com
+facebook.com
+linkedin.com
+twitter.com
+instagram.com
+dropbox.com
+github.com
+cloudflare.com
+outlook.com
+onedrive.com
+zoom.us
+slack.com
+okta.com
+salesforce.com
+docusign.com
+chase.com
+wellsfargo.com
+bankofamerica.com

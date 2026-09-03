@@ -75,6 +75,9 @@ def init_schema(conn):
         cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS source_blogs         JSONB DEFAULT '[]'")
         cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS apt_match_method     TEXT")
         cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS apt_site_reliability INT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS typosquat_checked   BOOLEAN DEFAULT FALSE")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS is_typosquat        BOOLEAN")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS typosquat_of        TEXT")
     conn.commit()
 
 

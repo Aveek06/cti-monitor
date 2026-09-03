@@ -24,6 +24,7 @@ import ipinfo_enricher
 import vt_domain_enricher
 import domain_enricher
 import hash_enricher
+import typosquat_checker
 import ttp_extractor
 import urlhaus_fetcher
 import ai_extractor
@@ -263,6 +264,12 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
     except Exception as e:
         print(f"Hash meta enrichment error: {e}")
 
+    print("Running typosquat / brand-abuse check (up to 200 domains)...")
+    try:
+        typosquat_checker.enrich_pending_domains(conn)
+    except Exception as e:
+        print(f"Typosquat check error: {e}")
+
     try:
         results["new"]      = ioc_db.get_new_iocs_since(conn, today)
         all_active          = ioc_db.get_active_iocs(conn, min_score=1)
@@ -326,6 +333,8 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
                 "tf_threat_type": r.get("tf_threat_type"),
                 "tf_malware":     r.get("tf_malware"),
                 "tf_confidence":  r.get("tf_confidence"),
+                "is_typosquat":  r.get("is_typosquat"),
+                "typosquat_of":  r.get("typosquat_of"),
             }
             for r in all_active
         ], key=lambda x: x["score"], reverse=True)

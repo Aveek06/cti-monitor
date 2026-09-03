@@ -1,4 +1,5 @@
 feedparser
+rapidfuzz
 iocsearcher
 requests
 playwright
