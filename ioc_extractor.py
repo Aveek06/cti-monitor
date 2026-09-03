@@ -5,6 +5,18 @@ import zipfile
 import urllib.request
 import requests
 from bs4 import BeautifulSoup
+
+try:
+    from curl_cffi import requests as _cffi_requests
+    _CURL_CFFI = True
+except ImportError:
+    _CURL_CFFI = False
+
+try:
+    from playwright_stealth import stealth_sync as _stealth_sync
+    _STEALTH = True
+except ImportError:
+    _STEALTH = False
 from datetime import datetime, timedelta
 from pathlib import Path
 from urllib.parse import urlparse
@@ -399,7 +411,15 @@ def _fetch_with_playwright(url: str) -> str | None:
                 headless=True, args=["--no-sandbox", "--disable-dev-shm-usage"]
             )
             page = browser.new_page(user_agent=_FETCH_HEADERS["User-Agent"])
-            page.goto(url, timeout=30_000, wait_until="domcontentloaded")
+            if _STEALTH:
+                _stealth_sync(page)
+            # networkidle waits for JS-rendered SPAs (Next.js, React) to finish
+            # their post-load API calls; fall through on timeout and use whatever
+            # content rendered so far.
+            try:
+                page.goto(url, timeout=30_000, wait_until="networkidle")
+            except Exception:
+                pass
             content = page.content()
             browser.close()
         return _soup_to_text(content)
@@ -416,8 +436,14 @@ def fetch_article_text(url: str) -> str | None:
 
     requests_text: str | None = None
     try:
-        session = requests.Session()
-        resp = session.get(url, timeout=20, headers=_FETCH_HEADERS, allow_redirects=True)
+        if _CURL_CFFI:
+            resp = _cffi_requests.get(
+                url, timeout=20, headers=_FETCH_HEADERS,
+                impersonate="chrome124", allow_redirects=True,
+            )
+        else:
+            session = requests.Session()
+            resp = session.get(url, timeout=20, headers=_FETCH_HEADERS, allow_redirects=True)
         if resp.status_code == 404:
             return None
         if resp.status_code == 200 and "html" in resp.headers.get("content-type", ""):
