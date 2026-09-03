@@ -1204,8 +1204,7 @@
               <button class="ioc-type-btn" data-type="domain" onclick="setIocType(this)">Domain</button>
               <button class="ioc-type-btn" data-type="ip" onclick="setIocType(this)">IP</button>
               <button class="ioc-type-btn" data-type="url" onclick="setIocType(this)">URL</button>
-              <button class="ioc-type-btn" data-type="sha256" onclick="setIocType(this)">SHA256</button>
-              <button class="ioc-type-btn" data-type="sha1" onclick="setIocType(this)">SHA1</button>
+              <button class="ioc-type-btn" data-type="sha" onclick="setIocType(this)">SHA</button>
               <button class="ioc-type-btn" data-type="md5" onclick="setIocType(this)">MD5</button>
             </div>
             <div class="ioc-rel-filters">
@@ -2393,7 +2392,7 @@ function setIocType(btn){document.querySelectorAll(".ioc-type-btn").forEach(b=>b
 function setIocRelFilter(btn){document.querySelectorAll(".ioc-rel-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");_minReliability=+btn.dataset.rel;filterIocs(document.getElementById("ioc-search")?.value||"");}
 function filterIocs(q){
   const lq=(q||"").toLowerCase();
-  const _typeMatch=t=>!_activeTypeFilter||(_activeTypeFilter==="ip"?(t==="ipv4"||t==="ipv6"):t===_activeTypeFilter);
+  const _typeMatch=t=>!_activeTypeFilter||(_activeTypeFilter==="ip"?(t==="ipv4"||t==="ipv6"):_activeTypeFilter==="sha"?(t==="sha256"||t==="sha1"):t===_activeTypeFilter);
   const rows=(_allIocs.filter(r=>{if(!_typeMatch(r.type))return false;if(_minReliability>0){const _s=_relScoreCache[r.source_blog];if(_s==null||_s<_minReliability)return false;}return!lq||r.value.toLowerCase().includes(lq)||(r.type||"").includes(lq)||(r.source_blog||"").toLowerCase().includes(lq)||(r.apt||"").toLowerCase().includes(lq)||(r.url_threat||"").toLowerCase().includes(lq)||((r.url_tags||[]).join(" ").toLowerCase().includes(lq));}).map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((a,b)=>b._live-a._live));
   document.getElementById("ioc-count").textContent=`${rows.length} IOC${rows.length!==1?"s":""}`;
   const empty=document.getElementById("ioc-empty"),tbody=document.getElementById("ioc-tbody");
@@ -2419,7 +2418,7 @@ function filterIocs(q){
 function _getFilteredIocRows(){
   const q=(document.getElementById("ioc-search")?.value||"").toLowerCase();
   return _allIocs.filter(r=>{
-    if(_activeTypeFilter&&!(_activeTypeFilter==="ip"?(r.type==="ipv4"||r.type==="ipv6"):r.type===_activeTypeFilter))return false;
+    if(_activeTypeFilter&&!(_activeTypeFilter==="ip"?(r.type==="ipv4"||r.type==="ipv6"):_activeTypeFilter==="sha"?(r.type==="sha256"||r.type==="sha1"):r.type===_activeTypeFilter))return false;
     if(_minReliability>0){const _s=_relScoreCache[r.source_blog];if(_s==null||_s<_minReliability)return false;}
     return !q||r.value.toLowerCase().includes(q)||(r.type||"").includes(q)||(r.source_blog||"").toLowerCase().includes(q)||(r.apt||"").toLowerCase().includes(q)||(r.url_threat||"").toLowerCase().includes(q)||((r.url_tags||[]).join(" ").toLowerCase().includes(q));
   }).map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((a,b)=>b._live-a._live);
