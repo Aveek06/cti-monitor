@@ -1,7 +1,7 @@
 import { jwtVerify } from 'jose';
 
 export const config = {
-  matcher: ['/((?!login\\.html|api/auth).*)'],
+  matcher: ['/((?!login\\.html|api/auth|api/taxii).*)'],
 };
 
 function parseCookieToken(cookieHeader, name) {
@@ -13,7 +13,7 @@ function parseCookieToken(cookieHeader, name) {
 export default async function middleware(request) {
   const { pathname } = new URL(request.url);
 
-  if (pathname === '/login.html' || pathname.startsWith('/api/auth')) {
+  if (pathname === '/login.html' || pathname.startsWith('/api/auth') || pathname.startsWith('/api/taxii')) {
     return;
   }
 
