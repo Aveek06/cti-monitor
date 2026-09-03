@@ -1342,6 +1342,7 @@
       "type": "scrapling_stealthy",
       "url": "https://www.trellix.com/blogs/research/",
       "link_path_prefix": "/blogs/research/",
+      "page_timeout_ms": 70000,
       "path_exclude": [
         "/author/",
         "/category/",

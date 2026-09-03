@@ -734,6 +734,27 @@ def check_scrapling_stealthy_site(site):
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
             return pool.submit(_fetch).result()
     except Exception as ex:
+        err_str = str(ex)
+        # scrapling waits for the full "load" event; heavy SPAs regularly exceed
+        # the 40s timeout. Fall back to plain Playwright with domcontentloaded,
+        # which fires once the DOM is parsed — enough to extract blog-listing links.
+        if "Timeout" in err_str or "timeout" in err_str.lower():
+            print(f"  [scrapling_stealthy] {site['name']} timed out — retrying with Playwright domcontentloaded")
+            try:
+                with sync_playwright() as p:
+                    browser = p.chromium.launch(
+                        headless=True, args=["--no-sandbox", "--disable-dev-shm-usage"]
+                    )
+                    page = browser.new_page(user_agent=(
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+                    ))
+                    page.goto(site["url"], timeout=30_000, wait_until="domcontentloaded")
+                    html = page.content()
+                    browser.close()
+                return _parse_crawl4ai_html(site, html)
+            except Exception:
+                pass  # Playwright also failed; fall through to original error
         return [], f"{site['type']} error: {ex}"
 
 
