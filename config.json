@@ -1378,5 +1378,24 @@
       "url": "https://opensourcemalware.com/rss.xml",
       "link_path_prefix": "/blog/"
     }
-  ]
+  ],
+  "watchlist": {
+    "terms": [
+      {"term": "APT28",                  "category": "apt"},
+      {"term": "APT29",                  "category": "apt"},
+      {"term": "Lazarus",                "category": "apt"},
+      {"term": "Volt Typhoon",           "category": "apt"},
+      {"term": "Scattered Spider",       "category": "apt"},
+      {"term": "Salt Typhoon",           "category": "apt"},
+      {"term": "LockBit",                "category": "malware"},
+      {"term": "BlackCat",               "category": "malware"},
+      {"term": "Emotet",                 "category": "malware"},
+      {"term": "Cobalt Strike",          "category": "malware"},
+      {"term": "zero-day",               "category": "keyword"},
+      {"term": "supply chain",           "category": "keyword"},
+      {"term": "critical infrastructure","category": "sector"},
+      {"term": "financial",              "category": "sector"},
+      {"term": "healthcare",             "category": "sector"}
+    ]
+  }
 }
