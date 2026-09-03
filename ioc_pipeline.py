@@ -18,6 +18,12 @@ import stix_converter
 import ioc_db
 import vt_enricher
 import shodan_enricher
+import abuseipdb_enricher
+import greynoise_enricher
+import ipinfo_enricher
+import vt_domain_enricher
+import domain_enricher
+import hash_enricher
 import ttp_extractor
 import urlhaus_fetcher
 import ai_extractor
@@ -107,6 +113,7 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
         if not text:
             continue
         apt  = ioc_extractor.detect_apt(item["site"] + " " + text)
+        apt_method = "regex"
         iocs = ioc_extractor.extract_iocs(text, item["link"])
 
         # Combined AI extraction: TTPs + additional IOCs + APT attribution in one call
@@ -138,9 +145,11 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
                     _seen.add((v, t))
             if ai["apt"]:
                 apt = ai["apt"]
+                apt_method = "ai"
         else:
             ttps = ttp_extractor.extract_ttps(text, "")
 
+        site_rel = int(rel_lookup.get(item["site"], 50)) if rel_lookup else 50
         for ioc in iocs:
             ltv      = ioc_scorer.get_ltv(apt, ioc["type"])
             if rel_lookup:
@@ -159,6 +168,8 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
                     item["date"], item["date"],
                     apt, ltv, tau,
                     item["link"], item["site"],
+                    apt_match_method=apt_method,
+                    site_reliability=site_rel,
                 )
                 total_iocs += 1
             except Exception as e:
@@ -200,11 +211,74 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
     else:
         print("SHODAN_API_KEY not set — skipping Shodan enrichment.")
 
+    abuseipdb_key = os.environ.get("ABUSEIPDB_API_KEY", "")
+    if abuseipdb_key:
+        print("Running AbuseIPDB enrichment (up to 20 IPs)...")
+        try:
+            abuseipdb_enricher.enrich_pending_ips(conn, abuseipdb_key)
+        except Exception as e:
+            print(f"AbuseIPDB enrichment error: {e}")
+    else:
+        print("ABUSEIPDB_API_KEY not set — skipping AbuseIPDB enrichment.")
+
+    greynoise_key = os.environ.get("GREYNOISE_API_KEY", "")
+    if greynoise_key:
+        print("Running GreyNoise enrichment (up to 50 IPs)...")
+        try:
+            greynoise_enricher.enrich_pending_ips(conn, greynoise_key)
+        except Exception as e:
+            print(f"GreyNoise enrichment error: {e}")
+    else:
+        print("GREYNOISE_API_KEY not set — skipping GreyNoise enrichment.")
+
+    ipinfo_key = os.environ.get("IPINFO_TOKEN", "")
+    if ipinfo_key:
+        print("Running IPinfo enrichment (up to 50 IPs)...")
+        try:
+            ipinfo_enricher.enrich_pending_ips(conn, ipinfo_key)
+        except Exception as e:
+            print(f"IPinfo enrichment error: {e}")
+    else:
+        print("IPINFO_TOKEN not set — skipping IPinfo enrichment.")
+
+    vt_domain_key = os.environ.get("VT_API_KEY_DOMAIN", "")
+    if vt_domain_key:
+        print("Running VirusTotal domain enrichment (up to 10 domains, 15s between calls)...")
+        try:
+            vt_domain_enricher.enrich_pending_domains(conn, vt_domain_key)
+        except Exception as e:
+            print(f"VT domain enrichment error: {e}")
+    else:
+        print("VT_API_KEY_DOMAIN not set — skipping VT domain enrichment.")
+
+    print("Running domain meta enrichment (URLhaus + RDAP + DNS, up to 50 domains)...")
+    try:
+        domain_enricher.enrich_pending_domains(conn)
+    except Exception as e:
+        print(f"Domain meta enrichment error: {e}")
+
+    print("Running hash meta enrichment (MalwareBazaar + ThreatFox, up to 50 hashes)...")
+    try:
+        hash_enricher.enrich_pending_hashes(conn)
+    except Exception as e:
+        print(f"Hash meta enrichment error: {e}")
+
     try:
         results["new"]      = ioc_db.get_new_iocs_since(conn, today)
         all_active          = ioc_db.get_active_iocs(conn, min_score=1)
         results["active"]   = [r for r in all_active if r["score"] >= 30]
         results["expiring"] = [r for r in all_active if r["score"] < 30]
+
+        def _apt_confidence(row) -> str | None:
+            if not row.get("attributed_apt"):
+                return None
+            method_score = 2 if row.get("apt_match_method") == "ai" else 1
+            rel          = row.get("apt_site_reliability") or 50
+            rel_score    = 2 if rel >= 70 else 1 if rel >= 40 else 0
+            count        = row.get("source_count") or 1
+            corr_score   = 2 if count >= 3 else 1 if count >= 2 else 0
+            total        = method_score + rel_score + corr_score  # 0-6
+            return "high" if total >= 5 else "medium" if total >= 3 else "low"
 
         # Export scored IOC list for the dashboard
         export = sorted([
@@ -223,6 +297,35 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
                 "vt_verified":    r.get("vt_verified", False),
                 "shodan_tags":    r.get("shodan_tags") or [],
                 "shodan_ports":   r.get("shodan_ports") or [],
+                "abuseipdb_score":      r.get("abuseipdb_score"),
+                "abuseipdb_reports":    r.get("abuseipdb_reports"),
+                "abuseipdb_isp":        r.get("abuseipdb_isp"),
+                "abuseipdb_usage_type": r.get("abuseipdb_usage_type"),
+                "greynoise_noise":          r.get("greynoise_noise"),
+                "greynoise_riot":           r.get("greynoise_riot"),
+                "greynoise_classification": r.get("greynoise_classification"),
+                "greynoise_name":           r.get("greynoise_name"),
+                "ipinfo_org":     r.get("ipinfo_org"),
+                "ipinfo_country": r.get("ipinfo_country"),
+                "ipinfo_city":    r.get("ipinfo_city"),
+                "vt_domain_malicious":  r.get("vt_domain_malicious"),
+                "vt_domain_categories": r.get("vt_domain_categories"),
+                "urlhaus_domain_status": r.get("urlhaus_domain_status"),
+                "urlhaus_domain_threat": r.get("urlhaus_domain_threat"),
+                "domain_registered":    r.get("domain_registered"),
+                "domain_registrar":     r.get("domain_registrar"),
+                "domain_resolves":      r.get("domain_resolves"),
+                "domain_resolved_ips":  r.get("domain_resolved_ips") or [],
+                "source_count":   r.get("source_count") or 1,
+                "source_blogs":   list(r.get("source_blogs") or []),
+                "apt_confidence": _apt_confidence(r),
+                "mb_file_type":  r.get("mb_file_type"),
+                "mb_file_name":  r.get("mb_file_name"),
+                "mb_signature":  r.get("mb_signature"),
+                "mb_tags":       r.get("mb_tags") or [],
+                "tf_threat_type": r.get("tf_threat_type"),
+                "tf_malware":     r.get("tf_malware"),
+                "tf_confidence":  r.get("tf_confidence"),
             }
             for r in all_active
         ], key=lambda x: x["score"], reverse=True)

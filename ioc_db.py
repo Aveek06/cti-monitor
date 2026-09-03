@@ -38,6 +38,43 @@ def init_schema(conn):
         cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS shodan_checked BOOLEAN DEFAULT FALSE")
         cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS shodan_tags   JSONB")
         cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS shodan_ports  JSONB")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS abuseipdb_checked    BOOLEAN DEFAULT FALSE")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS abuseipdb_score      INT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS abuseipdb_reports    INT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS abuseipdb_isp        TEXT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS abuseipdb_usage_type TEXT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS greynoise_checked    BOOLEAN DEFAULT FALSE")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS greynoise_noise      BOOLEAN")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS greynoise_riot       BOOLEAN")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS greynoise_classification TEXT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS greynoise_name       TEXT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS ipinfo_checked       BOOLEAN DEFAULT FALSE")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS ipinfo_org           TEXT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS ipinfo_country       TEXT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS ipinfo_city          TEXT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS ipinfo_hostname      TEXT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS vt_domain_checked    BOOLEAN DEFAULT FALSE")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS vt_domain_malicious  INT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS vt_domain_categories JSONB")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS domain_meta_checked  BOOLEAN DEFAULT FALSE")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS urlhaus_domain_status TEXT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS urlhaus_domain_threat TEXT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS domain_registered    TEXT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS domain_registrar     TEXT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS domain_resolves      BOOLEAN")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS domain_resolved_ips  JSONB")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS hash_meta_checked    BOOLEAN DEFAULT FALSE")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS mb_file_type         TEXT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS mb_file_name         TEXT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS mb_signature         TEXT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS mb_tags              JSONB")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS tf_threat_type       TEXT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS tf_malware           TEXT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS tf_confidence        INT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS source_count         INT DEFAULT 1")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS source_blogs         JSONB DEFAULT '[]'")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS apt_match_method     TEXT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS apt_site_reliability INT")
     conn.commit()
 
 
@@ -58,20 +95,41 @@ def init_ratings_schema(conn):
 
 
 def upsert_ioc(conn, stix_obj, value, ioc_type, first_seen, last_seen,
-               apt, ltv, tau, source_article, source_blog):
+               apt, ltv, tau, source_article, source_blog,
+               apt_match_method: str = "regex", site_reliability: int = 50):
     with conn.cursor() as cur:
         cur.execute("""
             INSERT INTO ioc_indicators
                 (stix_id, stix_object, value, type, first_seen, last_seen,
-                 attributed_apt, ltv, tau, source_article, source_blog)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                 attributed_apt, ltv, tau, source_article, source_blog,
+                 source_blogs, apt_match_method, apt_site_reliability)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                    jsonb_build_array(%s::text), %s, %s)
             ON CONFLICT (value, type) DO UPDATE SET
                 last_seen      = EXCLUDED.last_seen,
                 stix_object    = EXCLUDED.stix_object,
                 source_article = EXCLUDED.source_article,
                 source_blog    = EXCLUDED.source_blog,
                 ltv            = EXCLUDED.ltv,
-                updated_at     = NOW()
+                updated_at     = NOW(),
+                source_count = CASE
+                    WHEN ioc_indicators.source_blog IS DISTINCT FROM EXCLUDED.source_blog
+                    THEN COALESCE(ioc_indicators.source_count, 1) + 1
+                    ELSE COALESCE(ioc_indicators.source_count, 1)
+                END,
+                source_blogs = CASE
+                    WHEN COALESCE(ioc_indicators.source_blogs, '[]'::jsonb) ? EXCLUDED.source_blog
+                    THEN COALESCE(ioc_indicators.source_blogs, '[]'::jsonb)
+                    ELSE COALESCE(ioc_indicators.source_blogs, '[]'::jsonb) || to_jsonb(EXCLUDED.source_blog::text)
+                END,
+                apt_match_method = CASE
+                    WHEN EXCLUDED.apt_match_method = 'ai' THEN 'ai'
+                    ELSE COALESCE(ioc_indicators.apt_match_method, EXCLUDED.apt_match_method)
+                END,
+                apt_site_reliability = GREATEST(
+                    COALESCE(ioc_indicators.apt_site_reliability, 0),
+                    COALESCE(EXCLUDED.apt_site_reliability, 0)
+                )
         """, (
             stix_obj["id"],
             json.dumps(stix_obj),
@@ -79,6 +137,7 @@ def upsert_ioc(conn, stix_obj, value, ioc_type, first_seen, last_seen,
             first_seen, last_seen,
             apt, ltv, tau,
             source_article, source_blog,
+            source_blog, apt_match_method, site_reliability,
         ))
     conn.commit()
 
@@ -99,7 +158,10 @@ def get_active_iocs(conn, min_score=30.0) -> list[dict]:
         rows = [dict(r) for r in cur.fetchall()]
     result = []
     for row in rows:
-        score = compute_score(str(row["last_seen"]), tau_for(row), row["ltv"])
+        count = row.get("source_count") or 1
+        corr = 1.0 + min(count - 1, 3) * 0.15  # ×1.0 / ×1.15 / ×1.30 / ×1.45
+        effective_ltv = float(row.get("ltv") or 1.0) * corr
+        score = compute_score(str(row["last_seen"]), tau_for(row), effective_ltv)
         if score >= min_score:
             row["score"] = score
             result.append(row)

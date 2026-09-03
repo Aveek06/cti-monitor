@@ -2392,7 +2392,11 @@ function filterIocs(q){
   const empty=document.getElementById("ioc-empty"),tbody=document.getElementById("ioc-tbody");
   if(!rows.length){empty.style.display="block";tbody.innerHTML="";return;}
   empty.style.display="none";
-  tbody.innerHTML=rows.map((r,i)=>{const s=r._live,col=scoreColor(s),bar=Math.round(s),apt=r.apt?`<span class="ioc-apt">${esc(r.apt)}</span>`:`<span class="ioc-dim">—</span>`,vt=r.vt_malicious!=null&&r.vt_malicious>0?`<span class="ioc-vt">${r.vt_malicious} engines</span>`:"";
+  tbody.innerHTML=rows.map((r,i)=>{const s=r._live,col=scoreColor(s),bar=Math.round(s),vt=r.vt_malicious!=null&&r.vt_malicious>0?`<span class="ioc-vt">${r.vt_malicious} engines</span>`:"";
+  const confStyle=r.apt_confidence==="high"?"color:#4ade80":r.apt_confidence==="medium"?"color:#fb923c":"color:var(--text-muted)";
+  const apt=r.apt?`<span class="ioc-apt">${esc(r.apt)}</span>${r.apt_confidence?`<br><span style="font-size:9px;${confStyle}">${r.apt_confidence.toUpperCase()}</span>`:""}`:`<span class="ioc-dim">—</span>`;
+  const corrBadge=(r.source_count||1)>1?`<span class="ioc-tag" style="margin-top:3px;background:rgba(34,197,94,.12);color:#4ade80">✓ ${r.source_count} sources</span>`:``;
+
   const isUrl=r.type==="url";
   const displayVal=isUrl&&r.value.length>50?r.value.slice(0,48)+"…":r.value;
   const tags=(r.url_tags||[]).slice(0,3).map(t=>`<span class="ioc-tag">${esc(t)}</span>`).join("");
@@ -2422,7 +2426,7 @@ function filterIocs(q){
     :`<td class="ioc-site" title="${esc(r.source_blog||'')}">${r.source_article?`<a href="${esc(r.source_article)}" target="_blank" rel="noopener">${esc(r.source_blog||'—')}</a>`:esc(r.source_blog||'—')}</td>`;
   const clipSvg=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M17 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>`;
   const delay=i<25?`animation-delay:${i*22}ms`:"animation-fill-mode:both;opacity:1";
-  return`<tr class="ioc-tbody-row" style="${delay}"><td onclick="copyIoc(this,'${esc(r.value)}')" title="${isUrl?esc(r.value):'Click to copy'}"><div style="white-space:nowrap"><span class="ioc-val">${esc(displayVal)}</span><button class="ioc-copy-btn" onclick="event.stopPropagation();copyIoc(this,'${esc(r.value)}')" title="Copy to clipboard">${clipSvg}</button><span class="ioc-copied">✓</span></div>${enrichRow}${domEnrichRow}${hashEnrichRow}</td><td><span class="ioc-badge">${esc(r.type)}</span></td>${sourceCell}<td>${apt}</td><td><span style="font-variant-numeric:tabular-nums;color:${col};font-weight:600">${s.toFixed(1)}</span>${vt?`<br>${vt}`:""}</td><td><div class="ioc-decay-track"><div class="ioc-decay-fill" style="width:${bar}%;background:${col}"></div></div><span style="font-size:8px;color:var(--text-muted)">${r.last_seen||""}</span></td></tr>`;}).join("");
+  return`<tr class="ioc-tbody-row" style="${delay}"><td onclick="copyIoc(this,'${esc(r.value)}')" title="${isUrl?esc(r.value):'Click to copy'}"><div style="white-space:nowrap"><span class="ioc-val">${esc(displayVal)}</span><button class="ioc-copy-btn" onclick="event.stopPropagation();copyIoc(this,'${esc(r.value)}')" title="Copy to clipboard">${clipSvg}</button><span class="ioc-copied">✓</span></div>${enrichRow}${domEnrichRow}${hashEnrichRow}${corrBadge?`<div style="margin-top:3px">${corrBadge}</div>`:""}</td><td><span class="ioc-badge">${esc(r.type)}</span></td>${sourceCell}<td>${apt}</td><td><span style="font-variant-numeric:tabular-nums;color:${col};font-weight:600">${s.toFixed(1)}</span>${vt?`<br>${vt}`:""}</td><td><div class="ioc-decay-track"><div class="ioc-decay-fill" style="width:${bar}%;background:${col}"></div></div><span style="font-size:8px;color:var(--text-muted)">${r.last_seen||""}</span></td></tr>`;}).join("");
 }
 
 /* ── IOC Export ── */
