@@ -125,6 +125,7 @@ jobs:
 
       - name: Send weekly stale-sites report
         if: success()
+        continue-on-error: true
         env:
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
@@ -153,7 +154,7 @@ jobs:
             ioc_export.json
             ttp_export.json
             sigma_export.json
-          retention-days: 7
+          retention-days: 14
 
       - name: Save state
         uses: actions/cache/save@v4
