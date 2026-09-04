@@ -1,5 +1,8 @@
 {
   "rewrites": [
     { "source": "/api/taxii/:path*", "destination": "/api/taxii" }
+  ],
+  "crons": [
+    { "path": "/api/sigma-cleanup", "schedule": "0 2 * * *" }
   ]
 }

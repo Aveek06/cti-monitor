@@ -37,11 +37,11 @@ module.exports = async function handler(req, res) {
   if (!process.env.DATABASE_URL)
     return res.status(500).json({ error: "DATABASE_URL not configured" });
 
-  // GET — return all rules directly from DB (bypasses artifact lag)
+  // GET — return rules created within the last 5 days (older ones are auto-expired)
   if (req.method === "GET") {
     try {
       const { rows } = await pool().query(
-        "SELECT * FROM sigma_rules ORDER BY created_at DESC"
+        "SELECT * FROM sigma_rules WHERE created_at > NOW() - INTERVAL '5 days' ORDER BY created_at DESC"
       );
       return res.json({ sigma_rules: rows });
     } catch (e) {
