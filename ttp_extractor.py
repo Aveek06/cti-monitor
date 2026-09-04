@@ -16,7 +16,7 @@ import json
 TECHNIQUE_RE = re.compile(r'\b(T\d{4}(?:\.\d{3})?)\b')
 
 MAX_ARTICLES_PER_RUN = 30   # cost guard: max AI calls per pipeline run
-MAX_TEXT_CHARS       = 4000  # truncate article to keep token costs low
+MAX_TEXT_CHARS       = 8000  # truncate article to keep token costs low
 
 TECHNIQUE_LOOKUP: dict[str, dict] = {
     "T1056.002": {"name": "GUI Input Capture", "tactic": "collection"},
@@ -586,13 +586,15 @@ TECHNIQUE_LOOKUP: dict[str, dict] = {
 def extract_ttps_regex(text: str) -> list[dict]:
     """Return explicitly cited T-IDs found in text, names/tactics from lookup."""
     found = sorted(set(TECHNIQUE_RE.findall(text.upper())))
+    # Only keep IDs that exist in the ATT&CK lookup — filters out version numbers, ticket IDs, etc.
     return [
         {
             "technique_id":   tid,
-            "technique_name": TECHNIQUE_LOOKUP.get(tid, {}).get("name"),
-            "tactic":         TECHNIQUE_LOOKUP.get(tid, {}).get("tactic"),
+            "technique_name": TECHNIQUE_LOOKUP[tid].get("name"),
+            "tactic":         TECHNIQUE_LOOKUP[tid].get("tactic"),
         }
         for tid in found
+        if tid in TECHNIQUE_LOOKUP
     ]
 
 
@@ -615,9 +617,9 @@ def extract_ttps_ai(text: str, api_key: str) -> list[dict]:
                     "  technique_name — short name e.g. Spearphishing Attachment\n"
                     "  tactic         — tactic slug e.g. initial-access\n\n"
                     "Rules:\n"
-                    "- Only include techniques clearly described or demonstrated.\n"
-                    "- Do not hallucinate. If uncertain, omit.\n"
-                    "- Return [] if nothing found.\n"
+                    "- Only include techniques the article explicitly describes an attacker PERFORMING — not techniques merely mentioned, referenced in passing, or listed as background context.\n"
+                    "- Do not hallucinate. If the article does not clearly show the attacker taking the action, omit the technique.\n"
+                    "- Return [] if nothing is clearly demonstrated.\n"
                     "- Output raw JSON, no markdown fences.\n\n"
                     f"Article:\n{snippet}"
                 ),
@@ -631,7 +633,7 @@ def extract_ttps_ai(text: str, api_key: str) -> list[dict]:
         result = []
         for t in parsed:
             tid = (t.get("technique_id") or "").upper().strip()
-            if re.match(r'^T\d{4}(\.\d{3})?$', tid):
+            if re.match(r'^T\d{4}(\.\d{3})?$', tid) and tid in TECHNIQUE_LOOKUP:
                 # prefer AI name/tactic; fall back to lookup if AI left them blank
                 lookup = TECHNIQUE_LOOKUP.get(tid, {})
                 name = (t.get("technique_name") or "").strip() or lookup.get("name")
