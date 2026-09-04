@@ -2402,7 +2402,7 @@ function openTtpDrawer(tid){
   if(_sr){html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd" style="display:flex;align-items:center;gap:6px">Detection <span class="sigma-badge sigma-${esc(_sr.sigma_status)}">${esc(_sr.sigma_status.toUpperCase())}</span></div><div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap"><button class="sigma-btn" onclick="toggleDrawerSigmaYaml()">Show YAML</button><button class="sigma-btn" onclick="copyDrawerSigmaYaml()">Copy YAML</button><select class="sigma-platform-sel" onchange="convertDrawerSigma(this.value,this)"><option value="">Convert →</option><option value="splunk">Splunk SPL</option><option value="sentinel">Sentinel KQL</option><option value="elastic">Elastic EQL</option><option value="qradar">QRadar AQL</option></select></div><pre class="sigma-yaml-pre" id="drawer-sigma-yaml" hidden>${esc(_sr.sigma_yaml||"")}</pre><div class="sigma-converted-wrap" id="drawer-sigma-converted" style="display:none"><div class="sigma-converted-lbl" id="drawer-conv-lbl"></div><pre class="sigma-converted-pre" id="drawer-conv-pre"></pre><button class="sigma-btn" style="margin-top:4px" onclick="navigator.clipboard.writeText(document.getElementById('drawer-conv-pre').textContent)">Copy Query</button></div></div>`;}
   else if(urlSrcs.length&&_isAdmin){
     const _articleHasIocs=_allIocs.some(ioc=>ioc.source_article===urlSrcs[0]);
-    if(_articleHasIocs){html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Detection</div><button class="sigma-btn sigma-draft-btn" id="sigma-draft-btn" onclick="draftSigmaFromDrawer(this)">Draft Sigma Rule</button></div>`;}
+    if(_articleHasIocs){html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Detection</div><div style="font-size:9px;color:var(--text-muted);margin-bottom:6px">Generate detection rule for:</div><div style="display:flex;flex-wrap:wrap;gap:4px" id="sigma-platform-btns"><button class="sigma-btn" onclick="draftSigmaFromDrawer(this,'splunk')">Splunk SPL</button><button class="sigma-btn" onclick="draftSigmaFromDrawer(this,'sentinel')">Sentinel KQL</button><button class="sigma-btn" onclick="draftSigmaFromDrawer(this,'elastic')">Elastic EQL</button><button class="sigma-btn" onclick="draftSigmaFromDrawer(this,'qradar')">QRadar AQL</button><button class="sigma-btn" onclick="draftSigmaFromDrawer(this,'yaml')">Sigma YAML</button></div></div>`;}
     else{html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Detection</div><div style="font-size:8px;color:var(--text-muted);padding:4px 0">No IOCs extracted from this article — draft quality will be low. Run the pipeline first or choose an article with confirmed IOCs.</div></div>`;}
   }
   document.getElementById("links-list").innerHTML=html;
@@ -2781,11 +2781,15 @@ function copyDrawerSigmaYaml(){
   navigator.clipboard.writeText(pre.textContent||"").catch(()=>{});
 }
 
-async function draftSigmaFromDrawer(btn){
+async function draftSigmaFromDrawer(btn,platform){
   const t=_currentDrawerTtp;if(!t)return;
   const urlSrcs=(t.sources||[]).filter(u=>/^https?:\/\//.test(u));
   const src=urlSrcs[0];if(!src)return;
-  if(btn){btn.disabled=true;btn.textContent="Drafting…";}
+  platform=platform||"yaml";
+  const origText=btn?btn.textContent:"";
+  const container=document.getElementById("sigma-platform-btns");
+  if(container)container.querySelectorAll("button").forEach(b=>b.disabled=true);
+  if(btn)btn.textContent="Drafting…";
   try{
     const resp=await fetch("/api/draft-sigma",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({technique_id:t.technique_id,source_article:src})});
     if(!resp.ok){const j=await resp.json().catch(()=>({}));throw new Error(j.error||`HTTP ${resp.status}`);}
@@ -2795,10 +2799,17 @@ async function draftSigmaFromDrawer(btn){
       if(!_sigmaExport.find(r=>r.id===sigma_rule.id))_sigmaExport.push(sigma_rule);
       renderSigmaRules(_sigmaExport);
       openTtpDrawer(t.technique_id);
+      if(platform==="yaml"){
+        const pre=document.getElementById("drawer-sigma-yaml");
+        if(pre)pre.hidden=false;
+      } else {
+        await convertDrawerSigma(platform,null);
+      }
     }
   }catch(e){
     console.error("draft sigma failed",e);
-    if(btn){btn.disabled=false;btn.textContent="Draft Sigma Rule";}
+    if(container)container.querySelectorAll("button").forEach(b=>b.disabled=false);
+    if(btn)btn.textContent=origText;
     alert("Failed to draft Sigma rule: "+e.message);
   }
 }
