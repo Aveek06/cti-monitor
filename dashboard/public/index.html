@@ -2675,7 +2675,7 @@ function renderSigmaRules(data){
     const _ttp=_ttpById?.[r.technique_id];
     const _srcUrls=(_ttp?.sources||[]).filter(u=>/^https?:\/\//.test(u));
     const _hosts=_srcUrls.length
-      ?[...new Set(_srcUrls.map(u=>{try{return new URL(u).hostname.replace(/^www\./,'');}catch{return u.slice(0,20);}}))]
+      ?[...new Set(_srcUrls.map(u=>{try{return new URL(u).hostname.replace(/^www\./,'');}catch(e){return u.slice(0,20);}}))]
       :(r.source_blog?[r.source_blog]:r.source_article?[r.source_article]:[]);
     const _shown=_hosts.slice(0,2);const _more=_hosts.length-2;
     const srcCell=_shown.length
