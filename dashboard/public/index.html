@@ -2792,6 +2792,16 @@ async function convertDrawerSigma(platform,sel){
     if(wrapEl)wrapEl.style.display="";
     if(lblEl)lblEl.textContent=d.label;
     if(preEl)preEl.textContent=d.query;
+    // Also reflect in sigma tab row immediately
+    const _rowIdx=_sigmaExport.findIndex(r=>r.id===id);
+    if(_rowIdx>=0){
+      const _tw=document.getElementById(`conv-${_rowIdx}`);
+      const _tl=document.getElementById(`conv-lbl-${_rowIdx}`);
+      const _tp=document.getElementById(`conv-pre-${_rowIdx}`);
+      if(_tw)_tw.style.display="";
+      if(_tl)_tl.textContent=d.label;
+      if(_tp)_tp.textContent=d.query;
+    }
   }catch(e){alert("Conversion failed: "+e.message);}
   finally{if(sel){sel.disabled=false;sel.options[0].text="Convert →";sel.value="";}}
 }

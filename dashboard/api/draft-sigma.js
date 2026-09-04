@@ -196,7 +196,11 @@ module.exports = async function handler(req, res) {
       [technique_id, source_article]
     );
 
-    return res.status(200).json({ sigma_rule: stored[0] || { technique_id, sigma_yaml: sigmaYaml, sigma_status: "draft" } });
+    if (!stored[0]) {
+      console.error("draft-sigma: SELECT after INSERT returned no row for technique_id=%s source_article=%s", technique_id, source_article);
+      return res.status(500).json({ error: "Failed to retrieve saved sigma rule" });
+    }
+    return res.status(200).json({ sigma_rule: stored[0] });
   } catch (e) {
     console.error("POST /api/draft-sigma error:", e);
     return res.status(500).json({ error: "Internal server error" });

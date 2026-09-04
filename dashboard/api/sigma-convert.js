@@ -139,7 +139,19 @@ Output ONLY the ${p.label} query — no explanation, no markdown fences, no pros
     // Persist to DB so future loads skip the Haiku call
     const col = PLATFORM_COL[platform];
     if (col && id && Number.isInteger(+id) && +id > 0 && process.env.DATABASE_URL) {
-      pool().query(`UPDATE sigma_rules SET ${col}=$1 WHERE id=$2`, [query, +id]).catch(() => {});
+      try {
+        const result = await pool().query(
+          `UPDATE sigma_rules SET ${col}=$1 WHERE id=$2`,
+          [query, +id]
+        );
+        console.log(`sigma-convert: saved ${col} for id=${id}, rowCount=${result.rowCount}`);
+      } catch (e) {
+        console.error(`sigma-convert: DB save failed (${col}, id=${id}):`, e.message);
+      }
+    } else if (!process.env.DATABASE_URL) {
+      console.warn("sigma-convert: DATABASE_URL not set, skipping DB save");
+    } else if (!(+id > 0)) {
+      console.warn(`sigma-convert: id=${id} is invalid, skipping DB save`);
     }
     return res.json({ query, platform, label: p.label });
   } catch (e) {
