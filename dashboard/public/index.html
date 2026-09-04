@@ -386,8 +386,13 @@
     .sigma-status-sel{font-size:7px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 4px;border:1px solid var(--border-hi);background:var(--surface2);color:var(--text-dim);cursor:pointer;font-family:var(--font-ui);}
     .sigma-platform-sel{font-size:7px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 5px;border:1px solid rgba(0,212,255,.3);background:var(--surface2);color:var(--cyan);cursor:pointer;font-family:var(--font-ui);}
     .sigma-converted-wrap{margin-top:6px;}
-    .sigma-converted-lbl{font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan);margin-bottom:3px;}
+    .sigma-conv-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;}
+    .sigma-converted-lbl{font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan);}
+    .sigma-conv-copy-btn{background:none;border:none;cursor:pointer;color:var(--text-muted);padding:2px 3px;line-height:1;transition:color .12s;}
+    .sigma-conv-copy-btn:hover{color:var(--cyan);}
     .sigma-converted-pre{font-family:monospace;font-size:8.5px;line-height:1.6;white-space:pre-wrap;word-break:break-all;background:var(--surface);border:1px solid rgba(0,212,255,.2);padding:8px 10px;color:var(--text-dim);max-height:200px;overflow-y:auto;}
+    .src-chip{font-size:7px;padding:1px 6px;border:1px solid var(--border-hi);background:var(--surface2);color:var(--text-dim);white-space:nowrap;display:inline-block;margin-right:2px;vertical-align:middle;}
+    .src-chip-more{color:var(--cyan);border-color:rgba(0,212,255,.3);}
     /* tooltip */
     .ttp-tooltip{position:fixed;background:rgba(8,8,8,.96);backdrop-filter:blur(14px) saturate(160%);border:1px solid var(--border-hi);border-left:2px solid var(--green);padding:9px 13px 10px;pointer-events:none;z-index:600;display:none;min-width:196px;max-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.6);}
     .ttp-tip-id{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);font-family:monospace;}
@@ -2410,9 +2415,8 @@ function openTtpDrawer(tid){
       +`</div>`
       +`<pre class="sigma-yaml-pre" id="drawer-sigma-yaml" hidden>${esc(_sr.sigma_yaml||"")}</pre>`
       +`<div class="sigma-converted-wrap" id="drawer-sigma-converted"${_cData?'':' style="display:none"'}>`
-      +`<div class="sigma-converted-lbl" id="drawer-conv-lbl">${_cData?esc(_cData.label):''}</div>`
+      +`<div class="sigma-conv-header"><span class="sigma-converted-lbl" id="drawer-conv-lbl">${_cData?esc(_cData.label):''}</span><button class="sigma-conv-copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('drawer-conv-pre').textContent)" title="Copy"><svg width="11" height="11" viewBox="0 0 14 14" fill="none"><rect x="4" y="4" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1.4"/><path d="M1 10V2a1 1 0 0 1 1-1h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button></div>`
       +`<pre class="sigma-converted-pre" id="drawer-conv-pre">${_cData?esc(_cData.query):''}</pre>`
-      +`<div style="display:flex;gap:6px;margin-top:4px"><button class="sigma-btn" onclick="navigator.clipboard.writeText(document.getElementById('drawer-conv-pre').textContent)">Copy Query</button></div>`
       +`<div style="margin-top:6px"><button class="sigma-btn" style="opacity:0.5;font-size:9px" onclick="toggleDrawerSigmaYaml()">Show Sigma YAML</button></div>`
       +`</div></div>`;
   }
@@ -2661,23 +2665,33 @@ function renderSigmaRules(data){
   if(!count){if(noneEl)noneEl.style.display="";if(wrapEl)wrapEl.style.display="none";return;}
   if(noneEl)noneEl.style.display="none";if(wrapEl)wrapEl.style.display="";
   if(!tbody)return;
+  const _cpySvg=`<svg width="11" height="11" viewBox="0 0 14 14" fill="none"><rect x="4" y="4" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1.4"/><path d="M1 10V2a1 1 0 0 1 1-1h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
   tbody.innerHTML=_sigmaExport.map((r,i)=>{
     const tid=esc(r.technique_id||"");
     const name=esc(r.technique_name||"—");
     const tac=esc((r.tactic||"—").split("-").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" "));
     const apt=esc(r.attributed_apt||"—");
-    const src=r.source_blog||r.source_article||"";
-    const srcShort=esc(src.length>30?src.slice(0,28)+"…":src);
+    // Multi-source chips: prefer TTP observation sources, fall back to rule columns
+    const _ttp=_ttpById?.[r.technique_id];
+    const _srcUrls=(_ttp?.sources||[]).filter(u=>/^https?:\/\//.test(u));
+    const _hosts=_srcUrls.length
+      ?[...new Set(_srcUrls.map(u=>{try{return new URL(u).hostname.replace(/^www\./,'');}catch{return u.slice(0,20);}}))]
+      :(r.source_blog?[r.source_blog]:r.source_article?[r.source_article]:[]);
+    const _shown=_hosts.slice(0,2);const _more=_hosts.length-2;
+    const srcCell=_shown.length
+      ?_shown.map(h=>`<span class="src-chip" title="${esc(h)}">${esc(h.length>22?h.slice(0,20)+'…':h)}</span>`).join('')+(_more>0?`<span class="src-chip src-chip-more">+${_more}</span>`:'')
+      :'<span style="color:var(--text-muted)">—</span>';
     const st=r.sigma_status||"draft";
     const yamlId=`sigma-yaml-${i}`;
+    const yBtnId=`sigma-yaml-btn-${i}`;
     return`<tr>
       <td class="sigma-tid">${tid}</td>
       <td class="sigma-name">${name}</td>
       <td class="sigma-tactic">${tac}</td>
       <td>${apt}</td>
-      <td title="${esc(src)}">${srcShort}</td>
+      <td>${srcCell}</td>
       <td>${_isAdmin?`<select class="sigma-status-sel" onchange="updateSigmaStatus(${r.id||0},this.value,this)">${["draft","reviewed","promoted","retired"].map(s=>`<option value="${s}"${s===st?" selected":""}>${s}</option>`).join("")}</select>`:`<span class="sigma-badge sigma-${esc(st)}">${esc(st.toUpperCase())}</span>`}</td>
-      <td><button class="sigma-btn" style="white-space:nowrap" onclick="toggleSigmaRow('${yamlId}',this)">YAML</button>
+      <td><button class="sigma-btn" id="${yBtnId}" style="white-space:nowrap" onclick="toggleSigmaRow('${yamlId}',this)">YAML</button>
       <select class="sigma-platform-sel" style="margin-left:4px" onchange="convertSigmaFromTab(${r.id||0},${i},this.value,this)">
         <option value="">Convert →</option>
         <option value="splunk">Splunk SPL</option>
@@ -2686,18 +2700,24 @@ function renderSigmaRules(data){
         <option value="qradar">QRadar AQL</option>
       </select>
       <pre class="sigma-yaml-pre" id="${yamlId}" hidden>${esc(r.sigma_yaml||"")}</pre>
-      <div class="sigma-converted-wrap" id="conv-${i}" style="display:none"><div class="sigma-converted-lbl" id="conv-lbl-${i}"></div><pre class="sigma-converted-pre" id="conv-pre-${i}"></pre><button class="sigma-btn" style="margin-top:4px" onclick="navigator.clipboard.writeText(document.getElementById('conv-pre-${i}').textContent)">Copy Query</button></div></td>
+      <div class="sigma-converted-wrap" id="conv-${i}" style="display:none">
+        <div class="sigma-conv-header"><span class="sigma-converted-lbl" id="conv-lbl-${i}"></span><button class="sigma-conv-copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('conv-pre-${i}').textContent)" title="Copy">${_cpySvg}</button></div>
+        <pre class="sigma-converted-pre" id="conv-pre-${i}"></pre>
+      </div></td>
       <td>${_isAdmin?`<button class="sigma-btn" style="color:var(--red);border-color:rgba(255,59,48,.3)" onclick="deleteSigmaRule(${r.id||0},this)">Delete</button>`:""}</td>
     </tr>`;
   }).join("");
-  // Auto-show any saved platform conversion in each table row
+  // Auto-show any saved platform conversion and dim YAML button
   const _PS=['splunk','sentinel','elastic','qradar'];
   _sigmaExport.forEach((r,i)=>{
     for(const p of _PS){const c=_convCache[`${r.id}:${p}`];if(c){
       const w=document.getElementById(`conv-${i}`);
       const l=document.getElementById(`conv-lbl-${i}`);
       const pr=document.getElementById(`conv-pre-${i}`);
-      if(w)w.style.display="";if(l)l.textContent=c.label;if(pr)pr.textContent=c.query;break;
+      const yb=document.getElementById(`sigma-yaml-btn-${i}`);
+      if(w)w.style.display="";if(l)l.textContent=c.label;if(pr)pr.textContent=c.query;
+      if(yb)yb.style.opacity="0.35";
+      break;
     }}
   });
 }
@@ -2766,6 +2786,10 @@ async function convertSigmaRule(id,yaml,platform,wrapId,sel){
     if(wrapEl)wrapEl.style.display="";
     if(lblEl)lblEl.textContent=d.label;
     if(preEl)preEl.textContent=d.query;
+    // Dim the YAML button for this row
+    const _rIdx=wrapId.replace(/^conv-/,'');
+    const _yb=document.getElementById(`sigma-yaml-btn-${_rIdx}`);
+    if(_yb)_yb.style.opacity='0.35';
   }catch(e){alert("Conversion failed: "+e.message);}
   finally{if(sel){sel.disabled=false;sel.options[0].text="Convert →";sel.value="";}}
 }
@@ -2804,9 +2828,11 @@ async function convertDrawerSigma(platform,sel){
       const _tw=document.getElementById(`conv-${_rowIdx}`);
       const _tl=document.getElementById(`conv-lbl-${_rowIdx}`);
       const _tp=document.getElementById(`conv-pre-${_rowIdx}`);
+      const _yb=document.getElementById(`sigma-yaml-btn-${_rowIdx}`);
       if(_tw)_tw.style.display="";
       if(_tl)_tl.textContent=d.label;
       if(_tp)_tp.textContent=d.query;
+      if(_yb)_yb.style.opacity='0.35';
     }
   }catch(e){alert("Conversion failed: "+e.message);}
   finally{if(sel){sel.disabled=false;sel.options[0].text="Convert →";sel.value="";}}
