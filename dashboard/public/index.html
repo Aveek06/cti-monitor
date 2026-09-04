@@ -3241,6 +3241,7 @@ function switchTab(name){
     ["home","sources","iocs","ttps","sigma","graph","vm"].forEach(t=>{const p=document.getElementById(`tab-${t}`);if(p)p.style.display='';});
   }
   ["home","sources","iocs","ttps","sigma","graph","vm"].forEach(t=>{document.getElementById(`tab-${t}`).classList.toggle("active",t===name);const btn=document.getElementById(`tab-btn-${t}`);if(btn){btn.classList.toggle("active",t===name);btn.setAttribute("aria-selected",t===name);}});
+  try{localStorage.setItem("cti_tab",name);}catch{}
   if(name==="graph")requestAnimationFrame(rebuildGraph);
   if(name==="vm")renderVmTab();
   if(name==="home"){const kevEl=document.getElementById('hm-n-kev');if(kevEl&&kevEl.textContent==='—'&&vmData&&vmData.totalKev)animateCountUp(kevEl,vmData.totalKev);}
@@ -3277,6 +3278,12 @@ async function init(){
     setInterval(refreshData,REFRESH_MS);
     window.addEventListener("hashchange",_routeHash);
     _routeHash();
+    /* Restore last active tab after a hard refresh (skip if a page view is open) */
+    if(!location.hash||location.hash==="#"){
+      const _TABS=["home","sources","iocs","ttps","sigma","graph","vm"];
+      const _saved=(()=>{try{return localStorage.getItem("cti_tab");}catch{return null;}})();
+      if(_saved&&_TABS.includes(_saved)&&_saved!=="home")switchTab(_saved);
+    }
     // Auth: heartbeat + whoami
     fetch('/api/auth?action=whoami').then(r=>r.json()).then(u=>{
       if(u.email) _currentUserEmail=u.email;
