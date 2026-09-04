@@ -25,6 +25,7 @@ An automated Cyber Threat Intelligence pipeline that monitors **187 security res
 | **VirusTotal verification** | SHA-256 and SHA-1 hashes (≥10 malicious engines), rate-limited to free tier |
 | **Shodan enrichment** | IP IOCs tagged (VPN / proxy / scanner / honeypot) with open ports |
 | **TTP extraction** | MITRE ATT&CK extraction — regex (free, always-on) + Claude AI (budget-capped, 30 articles/run) |
+| **AI Sigma rule drafting** | On-demand analyst-triggered detection: one click in the TTP drawer calls Claude Haiku, injects the correct ATT&CK→logsource category from a code-side lookup table, validates YAML, and stores the rule with a draft/reviewed/promoted/retired lifecycle. **None of the 11 major commercial CTI platforms (MISP, Recorded Future, Anomali ThreatStream, ThreatConnect, ThreatQ, EclecticIQ, IBM X-Force Exchange, Mandiant/Google TI, Silobreaker, Flashpoint, CrowdStrike Falcon Intelligence) close this loop natively.** |
 | **URLhaus feed** | Malware URL IOCs from URLhaus online-only filter, merged into export |
 | **Live dashboard** | Sources / IOCs / TTPs tabs with reliability badges, source filter, export, ATT&CK heatmap |
 | **IOC reliability filter** | Toggle IOC table to show all / ≥40 amber+ / ≥70 trusted sources only |
@@ -63,7 +64,7 @@ GitHub Actions (daily 21:30 IST via cron-job.org + schedule fallback)
   │           ├── vt_enricher.py     — VirusTotal SHA-256/SHA-1 hash verification
   │           ├── shodan_enricher.py — Shodan IP tagging (VPN / scanner / honeypot)
   │           ├── urlhaus_fetcher.py — URLhaus malware URL feed (merged into export)
-  │           └── Save ioc_export.json + ttp_export.json (for dashboard)
+  │           └── Save ioc_export.json + ttp_export.json + sigma_export.json (for dashboard)
   │
   ├── Save state.json, last_active.json (with _reliability_snapshot), prev_run_links.json
   ├── Send HTML digest email (articles + summaries + IOC tables + reliability badges + AI cost)
@@ -76,7 +77,7 @@ GitHub Actions (daily 21:30 IST via cron-job.org + schedule fallback)
   │
   └── GitHub Actions cache + artifact (7-day retention)
         state.json / last_active.json / prev_run_links.json
-        ioc_export.json / ttp_export.json / .tranco_cache.txt
+        ioc_export.json / ttp_export.json / sigma_export.json / .tranco_cache.txt
 
 Dashboard (Vercel)
   ├── /api/data.js           — fetches latest artifact from GitHub, returns merged JSON
@@ -87,7 +88,9 @@ Dashboard (Vercel)
         ├── Home tab    — KPI cards, daily volume sparkline, IOC donut chart, ATT&CK radar
         ├── Sources tab — active / quiet / failing panels with reliability badges and site drawers
         ├── IOCs tab    — scored table with reliability filter, VT/Shodan enrichment, export
-        └── TTPs tab    — MITRE ATT&CK heatmap with tactic/technique breakdown + Navigator export
+        ├── TTPs tab    — MITRE ATT&CK heatmap with tactic/technique breakdown + Navigator export
+        │                 + "Draft Sigma Rule" button per technique (admin only)
+        └── Sigma tab   — all drafted rules: expandable YAML, Copy button, status lifecycle dropdown
 ```
 
 ---
@@ -202,6 +205,81 @@ Techniques are stored in Supabase `ttp_observations` with technique ID, name, ta
 
 ---
 
+## AI Sigma Rule Drafting
+
+### The gap no commercial platform closes
+
+Every major CTI platform extracts TTPs and maps them to MITRE ATT&CK. None of them produce detection rules from that extraction. The analyst still reads the report, opens a text editor, and writes Sigma YAML by hand.
+
+Tested against 11 platforms as of mid-2025:
+
+| Platform | TTP extraction | Auto-draft Sigma |
+|---|---|---|
+| MISP | Yes (via modules) | No |
+| Recorded Future | Yes | No |
+| Anomali ThreatStream | Yes | No |
+| ThreatConnect | Yes | No |
+| ThreatQ | Yes | No |
+| EclecticIQ | Yes | No |
+| IBM X-Force Exchange | Yes | No |
+| Mandiant / Google Threat Intelligence | Yes | No |
+| Silobreaker | Yes | No |
+| Flashpoint | Yes | No |
+| CrowdStrike Falcon Intelligence | Yes | No |
+| **CTI Monitor** | **Yes** | **Yes** |
+
+This is consistent with findings from [LLMCloudHunter (ACM WWW 2025)](https://arxiv.org/abs/2407.08445) — no benchmarked commercial platform auto-generates detection rules from threat reports — and [MITRE SigmaGen (March 2025)](https://medium.com/mitre-engenuity/sigmagen-using-llms-to-generate-sigma-rules-from-threat-reports-68e1d06f7c34), which identified AI-generated logsource categories as the primary failure mode.
+
+### How it works
+
+```
+Analyst opens TTP drawer → clicks "Draft Sigma Rule"
+  │
+  ├── POST /api/draft-sigma
+  │     ├── Fetch TTP row from ttp_observations (technique_id, tactic, APT, source URL)
+  │     ├── Fetch up to 15 associated IOCs from ioc_indicators (same article)
+  │     ├── Look up ATT&CK → Sigma logsource from a 30-entry code-side map
+  │     │     (category and product injected into prompt — never inferred by the model)
+  │     │     T1059.001 → process_creation / windows
+  │     │     T1003.001 → process_access / windows
+  │     │     T1053.005 → scheduled_task_creation / windows
+  │     │     T1547.001 → registry_set / windows  ... and so on
+  │     ├── Call Claude Haiku 4.5 (~600 input / ~500 output tokens, ~$0.003/rule)
+  │     ├── Validate YAML with js-yaml; retry once with correction note on parse failure
+  │     ├── INSERT ... ON CONFLICT DO NOTHING  (first draft wins; analyst edits preserved)
+  │     └── Return stored rule to dashboard
+  │
+  └── Dashboard updates inline:
+        "Draft Sigma Rule" button → rule display with status badge + Show/Copy YAML
+```
+
+The ATT&CK→logsource injection directly addresses MITRE SigmaGen's finding that incorrect `logsource.category` is the most common AI-generation failure. The model is never asked to infer it.
+
+### Rule lifecycle
+
+Analysts manage rules through a status progression:
+
+```
+draft → reviewed → promoted → retired
+```
+
+Status is stored in `sigma_rules.sigma_status` and surfaced as a live dropdown in the Sigma Rules tab (admin-only write; read-only badge for all authenticated users).
+
+### Cost
+
+| Token budget | Per rule | 5 rules/day |
+|---|---|---|
+| ~600 input + ~500 output | ~$0.003 | ~$0.016 |
+
+On-demand generation means no tokens are spent on techniques already covered by existing rule libraries. Analysts choose which TTPs are worth detectionizing.
+
+### Research basis
+
+- **LLMCloudHunter** (Nadler et al., ACM WWW 2025): benchmarked 11 commercial platforms; none produce detection rules from threat reports; AI-generated rules explicitly marked as drafts requiring analyst validation.
+- **MITRE SigmaGen** (March 2025): evaluated LLM-generated Sigma rules at scale; primary recommendation is to inject logsource category from a structured mapping rather than leaving it to the model.
+
+---
+
 ## TAXII 2.1 Export
 
 CTI Monitor exposes a read-only TAXII 2.1 endpoint that serves the full STIX 2.1 feed from Supabase. Any compatible platform (OpenCTI, MISP, Anomali, etc.) can point a TAXII client connector at it.
@@ -249,6 +327,7 @@ All Claude usage uses **claude-haiku-4-5**. Three distinct uses per run:
 | Article summarisation | 150 | 4,000 chars | Skipped if article text < 200 chars |
 | Combined extraction (TTPs + IOCs + APT) | 1,000 | 3,500 chars | Budget-capped at 30 articles/run |
 | Weekly narrative | 400 | ~300 token prompt | 2–3 paragraph executive threat summary |
+| Sigma rule drafting | 600 | ~700 tokens | On-demand via dashboard; admin-only; ~$0.003/rule |
 
 All three degrade gracefully to no-op when no API key is set. Daily spend is tracked in `last_active._ai_cost` and shown in both digest and weekly emails.
 
@@ -290,6 +369,7 @@ Sent every **Friday between 16:00–20:00 UTC** (or on demand via `force_weekly=
 | `prev_run_links.json` | Enriched link objects `{url, site, date, summary}` for dashboard |
 | `ioc_export.json` | Scored IOC list `{value, type, apt, score, tau, ltv, shodan_tags, …}` |
 | `ttp_export.json` | TTP observations `{technique_id, tactic, total_observations, apts, …}` |
+| `sigma_export.json` | All drafted Sigma rules `{technique_id, sigma_yaml, sigma_status, …}` — pre-populates dashboard on load |
 | `ioc_extractor.py` | Article text fetch (WAF bypass + Playwright upgrade), iocsearcher extraction, FP filtering, APT detection |
 | `ai_extractor.py` | Single Haiku call: returns TTPs + IOCs + APT as structured JSON |
 | `stix_converter.py` | Build STIX 2.1 Indicator / ThreatActor / Relationship objects |
@@ -303,6 +383,8 @@ Sent every **Friday between 16:00–20:00 UTC** (or on demand via `force_weekly=
 | `weekly_report.py` | Friday report: narrative generation + stale sites + degradation alerts |
 | `dashboard/api/data.js` | Vercel function: fetches latest GitHub artifact, returns merged JSON |
 | `dashboard/api/ratings.js` | Vercel function: analyst rating GET/POST backed by Supabase |
+| `dashboard/api/draft-sigma.js` | Vercel function: POST — fetches TTP+IOCs, calls Claude Haiku, validates YAML, stores rule (admin only) |
+| `dashboard/api/sigma-status.js` | Vercel function: PATCH — updates `sigma_status` for a rule (admin only) |
 | `dashboard/api/taxii.js` | Vercel function: TAXII 2.1 server discovery (`GET /api/taxii`) |
 | `dashboard/api/taxii/[...segments].js` | Vercel function: TAXII 2.1 collections and objects endpoints |
 | `dashboard/middleware.js` | Vercel edge middleware: JWT cookie gate (bypassed for `/api/taxii/*`) |
@@ -336,6 +418,7 @@ Create a project at [supabase.com](https://supabase.com). The `ioc_indicators`, 
 | `GITHUB_TOKEN` | Yes | GitHub PAT (`repo` read scope) for artifact fetching |
 | `NVD_API_KEY` | Optional | NVD rate limit: 50 req/30s with key vs 5 without |
 | `URLHAUS_API_KEY` | Optional | abuse.ch API key for URLhaus live feed |
+| `ANTHROPIC_API_KEY` | Yes (for Sigma) | Claude Haiku for on-demand Sigma rule drafting (Production + Preview + Development) |
 | `TAXII_API_KEY` | Optional | If set, gates `/api/taxii/*` behind Bearer token auth |
 
 3. Vercel auto-deploys on every push; the dashboard reads the latest GitHub Actions artifact
