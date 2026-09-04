@@ -99,13 +99,13 @@ function parseCookie(header) {
   return out;
 }
 
-async function requireAuth(req) {
+async function requireAdmin(req) {
   try {
     const token = parseCookie(req.headers.cookie)["cti_session"];
     if (!token || !process.env.SESSION_SECRET) return false;
     const secret = new TextEncoder().encode(process.env.SESSION_SECRET);
-    await jwtVerify(token, secret);
-    return true;
+    const { payload } = await jwtVerify(token, secret);
+    return payload.is_admin === true;
   } catch {
     return false;
   }
@@ -117,8 +117,8 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  if (!(await requireAuth(req)))
-    return res.status(401).json({ error: "Unauthorized" });
+  if (!(await requireAdmin(req)))
+    return res.status(403).json({ error: "Admin access required" });
 
   if (!process.env.ANTHROPIC_API_KEY)
     return res.status(500).json({ error: "ANTHROPIC_API_KEY not configured" });

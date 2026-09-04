@@ -2396,7 +2396,7 @@ function openTtpDrawer(tid){
   if(!urlSrcs.length&&!blogSrcs.length)html+=`<div class="ttp-d-section"><div class="no-links">No source articles recorded.</div></div>`;
   const _sr=_sigmaByTechnique[tid];
   if(_sr){html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd" style="display:flex;align-items:center;gap:6px">Detection <span class="sigma-badge sigma-${esc(_sr.sigma_status)}">${esc(_sr.sigma_status.toUpperCase())}</span></div><div style="display:flex;gap:6px;margin-top:5px"><button class="sigma-btn" onclick="toggleDrawerSigmaYaml()">Show YAML</button><button class="sigma-btn" onclick="copyDrawerSigmaYaml()">Copy</button></div><pre class="sigma-yaml-pre" id="drawer-sigma-yaml" hidden>${esc(_sr.sigma_yaml||"")}</pre></div>`;}
-  else if(urlSrcs.length){html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Detection</div><button class="sigma-btn sigma-draft-btn" id="sigma-draft-btn" onclick="draftSigmaFromDrawer(this)">Draft Sigma Rule</button></div>`;}
+  else if(urlSrcs.length&&_isAdmin){html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Detection</div><button class="sigma-btn sigma-draft-btn" id="sigma-draft-btn" onclick="draftSigmaFromDrawer(this)">Draft Sigma Rule</button></div>`;}
   document.getElementById("links-list").innerHTML=html;
   document.getElementById("rel-section").style.display="none";
   animateDrawer(true);document.getElementById("backdrop").classList.add("visible");document.body.style.overflow="hidden";
@@ -2526,7 +2526,7 @@ function exportIocs(fmt){
 }
 
 /* ── TTP Heat Map ── */
-let _ttpById={},_ttpExport=[],_ttpDays=0,_sigmaByTechnique={},_sigmaExport=[],_currentDrawerTtp=null;
+let _ttpById={},_ttpExport=[],_ttpDays=0,_sigmaByTechnique={},_sigmaExport=[],_currentDrawerTtp=null,_isAdmin=false;
 const TACTIC_LABELS={"reconnaissance":"Recon","resource-development":"Resource Dev","initial-access":"Initial Access","execution":"Execution","persistence":"Persistence","privilege-escalation":"Priv. Esc.","defense-evasion":"Defense Eva.","credential-access":"Cred. Access","discovery":"Discovery","lateral-movement":"Lateral Mvmt","collection":"Collection","command-and-control":"C2","exfiltration":"Exfil","impact":"Impact"};
 function heatLevel(count){return count>=5?3:count>=2?2:1;}
 function getTtpFiltered(){
@@ -2647,9 +2647,7 @@ function renderSigmaRules(data){
       <td class="sigma-tactic">${tac}</td>
       <td>${apt}</td>
       <td title="${esc(src)}">${srcShort}</td>
-      <td><select class="sigma-status-sel" onchange="updateSigmaStatus(${r.id||0},this.value,this)">
-        ${["draft","reviewed","promoted","retired"].map(s=>`<option value="${s}"${s===st?" selected":""}>${s}</option>`).join("")}
-      </select></td>
+      <td>${_isAdmin?`<select class="sigma-status-sel" onchange="updateSigmaStatus(${r.id||0},this.value,this)">${["draft","reviewed","promoted","retired"].map(s=>`<option value="${s}"${s===st?" selected":""}>${s}</option>`).join("")}</select>`:`<span class="sigma-badge sigma-${esc(st)}">${esc(st.toUpperCase())}</span>`}</td>
       <td><button class="sigma-btn" style="white-space:nowrap" onclick="toggleSigmaRow('${yamlId}',this)">YAML</button>
       <pre class="sigma-yaml-pre" id="${yamlId}" hidden>${esc(r.sigma_yaml||"")}</pre></td>
     </tr>`;
@@ -3155,6 +3153,7 @@ function switchTab(name){
 /* ── Init ── */
 async function init(){
   try{
+    fetch("/api/auth?action=whoami").then(r=>r.ok?r.json():null).then(d=>{_isAdmin=!!(d&&d.is_admin);}).catch(()=>{});
     const raw=await loadData();lastUpdatedAt=raw.updatedAt;updateDashboard(derive(raw));
     document.getElementById("card-active").addEventListener("click",()=>togglePanel("card-active","panel-active"));
     document.getElementById("card-quiet").addEventListener("click",()=>togglePanel("card-quiet","panel-quiet"));
