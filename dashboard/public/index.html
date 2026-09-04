@@ -2396,7 +2396,11 @@ function openTtpDrawer(tid){
   if(!urlSrcs.length&&!blogSrcs.length)html+=`<div class="ttp-d-section"><div class="no-links">No source articles recorded.</div></div>`;
   const _sr=_sigmaByTechnique[tid];
   if(_sr){html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd" style="display:flex;align-items:center;gap:6px">Detection <span class="sigma-badge sigma-${esc(_sr.sigma_status)}">${esc(_sr.sigma_status.toUpperCase())}</span></div><div style="display:flex;gap:6px;margin-top:5px"><button class="sigma-btn" onclick="toggleDrawerSigmaYaml()">Show YAML</button><button class="sigma-btn" onclick="copyDrawerSigmaYaml()">Copy</button></div><pre class="sigma-yaml-pre" id="drawer-sigma-yaml" hidden>${esc(_sr.sigma_yaml||"")}</pre></div>`;}
-  else if(urlSrcs.length&&_isAdmin){html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Detection</div><button class="sigma-btn sigma-draft-btn" id="sigma-draft-btn" onclick="draftSigmaFromDrawer(this)">Draft Sigma Rule</button></div>`;}
+  else if(urlSrcs.length&&_isAdmin){
+    const _articleHasIocs=_allIocs.some(ioc=>ioc.source_article===urlSrcs[0]);
+    if(_articleHasIocs){html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Detection</div><button class="sigma-btn sigma-draft-btn" id="sigma-draft-btn" onclick="draftSigmaFromDrawer(this)">Draft Sigma Rule</button></div>`;}
+    else{html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Detection</div><div style="font-size:8px;color:var(--text-muted);padding:4px 0">No IOCs extracted from this article — draft quality will be low. Run the pipeline first or choose an article with confirmed IOCs.</div></div>`;}
+  }
   document.getElementById("links-list").innerHTML=html;
   document.getElementById("rel-section").style.display="none";
   animateDrawer(true);document.getElementById("backdrop").classList.add("visible");document.body.style.overflow="hidden";
