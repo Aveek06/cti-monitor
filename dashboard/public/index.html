@@ -1326,7 +1326,7 @@
         <div id="sigma-tab-table-wrap" style="display:none;overflow-x:auto;">
           <table class="sigma-tbl" id="sigma-tab-tbl">
             <thead><tr>
-              <th>Technique</th><th>Name</th><th>Tactic</th><th>APT</th><th>Source</th><th>Status</th><th></th>
+              <th>Technique</th><th>Name</th><th>Tactic</th><th>APT</th><th>Source</th><th>Status</th><th></th><th></th>
             </tr></thead>
             <tbody id="sigma-tab-tbody"></tbody>
           </table>
@@ -2654,6 +2654,7 @@ function renderSigmaRules(data){
       <td>${_isAdmin?`<select class="sigma-status-sel" onchange="updateSigmaStatus(${r.id||0},this.value,this)">${["draft","reviewed","promoted","retired"].map(s=>`<option value="${s}"${s===st?" selected":""}>${s}</option>`).join("")}</select>`:`<span class="sigma-badge sigma-${esc(st)}">${esc(st.toUpperCase())}</span>`}</td>
       <td><button class="sigma-btn" style="white-space:nowrap" onclick="toggleSigmaRow('${yamlId}',this)">YAML</button>
       <pre class="sigma-yaml-pre" id="${yamlId}" hidden>${esc(r.sigma_yaml||"")}</pre></td>
+      <td>${_isAdmin?`<button class="sigma-btn" style="color:var(--red);border-color:rgba(255,59,48,.3)" onclick="deleteSigmaRule(${r.id||0},this)">Delete</button>`:""}</td>
     </tr>`;
   }).join("");
 }
@@ -2668,6 +2669,23 @@ async function updateSigmaStatus(id,status,selectEl){
   }catch(e){
     console.error("sigma status update failed",e);
     if(selectEl){const old=(_sigmaExport.find(r=>r.id===id)||{}).sigma_status||"draft";selectEl.value=old;}
+  }
+}
+
+async function deleteSigmaRule(id,btn){
+  if(!id||!confirm("Delete this Sigma rule from the database? This cannot be undone."))return;
+  if(btn){btn.disabled=true;btn.textContent="…";}
+  try{
+    const resp=await fetch("/api/sigma-rules",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})});
+    if(!resp.ok){const j=await resp.json().catch(()=>({}));throw new Error(j.error||`HTTP ${resp.status}`);}
+    _sigmaExport=_sigmaExport.filter(r=>r.id!==id);
+    _sigmaByTechnique={};
+    for(const r of _sigmaExport){if(!_sigmaByTechnique[r.technique_id])_sigmaByTechnique[r.technique_id]=r;}
+    renderSigmaRules(_sigmaExport);
+  }catch(e){
+    console.error("delete sigma failed",e);
+    alert("Failed to delete: "+e.message);
+    if(btn){btn.disabled=false;btn.textContent="Delete";}
   }
 }
 
@@ -3159,6 +3177,7 @@ async function init(){
   try{
     fetch("/api/auth?action=whoami").then(r=>r.ok?r.json():null).then(d=>{_isAdmin=!!(d&&d.is_admin);}).catch(()=>{});
     const raw=await loadData();lastUpdatedAt=raw.updatedAt;updateDashboard(derive(raw));
+    fetch("/api/sigma-rules").then(r=>r.ok?r.json():null).then(d=>{if(d?.sigma_rules)renderSigmaRules(d.sigma_rules);}).catch(()=>{});
     document.getElementById("card-active").addEventListener("click",()=>togglePanel("card-active","panel-active"));
     document.getElementById("card-quiet").addEventListener("click",()=>togglePanel("card-quiet","panel-quiet"));
     document.getElementById("card-failing").addEventListener("click",()=>togglePanel("card-failing","panel-failing"));
