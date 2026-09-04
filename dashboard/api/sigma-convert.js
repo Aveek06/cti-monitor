@@ -1,9 +1,24 @@
 // Vercel serverless — POST converts a Sigma YAML to a target platform query.
-// Body: { sigma_yaml: string, platform: "splunk"|"sentinel"|"elastic"|"qradar" }
+// Body: { id?: number, sigma_yaml: string, platform: "splunk"|"sentinel"|"elastic"|"qradar" }
 // Auth: any authenticated user (read-only operation).
 
 const { jwtVerify } = require("jose");
 const Anthropic = require("@anthropic-ai/sdk");
+const { Pool } = require("pg");
+
+let _pool;
+function pool() {
+  if (!_pool) _pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 3 });
+  return _pool;
+}
+
+// Maps platform key → sigma_rules column name
+const PLATFORM_COL = {
+  splunk:   "splunk_spl",
+  sentinel: "sentinel_kql",
+  elastic:  "elastic_eql",
+  qradar:   "qradar_aql",
+};
 
 const PLATFORMS = {
   splunk: {
@@ -96,7 +111,7 @@ module.exports = async function handler(req, res) {
   if (!process.env.ANTHROPIC_API_KEY)
     return res.status(500).json({ error: "ANTHROPIC_API_KEY not configured" });
 
-  const { sigma_yaml, platform } = req.body || {};
+  const { id, sigma_yaml, platform } = req.body || {};
   if (!sigma_yaml) return res.status(400).json({ error: "sigma_yaml required" });
   if (!platform || !PLATFORMS[platform])
     return res.status(400).json({ error: `platform must be one of: ${Object.keys(PLATFORMS).join(", ")}` });
@@ -121,6 +136,11 @@ Output ONLY the ${p.label} query — no explanation, no markdown fences, no pros
     let query = msg.content[0].text.trim();
     // Strip accidental markdown fences
     query = query.replace(/^```[a-z]*\s*/i, "").replace(/\s*```\s*$/i, "");
+    // Persist to DB so future loads skip the Haiku call
+    const col = PLATFORM_COL[platform];
+    if (col && id && Number.isInteger(+id) && +id > 0 && process.env.DATABASE_URL) {
+      pool().query(`UPDATE sigma_rules SET ${col}=$1 WHERE id=$2`, [query, +id]).catch(() => {});
+    }
     return res.json({ query, platform, label: p.label });
   } catch (e) {
     console.error("POST /api/sigma-convert error:", e);

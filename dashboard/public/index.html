@@ -2628,8 +2628,13 @@ function renderTtpAnalytics(data){
 function renderSigmaRules(data){
   _sigmaExport=data||[];
   _sigmaByTechnique={};
+  const _PCOLS={splunk:"splunk_spl",sentinel:"sentinel_kql",elastic:"elastic_eql",qradar:"qradar_aql"};
+  const _PLBLS={splunk:"Splunk SPL",sentinel:"Microsoft Sentinel KQL",elastic:"Elastic EQL",qradar:"IBM QRadar AQL"};
   for(const r of _sigmaExport){
     if(!_sigmaByTechnique[r.technique_id])_sigmaByTechnique[r.technique_id]=r;
+    for(const [p,col] of Object.entries(_PCOLS)){
+      if(r[col])_convCache[`${r.id}:${p}`]={query:r[col],label:_PLBLS[p]};
+    }
   }
   const count=_sigmaExport.length;
   const countEl=document.getElementById("sigma-tab-count");
@@ -2728,7 +2733,7 @@ async function convertSigmaRule(id,yaml,platform,wrapId,sel){
   }
   if(sel){sel.disabled=true;sel.options[0].text="Converting…";}
   try{
-    const resp=await fetch("/api/sigma-convert",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sigma_yaml:yaml,platform})});
+    const resp=await fetch("/api/sigma-convert",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,sigma_yaml:yaml,platform})});
     if(!resp.ok)throw new Error((await resp.json().catch(()=>({}))).error||`HTTP ${resp.status}`);
     const d=await resp.json();
     _convCache[cacheKey]={query:d.query,label:d.label};
@@ -2758,7 +2763,7 @@ async function convertDrawerSigma(platform,sel){
   }
   if(sel){sel.disabled=true;sel.options[0].text="Converting…";}
   try{
-    const resp=await fetch("/api/sigma-convert",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sigma_yaml:yaml,platform})});
+    const resp=await fetch("/api/sigma-convert",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,sigma_yaml:yaml,platform})});
     if(!resp.ok)throw new Error((await resp.json().catch(()=>({}))).error||`HTTP ${resp.status}`);
     const d=await resp.json();
     _convCache[cacheKey]={query:d.query,label:d.label};
