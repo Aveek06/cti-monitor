@@ -119,12 +119,27 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
         iocs = ioc_extractor.extract_iocs(text, item["link"])
 
         # Combined AI extraction: TTPs + additional IOCs + APT attribution in one call
+        site_rel = int(rel_lookup.get(item["site"], 50)) if rel_lookup else 50
         use_ai = anthropic_key and ttp_ai_budget > 0
         if use_ai:
-            ai = ai_extractor.extract_all(text, item["link"], anthropic_key)
+            ai = ai_extractor.extract_all(
+                text, item["link"], anthropic_key,
+                site=item["site"], rel_score=site_rel,
+            )
             if ai.get("ttps") or ai.get("iocs") or ai.get("apt"):
                 ttp_ai_budget -= 1
-            ttps = ai["ttps"] if ai["ttps"] else ttp_extractor.extract_ttps(text, "")
+            # Filter AI TTPs to known ATT&CK IDs only
+            ai_ttps = [t for t in (ai["ttps"] or [])
+                       if t.get("technique_id", "") in ttp_extractor.TECHNIQUE_LOOKUP]
+            # For long articles, extract TTPs from the tail that the main call didn't see
+            if len(text) > 8000:
+                tail_ttps = ttp_extractor.extract_ttps_ai(text[7500:], anthropic_key)
+                seen_ids = {t["technique_id"] for t in ai_ttps}
+                for t in tail_ttps:
+                    if t["technique_id"] not in seen_ids:
+                        ai_ttps.append(t)
+                        seen_ids.add(t["technique_id"])
+            ttps = ai_ttps if ai_ttps else ttp_extractor.extract_ttps(text, "")
             _seen = {(r["value"], r["type"]) for r in iocs}
             for ai_ioc in (ai["iocs"] or []):
                 v, t = ai_ioc.get("value", "").strip(), ai_ioc.get("type", "").strip()
@@ -151,7 +166,6 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
         else:
             ttps = ttp_extractor.extract_ttps(text, "")
 
-        site_rel = int(rel_lookup.get(item["site"], 50)) if rel_lookup else 50
         for ioc in iocs:
             ltv      = ioc_scorer.get_ltv(apt, ioc["type"])
             if rel_lookup:
