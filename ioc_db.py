@@ -306,3 +306,41 @@ def get_all_ttps(conn) -> list[dict]:
             ORDER BY total_observations DESC, last_seen DESC
         """)
         return [dict(r) for r in cur.fetchall()]
+
+
+PIPELINE_STATE_SCHEMA = """
+CREATE TABLE IF NOT EXISTS pipeline_state (
+    key        TEXT PRIMARY KEY,
+    data       JSONB NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+"""
+
+
+def init_pipeline_state_schema(conn):
+    with conn.cursor() as cur:
+        cur.execute(PIPELINE_STATE_SCHEMA)
+    conn.commit()
+
+
+def upsert_pipeline_state(conn, key: str, data) -> None:
+    """Stores (or replaces) a JSON blob under the given key."""
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO pipeline_state (key, data, updated_at)
+            VALUES (%s, %s::jsonb, NOW())
+            ON CONFLICT (key) DO UPDATE
+                SET data = EXCLUDED.data, updated_at = NOW()
+            """,
+            (key, json.dumps(data, default=str)),
+        )
+    conn.commit()
+
+
+def get_pipeline_state(conn, key: str):
+    """Returns parsed Python object for the given key, or None."""
+    with conn.cursor() as cur:
+        cur.execute("SELECT data FROM pipeline_state WHERE key = %s", (key,))
+        row = cur.fetchone()
+    return row[0] if row else None

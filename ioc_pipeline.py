@@ -367,6 +367,10 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
         with open("ioc_export.json", "w", encoding="utf-8") as f:
             json.dump(export, f, indent=2, default=str)
         print(f"IOC pipeline: exported {len(export)} active IOC(s) to ioc_export.json")
+        try:
+            ioc_db.upsert_pipeline_state(conn, "ioc_export", export)
+        except Exception as _e:
+            print(f"IOC pipeline: failed to write ioc_export to pipeline_state: {_e}")
 
         # Export TTP aggregates for the dashboard heat map
         raw_ttps = ioc_db.get_all_ttps(conn)
@@ -386,12 +390,20 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
         with open("ttp_export.json", "w", encoding="utf-8") as f:
             json.dump(ttp_export, f, indent=2, default=str)
         print(f"IOC pipeline: exported {len(ttp_export)} TTP(s) to ttp_export.json")
+        try:
+            ioc_db.upsert_pipeline_state(conn, "ttp_export", ttp_export)
+        except Exception as _e:
+            print(f"IOC pipeline: failed to write ttp_export to pipeline_state: {_e}")
 
         # Export Sigma rules drafted via the dashboard
         sigma_rules = ioc_db.get_all_sigma_rules(conn)
         with open("sigma_export.json", "w", encoding="utf-8") as f:
             json.dump(sigma_rules, f, indent=2, default=str)
         print(f"IOC pipeline: exported {len(sigma_rules)} Sigma rule(s) to sigma_export.json")
+        try:
+            ioc_db.upsert_pipeline_state(conn, "sigma_export", sigma_rules)
+        except Exception as _e:
+            print(f"IOC pipeline: failed to write sigma_export to pipeline_state: {_e}")
 
         pruned = ioc_db.prune_expired(conn, grace_days=90)
         if pruned:

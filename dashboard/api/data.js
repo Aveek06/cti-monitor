@@ -1,44 +1,51 @@
-// Vercel serverless function — fetches latest workflow artifact from GitHub
-// and returns { config, state, lastActive, updatedAt } as JSON.
-// Cached at CDN edge for 1 hour so GitHub API is called at most once per hour.
+// Vercel serverless — reads dashboard data directly from Supabase (PostgreSQL).
+// Replaces the previous GitHub Actions artifact approach so data is always
+// fresh and never subject to 7-day artifact expiry.
 
-const AdmZip = require("adm-zip");
+const { Pool } = require("pg");
+
+let _pool;
+function pool() {
+  if (!_pool)
+    _pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 3 });
+  return _pool;
+}
 
 const OWNER = process.env.GITHUB_OWNER || "Aveek06";
 const REPO  = process.env.GITHUB_REPO  || "cti-monitor";
 const REF   = process.env.GITHUB_REF   || "main";
 
-async function ghGet(path, token, rawJson = false) {
-  const res = await fetch(`https://api.github.com${path}`, {
-    headers: {
-      Authorization:          `Bearer ${token}`,
-      Accept:                 rawJson
-        ? "application/vnd.github.raw+json"
-        : "application/vnd.github+json",
-      "User-Agent":           "cti-dashboard/1.0",
-      "X-GitHub-Api-Version": "2022-11-28",
-    },
-    redirect: "follow",
-  });
-  if (!res.ok) {
-    const txt = await res.text().catch(() => "");
-    const err = new Error(`GitHub ${res.status}: ${txt.slice(0, 240)}`);
-    err.status = res.status;
-    throw err;
-  }
-  return res;
+async function fetchConfig(token) {
+  const res = await fetch(
+    `https://api.github.com/repos/${OWNER}/${REPO}/contents/config.json?ref=${REF}`,
+    {
+      headers: {
+        Authorization:          `Bearer ${token}`,
+        Accept:                 "application/vnd.github.raw+json",
+        "User-Agent":           "cti-dashboard/1.0",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }
+  );
+  if (!res.ok) throw new Error(`GitHub config fetch ${res.status}`);
+  return res.json();
+}
+
+async function getPipelineState(key) {
+  const { rows } = await pool().query(
+    "SELECT data FROM pipeline_state WHERE key = $1",
+    [key]
+  );
+  return rows[0]?.data ?? null;
 }
 
 module.exports = async function handler(req, res) {
   const token = process.env.GITHUB_TOKEN;
-  if (!token) {
-    return res.status(500).json({
-      error: "GITHUB_TOKEN env var not configured. Add it in Vercel → Settings → Environment Variables.",
-    });
-  }
+  if (!token)
+    return res.status(500).json({ error: "GITHUB_TOKEN env var not configured." });
+  if (!process.env.DATABASE_URL)
+    return res.status(500).json({ error: "DATABASE_URL env var not configured." });
 
-  // If the caller passes ?bust=1, skip the edge cache entirely so fresh
-  // artifact data is always returned (used by the manual Refresh button).
   if (req.query.bust) {
     res.setHeader("Cache-Control", "no-store");
   } else {
@@ -46,63 +53,37 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    // 1. Fetch config.json directly from repo (raw content)
-    const cfgRes = await ghGet(
-      `/repos/${OWNER}/${REPO}/contents/config.json?ref=${REF}`,
-      token,
-      true
-    );
-    const config = await cfgRes.json();
+    const [config, state, lastActive, prevRunLinks, iocExport, ttpExport, sigmaExport] =
+      await Promise.all([
+        fetchConfig(token),
+        getPipelineState("state"),
+        getPipelineState("last_active"),
+        getPipelineState("prev_run_links"),
+        getPipelineState("ioc_export"),
+        getPipelineState("ttp_export"),
+        getPipelineState("sigma_export"),
+      ]);
 
-    // 2. Find latest non-expired cti-state artifact
-    const listRes = await ghGet(
-      `/repos/${OWNER}/${REPO}/actions/artifacts?per_page=30`,
-      token
-    );
-    const { artifacts = [] } = await listRes.json();
-    const artifact = artifacts.find(
-      (a) => a.name.startsWith("cti-state-") && !a.expired
-    );
-    if (!artifact) {
+    if (!state && !lastActive) {
       return res.status(404).json({
         error:
-          "No recent workflow artifact found. " +
-          "Run the cti-monitor GitHub Actions workflow first, then reload.",
+          "No pipeline data in database yet. " +
+          "Run the cti-monitor workflow at least once with DATABASE_URL set, then reload.",
       });
     }
 
-    // 3. Download artifact ZIP and extract state files
-    const dlRes = await ghGet(
-      `/repos/${OWNER}/${REPO}/actions/artifacts/${artifact.id}/zip`,
-      token
-    );
-    const buf = Buffer.from(await dlRes.arrayBuffer());
-    const zip = new AdmZip(buf);
-
-    function parseEntry(name) {
-      const entry = zip.getEntry(name);
-      if (!entry) throw new Error(`${name} not found in artifact ZIP`);
-      return JSON.parse(entry.getData().toString("utf8"));
-    }
-
-    const state      = parseEntry("state.json");
-    const lastActive = parseEntry("last_active.json");
-    let prevRunLinks = [];
-    let iocExport    = [];
-    let ttpExport    = [];
-    let sigmaExport  = [];
-    try { prevRunLinks = parseEntry("prev_run_links.json"); } catch (_) {}
-    try { iocExport    = parseEntry("ioc_export.json");     } catch (_) {}
-    try { ttpExport    = parseEntry("ttp_export.json");     } catch (_) {}
-    try { sigmaExport  = parseEntry("sigma_export.json");   } catch (_) {}
-
-    return res.json({ config, state, lastActive, prevRunLinks, iocExport, ttpExport, sigmaExport, updatedAt: artifact.updated_at });
+    return res.json({
+      config:       config  || { sites: [] },
+      state:        state   || {},
+      lastActive:   lastActive || {},
+      prevRunLinks: prevRunLinks || [],
+      iocExport:    iocExport   || [],
+      ttpExport:    ttpExport   || [],
+      sigmaExport:  sigmaExport || [],
+      updatedAt:    new Date().toISOString(),
+    });
   } catch (err) {
     console.error("GET /api/data error:", err);
-    const status =
-      typeof err.status === "number" && err.status >= 400 && err.status < 600
-        ? Math.min(err.status, 503)
-        : 500;
-    return res.status(status).json({ error: "Internal server error" });
+    return res.status(500).json({ error: err.message || "Internal server error" });
   }
 };

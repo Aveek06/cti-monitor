@@ -33,6 +33,7 @@ from email.mime.multipart import MIMEMultipart
 from urllib.parse import urljoin, urlparse
 from playwright.sync_api import sync_playwright
 import ioc_extractor
+import ioc_db
 
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
@@ -1247,6 +1248,15 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
         if site_name not in last_active:
             last_active[site_name] = now_iso
 
+    _ps_conn = None
+    if os.environ.get("DATABASE_URL"):
+        try:
+            _ps_conn = ioc_db.get_connection()
+            ioc_db.init_pipeline_state_schema(_ps_conn)
+        except Exception as _e:
+            print(f"Pipeline state DB setup failed: {_e}")
+            _ps_conn = None
+
     new_items = []
     failures = []
     failing_names = []
@@ -1368,6 +1378,11 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
             print(f"{name}: {len(new_links)} new / {len(updated_order)} total")
 
     save_json(state_path, state)
+    if _ps_conn:
+        try:
+            ioc_db.upsert_pipeline_state(_ps_conn, "state", state)
+        except Exception as _e:
+            print(f"Pipeline state: failed to write state: {_e}")
 
     # Update rolling 7-day link counts per site (stored in last_active for weekly report)
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -1382,6 +1397,11 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
 
     last_active["_currently_failing"] = failing_names
     save_json(last_active_path, last_active)
+    if _ps_conn:
+        try:
+            ioc_db.upsert_pipeline_state(_ps_conn, "last_active", last_active)
+        except Exception as _e:
+            print(f"Pipeline state: failed to write last_active: {_e}")
 
     # Compare with previous run — any link appearing as new in both runs is a state bug
     duplicate_links = [item for item in new_items if item["link"] in prev_run_links]
@@ -1459,6 +1479,15 @@ def main(config_path, state_path, last_active_path="last_active.json", prev_link
          "summary": item.get("summary", "")}
         for item in new_items
     ])
+    if _ps_conn:
+        try:
+            ioc_db.upsert_pipeline_state(_ps_conn, "prev_run_links", [
+                {"url": item["link"], "site": item["site"], "date": item["date"],
+                 "summary": item.get("summary", "")}
+                for item in new_items
+            ])
+        except Exception as _e:
+            print(f"Pipeline state: failed to write prev_run_links: {_e}")
 
     # Run IOC extraction pipeline: always run so DB export is written even on quiet runs
     ioc_results = {"new": [], "active": [], "expiring": []}

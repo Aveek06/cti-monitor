@@ -1228,6 +1228,9 @@
         <div class="ioc-main">
           <div class="ioc-toolbar">
             <input id="ioc-search" class="ioc-search" type="text" placeholder="Filter by indicator, type, site, APT…" oninput="filterIocs(this.value)">
+            <select id="ioc-source-sel" class="sigma-status-sel" style="font-size:9px;max-width:160px" onchange="filterIocs(document.getElementById('ioc-search').value)" title="Filter by source">
+              <option value="">All sources</option>
+            </select>
             <div class="ioc-type-filters">
               <button class="ioc-type-btn active" data-type="" onclick="setIocType(this)">All</button>
               <button class="ioc-type-btn" data-type="domain" onclick="setIocType(this)">Domain</button>
@@ -2469,8 +2472,9 @@ function setIocType(btn){document.querySelectorAll(".ioc-type-btn").forEach(b=>b
 function setIocRelFilter(btn){document.querySelectorAll(".ioc-rel-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");_minReliability=+btn.dataset.rel;filterIocs(document.getElementById("ioc-search")?.value||"");}
 function filterIocs(q){
   const lq=(q||"").toLowerCase();
+  const _srcFilter=document.getElementById('ioc-source-sel')?.value||'';
   const _typeMatch=t=>!_activeTypeFilter||(_activeTypeFilter==="ip"?(t==="ipv4"||t==="ipv6"):_activeTypeFilter==="sha"?(t==="sha256"||t==="sha1"):t===_activeTypeFilter);
-  const rows=(_allIocs.filter(r=>{if(!_typeMatch(r.type))return false;if(_minReliability>0){const _s=_relScoreCache[r.source_blog];if(_s==null||_s<_minReliability)return false;}return!lq||r.value.toLowerCase().includes(lq)||(r.type||"").includes(lq)||(r.source_blog||"").toLowerCase().includes(lq)||(r.apt||"").toLowerCase().includes(lq)||(r.url_threat||"").toLowerCase().includes(lq)||((r.url_tags||[]).join(" ").toLowerCase().includes(lq));}).map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((a,b)=>b._live-a._live));
+  const rows=(_allIocs.filter(r=>{if(_srcFilter&&r.source_blog!==_srcFilter)return false;if(!_typeMatch(r.type))return false;if(_minReliability>0){const _s=_relScoreCache[r.source_blog];if(_s==null||_s<_minReliability)return false;}return!lq||r.value.toLowerCase().includes(lq)||(r.type||"").includes(lq)||(r.source_blog||"").toLowerCase().includes(lq)||(r.apt||"").toLowerCase().includes(lq)||(r.url_threat||"").toLowerCase().includes(lq)||((r.url_tags||[]).join(" ").toLowerCase().includes(lq));}).map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((a,b)=>b._live-a._live));
   document.getElementById("ioc-count").textContent=`${rows.length} IOC${rows.length!==1?"s":""}`;
   const empty=document.getElementById("ioc-empty"),tbody=document.getElementById("ioc-tbody");
   if(!rows.length){empty.style.display="block";tbody.innerHTML="";return;}
@@ -3023,6 +3027,16 @@ function renderHome({activeSites,quietSites,failingSites,weekTotal,iocExport,ttp
 
 function updateDashboard({sites,activeSites,quietSites,failingSites,weekTotal,sparkData,state,sevenDay,prevRunLinks,iocExport,ttpExport,sigmaExport,updatedAt}){
   lastSevenDay=sevenDay;lastState=state;lastPrevRunLinks=prevRunLinks||[];
+  // Populate IOC source dropdown with all configured sites
+  const _srcSel=document.getElementById('ioc-source-sel');
+  if(_srcSel){
+    const _curSrc=_srcSel.value;
+    _srcSel.innerHTML='<option value="">All sources</option>'+
+      sites.concat(quietSites,failingSites).map(s=>s.name).filter((n,i,a)=>a.indexOf(n)===i).sort().map(n=>{
+        const cnt=_allIocs.filter(r=>r.source_blog===n).length;
+        return`<option value="${esc(n)}"${n===_curSrc?' selected':''}>${esc(n)}${cnt?' ('+cnt+')':''}</option>`;
+      }).join('');
+  }
   window._iocData=iocExport||[];window._ttpData=ttpExport||[];window._sourceCount=activeSites.length;
   document.getElementById("hdr-total").textContent=sites.length;
   document.getElementById("num-active").textContent=activeSites.length;
