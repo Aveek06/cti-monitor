@@ -2406,6 +2406,18 @@ function openTtpDrawer(tid){
     else{html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Detection</div><div style="font-size:8px;color:var(--text-muted);padding:4px 0">No IOCs extracted from this article — draft quality will be low. Run the pipeline first or choose an article with confirmed IOCs.</div></div>`;}
   }
   document.getElementById("links-list").innerHTML=html;
+  // Restore any cached platform conversion so it shows immediately on re-open
+  (function(){
+    const _sr=_sigmaByTechnique[t?.technique_id];if(!_sr)return;
+    const _ps=['splunk','sentinel','elastic','qradar'];
+    const _pl={splunk:'Splunk SPL',sentinel:'Microsoft Sentinel KQL',elastic:'Elastic EQL',qradar:'IBM QRadar AQL'};
+    for(const p of _ps){const c=_convCache[`${_sr.id}:${p}`];if(c){
+      const w=document.getElementById("drawer-sigma-converted");
+      const l=document.getElementById("drawer-conv-lbl");
+      const pr=document.getElementById("drawer-conv-pre");
+      if(w)w.style.display="";if(l)l.textContent=c.label;if(pr)pr.textContent=c.query;break;
+    }}
+  })();
   document.getElementById("rel-section").style.display="none";
   animateDrawer(true);document.getElementById("backdrop").classList.add("visible");document.body.style.overflow="hidden";
 }
@@ -2674,6 +2686,16 @@ function renderSigmaRules(data){
       <td>${_isAdmin?`<button class="sigma-btn" style="color:var(--red);border-color:rgba(255,59,48,.3)" onclick="deleteSigmaRule(${r.id||0},this)">Delete</button>`:""}</td>
     </tr>`;
   }).join("");
+  // Auto-show any saved platform conversion in each table row
+  const _PS=['splunk','sentinel','elastic','qradar'];
+  _sigmaExport.forEach((r,i)=>{
+    for(const p of _PS){const c=_convCache[`${r.id}:${p}`];if(c){
+      const w=document.getElementById(`conv-${i}`);
+      const l=document.getElementById(`conv-lbl-${i}`);
+      const pr=document.getElementById(`conv-pre-${i}`);
+      if(w)w.style.display="";if(l)l.textContent=c.label;if(pr)pr.textContent=c.query;break;
+    }}
+  });
 }
 
 async function updateSigmaStatus(id,status,selectEl){
