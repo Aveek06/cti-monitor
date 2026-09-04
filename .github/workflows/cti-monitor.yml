@@ -81,6 +81,7 @@ jobs:
             prev_run_links.json
             ioc_export.json
             ttp_export.json
+            sigma_export.json
             .tranco_cache.txt
           key: cti-state-${{ github.run_id }}
           restore-keys: |
@@ -151,6 +152,7 @@ jobs:
             prev_run_links.json
             ioc_export.json
             ttp_export.json
+            sigma_export.json
           retention-days: 7
 
       - name: Save state
@@ -163,5 +165,6 @@ jobs:
             prev_run_links.json
             ioc_export.json
             ttp_export.json
+            sigma_export.json
             .tranco_cache.txt
           key: cti-state-${{ github.run_id }}

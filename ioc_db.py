@@ -232,6 +232,60 @@ def upsert_ttp(conn, technique_id: str, technique_name: str | None,
     conn.commit()
 
 
+SIGMA_SCHEMA = """
+CREATE TABLE IF NOT EXISTS sigma_rules (
+    id              SERIAL PRIMARY KEY,
+    technique_id    TEXT NOT NULL,
+    technique_name  TEXT,
+    tactic          TEXT,
+    source_article  TEXT NOT NULL,
+    source_blog     TEXT,
+    attributed_apt  TEXT,
+    sigma_yaml      TEXT NOT NULL,
+    sigma_status    TEXT DEFAULT 'draft',
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(technique_id, source_article)
+);
+"""
+
+
+def init_sigma_schema(conn):
+    with conn.cursor() as cur:
+        cur.execute(SIGMA_SCHEMA)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_sigma_technique ON sigma_rules(technique_id)")
+    conn.commit()
+
+
+def upsert_sigma_rule(conn, technique_id: str, technique_name: str | None,
+                      tactic: str | None, source_article: str, source_blog: str | None,
+                      attributed_apt: str | None, sigma_yaml: str):
+    with conn.cursor() as cur:
+        cur.execute("""
+            INSERT INTO sigma_rules
+                (technique_id, technique_name, tactic, source_article,
+                 source_blog, attributed_apt, sigma_yaml)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (technique_id, source_article) DO NOTHING
+        """, (technique_id, technique_name, tactic, source_article,
+              source_blog, attributed_apt, sigma_yaml))
+    conn.commit()
+
+
+def update_sigma_status(conn, rule_id: int, status: str):
+    with conn.cursor() as cur:
+        cur.execute(
+            "UPDATE sigma_rules SET sigma_status=%s WHERE id=%s",
+            (status, rule_id),
+        )
+    conn.commit()
+
+
+def get_all_sigma_rules(conn) -> list[dict]:
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute("SELECT * FROM sigma_rules ORDER BY created_at DESC")
+        return [dict(r) for r in cur.fetchall()]
+
+
 def get_all_ttps(conn) -> list[dict]:
     """Return TTPs aggregated by technique_id for dashboard export."""
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:

@@ -358,6 +358,32 @@
     .ttp-d-link-txt{font-size:8px;color:var(--text-muted);word-break:break-all;line-height:1.5;letter-spacing:.02em;}
     .ttp-d-link:hover .ttp-d-link-txt{color:var(--text-dim);}
     .ttp-d-link svg{flex-shrink:0;margin-top:2px;color:var(--text-muted);}
+    /* sigma */
+    .sigma-badge{font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:1px 5px;border:1px solid;display:inline-block;}
+    .sigma-draft{color:var(--amber);border-color:rgba(255,149,0,.4);background:rgba(255,149,0,.08);}
+    .sigma-reviewed{color:var(--cyan);border-color:rgba(0,212,255,.4);background:rgba(0,212,255,.06);}
+    .sigma-promoted{color:var(--green);border-color:rgba(52,199,89,.4);background:rgba(52,199,89,.06);}
+    .sigma-retired{color:var(--text-muted);border-color:var(--border);background:transparent;}
+    .sigma-btn{font-size:8px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border:1px solid var(--border-hi);background:var(--surface2);color:var(--text-dim);cursor:pointer;transition:background .12s,color .12s;font-family:var(--font-ui);}
+    .sigma-btn:hover{background:var(--surface3);color:var(--text);}
+    .sigma-btn.sigma-draft-btn{border-color:rgba(0,212,255,.3);color:var(--cyan);}
+    .sigma-btn.sigma-draft-btn:hover{background:rgba(0,212,255,.07);}
+    .sigma-btn:disabled{opacity:.45;cursor:default;}
+    .sigma-yaml-pre{font-family:monospace;font-size:8.5px;line-height:1.6;white-space:pre-wrap;word-break:break-all;background:var(--surface);border:1px solid var(--border);padding:8px 10px;margin-top:6px;color:var(--text-dim);max-height:260px;overflow-y:auto;}
+    /* sigma tab */
+    .sigma-tab-wrap{padding:16px 20px;}
+    .sigma-tab-hd{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+    .sigma-tab-title{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text);}
+    .sigma-count{font-size:9px;color:var(--text-muted);}
+    .sigma-none{color:var(--text-muted);font-size:11px;text-align:center;padding:40px 0;}
+    .sigma-tbl{width:100%;border-collapse:collapse;font-size:9px;}
+    .sigma-tbl th{font-size:7px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);text-align:left;padding:5px 8px;border-bottom:1px solid var(--border);font-family:var(--font-ui);}
+    .sigma-tbl td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text-dim);}
+    .sigma-tbl tr:hover td{background:var(--surface2);}
+    .sigma-tbl .sigma-tid{font-family:monospace;font-weight:700;color:var(--green);font-size:9px;}
+    .sigma-tbl .sigma-name{color:var(--text);max-width:180px;}
+    .sigma-tbl .sigma-tactic{color:var(--text-muted);}
+    .sigma-status-sel{font-size:7px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 4px;border:1px solid var(--border-hi);background:var(--surface2);color:var(--text-dim);cursor:pointer;font-family:var(--font-ui);}
     /* tooltip */
     .ttp-tooltip{position:fixed;background:rgba(8,8,8,.96);backdrop-filter:blur(14px) saturate(160%);border:1px solid var(--border-hi);border-left:2px solid var(--green);padding:9px 13px 10px;pointer-events:none;z-index:600;display:none;min-width:196px;max-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.6);}
     .ttp-tip-id{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);font-family:monospace;}
@@ -967,6 +993,12 @@
     </svg>
     <span class="nav-label">TTP Map</span>
   </button>
+  <button class="nav-btn" id="tab-btn-sigma" onclick="switchTab('sigma')" title="Sigma Rules">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/>
+    </svg>
+    <span class="nav-label">Sigma</span>
+  </button>
   <button class="nav-btn" id="tab-btn-graph" onclick="switchTab('graph')" title="IOC Graph">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
@@ -1280,6 +1312,25 @@
           <div class="ttp-legend-item"><div class="ttp-legend-dot" style="background:rgba(255,59,48,.22);border-color:rgba(255,59,48,.42)"></div>5+ articles</div>
         </div>
         <p class="ttp-none" id="ttp-none" style="display:none">No TTP data yet.<br><span style="color:var(--text-muted);font-size:9px">ATT&amp;CK techniques are extracted from articles on each daily run.</span></p>
+      </div>
+    </div>
+
+    <!-- SIGMA TAB -->
+    <div id="tab-sigma" class="tab-pane" style="padding:0">
+      <div class="sigma-tab-wrap">
+        <div class="sigma-tab-hd">
+          <span class="sigma-tab-title">Sigma Rules</span>
+          <span class="sigma-count" id="sigma-tab-count">0 rules</span>
+        </div>
+        <div id="sigma-tab-none" class="sigma-none">No Sigma rules drafted yet.<br><span style="font-size:9px;color:var(--text-muted)">Open a TTP from the heatmap and click "Draft Sigma Rule" to generate a detection.</span></div>
+        <div id="sigma-tab-table-wrap" style="display:none;overflow-x:auto;">
+          <table class="sigma-tbl" id="sigma-tab-tbl">
+            <thead><tr>
+              <th>Technique</th><th>Name</th><th>Tactic</th><th>APT</th><th>Source</th><th>Status</th><th></th>
+            </tr></thead>
+            <tbody id="sigma-tab-tbody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -1678,7 +1729,7 @@ function esc(s){return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").re
 /* ── Load & derive ── */
 async function loadData(){const res=await fetch("/api/data");if(!res.ok){const j=await res.json().catch(()=>({}));throw new Error(j.error||`HTTP ${res.status}`);}return res.json();}
 
-function derive({config,state,lastActive,prevRunLinks,iocExport,ttpExport,updatedAt}){
+function derive({config,state,lastActive,prevRunLinks,iocExport,ttpExport,sigmaExport,updatedAt}){
   const cutoff=new Date(Date.now()-STALE_DAYS*86400000);
   const cutoffStr=cutoff.toISOString().slice(0,10);
   const failing=new Set(lastActive._currently_failing||[]);
@@ -1700,7 +1751,7 @@ function derive({config,state,lastActive,prevRunLinks,iocExport,ttpExport,update
   const sparkDays=[];
   for(let i=6;i>=0;i--)sparkDays.push(new Date(Date.now()-i*86400000).toISOString().slice(0,10));
   const sparkData=sparkDays.map(date=>({date,count:sites.reduce((sum,s)=>sum+(sevenDay[s.name]?.[date]||0),0)}));
-  return{sites,activeSites,quietSites,failingSites,weekTotal,sparkData,state,sevenDay,prevRunLinks:prevRunLinks||[],iocExport:iocExport||[],ttpExport:ttpExport||[],updatedAt};
+  return{sites,activeSites,quietSites,failingSites,weekTotal,sparkData,state,sevenDay,prevRunLinks:prevRunLinks||[],iocExport:iocExport||[],ttpExport:ttpExport||[],sigmaExport:sigmaExport||[],updatedAt};
 }
 
 /* ── Reliability Score ── */
@@ -2325,6 +2376,7 @@ function _routeHash(){
 
 function openTtpDrawer(tid){
   const t=_ttpById[tid];if(!t)return;
+  _currentDrawerTtp=t;
   const eyebrow=document.getElementById("drawer-eyebrow");eyebrow.textContent="// ATT&CK Technique";eyebrow.classList.remove("red");
   document.getElementById("drawer-name").textContent=`${t.technique_id} · ${t.technique_name||t.technique_id}`;
   const mitreUrl=`https://attack.mitre.org/techniques/${t.technique_id}/`;
@@ -2342,6 +2394,9 @@ function openTtpDrawer(tid){
   if(urlSrcs.length)html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${urlSrcs.length} Source Article${urlSrcs.length!==1?"s":""}</div>${urlSrcs.map(url=>`<a class="ttp-d-link" href="${esc(url)}" target="_blank" rel="noopener"><span class="ttp-d-src-host">${esc(urlHost(url))}</span><span class="ttp-d-src-path">${esc(urlPath(url))}</span>${extIcon}</a>`).join("")}</div>`;
   if(blogSrcs.length)html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Observed By</div><div class="ttp-d-chips">${blogSrcs.map(b=>`<span class="ttp-d-chip" style="color:var(--cyan);border-color:rgba(0,212,255,.3)">${esc(b)}</span>`).join("")}</div></div>`;
   if(!urlSrcs.length&&!blogSrcs.length)html+=`<div class="ttp-d-section"><div class="no-links">No source articles recorded.</div></div>`;
+  const _sr=_sigmaByTechnique[tid];
+  if(_sr){html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd" style="display:flex;align-items:center;gap:6px">Detection <span class="sigma-badge sigma-${esc(_sr.sigma_status)}">${esc(_sr.sigma_status.toUpperCase())}</span></div><div style="display:flex;gap:6px;margin-top:5px"><button class="sigma-btn" onclick="toggleDrawerSigmaYaml()">Show YAML</button><button class="sigma-btn" onclick="copyDrawerSigmaYaml()">Copy</button></div><pre class="sigma-yaml-pre" id="drawer-sigma-yaml" hidden>${esc(_sr.sigma_yaml||"")}</pre></div>`;}
+  else if(urlSrcs.length){html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Detection</div><button class="sigma-btn sigma-draft-btn" id="sigma-draft-btn" onclick="draftSigmaFromDrawer(this)">Draft Sigma Rule</button></div>`;}
   document.getElementById("links-list").innerHTML=html;
   document.getElementById("rel-section").style.display="none";
   animateDrawer(true);document.getElementById("backdrop").classList.add("visible");document.body.style.overflow="hidden";
@@ -2471,7 +2526,7 @@ function exportIocs(fmt){
 }
 
 /* ── TTP Heat Map ── */
-let _ttpById={},_ttpExport=[],_ttpDays=0;
+let _ttpById={},_ttpExport=[],_ttpDays=0,_sigmaByTechnique={},_sigmaExport=[],_currentDrawerTtp=null;
 const TACTIC_LABELS={"reconnaissance":"Recon","resource-development":"Resource Dev","initial-access":"Initial Access","execution":"Execution","persistence":"Persistence","privilege-escalation":"Priv. Esc.","defense-evasion":"Defense Eva.","credential-access":"Cred. Access","discovery":"Discovery","lateral-movement":"Lateral Mvmt","collection":"Collection","command-and-control":"C2","exfiltration":"Exfil","impact":"Impact"};
 function heatLevel(count){return count>=5?3:count>=2?2:1;}
 function getTtpFiltered(){
@@ -2561,6 +2616,99 @@ function renderTtpAnalytics(data){
     return`<div class="ttp-a-row"><span class="ttp-a-lbl" style="width:58px" title="${tac}">${esc(label)}</span><div class="ttp-a-track"><div class="ttp-a-fill" style="width:${pct}%;background:var(--green);opacity:.75;"></div></div><span class="ttp-a-val">${val}</span></div>`;
   }).join(""):empty;
 }
+/* ── Sigma Rules ── */
+function renderSigmaRules(data){
+  _sigmaExport=data||[];
+  _sigmaByTechnique={};
+  for(const r of _sigmaExport){
+    if(!_sigmaByTechnique[r.technique_id])_sigmaByTechnique[r.technique_id]=r;
+  }
+  const count=_sigmaExport.length;
+  const countEl=document.getElementById("sigma-tab-count");
+  const noneEl=document.getElementById("sigma-tab-none");
+  const wrapEl=document.getElementById("sigma-tab-table-wrap");
+  const tbody=document.getElementById("sigma-tab-tbody");
+  if(countEl)countEl.textContent=`${count} rule${count!==1?"s":""}`;
+  if(!count){if(noneEl)noneEl.style.display="";if(wrapEl)wrapEl.style.display="none";return;}
+  if(noneEl)noneEl.style.display="none";if(wrapEl)wrapEl.style.display="";
+  if(!tbody)return;
+  tbody.innerHTML=_sigmaExport.map((r,i)=>{
+    const tid=esc(r.technique_id||"");
+    const name=esc(r.technique_name||"—");
+    const tac=esc((r.tactic||"—").split("-").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" "));
+    const apt=esc(r.attributed_apt||"—");
+    const src=r.source_blog||r.source_article||"";
+    const srcShort=esc(src.length>30?src.slice(0,28)+"…":src);
+    const st=r.sigma_status||"draft";
+    const yamlId=`sigma-yaml-${i}`;
+    return`<tr>
+      <td class="sigma-tid">${tid}</td>
+      <td class="sigma-name">${name}</td>
+      <td class="sigma-tactic">${tac}</td>
+      <td>${apt}</td>
+      <td title="${esc(src)}">${srcShort}</td>
+      <td><select class="sigma-status-sel" onchange="updateSigmaStatus(${r.id||0},this.value,this)">
+        ${["draft","reviewed","promoted","retired"].map(s=>`<option value="${s}"${s===st?" selected":""}>${s}</option>`).join("")}
+      </select></td>
+      <td><button class="sigma-btn" style="white-space:nowrap" onclick="toggleSigmaRow('${yamlId}',this)">YAML</button>
+      <pre class="sigma-yaml-pre" id="${yamlId}" hidden>${esc(r.sigma_yaml||"")}</pre></td>
+    </tr>`;
+  }).join("");
+}
+
+async function updateSigmaStatus(id,status,selectEl){
+  if(!id)return;
+  try{
+    const resp=await fetch("/api/sigma-status",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,status})});
+    if(!resp.ok)throw new Error(`HTTP ${resp.status}`);
+    const rule=_sigmaExport.find(r=>r.id===id);
+    if(rule){rule.sigma_status=status;_sigmaByTechnique[rule.technique_id]=rule;}
+  }catch(e){
+    console.error("sigma status update failed",e);
+    if(selectEl){const old=(_sigmaExport.find(r=>r.id===id)||{}).sigma_status||"draft";selectEl.value=old;}
+  }
+}
+
+function toggleSigmaRow(yamlId,btn){
+  const pre=document.getElementById(yamlId);if(!pre)return;
+  const show=pre.hidden;pre.hidden=!show;
+  if(btn)btn.textContent=show?"Hide":"YAML";
+}
+
+function toggleDrawerSigmaYaml(){
+  const pre=document.getElementById("drawer-sigma-yaml");if(!pre)return;
+  const show=pre.hidden;pre.hidden=!show;
+  const btn=document.getElementById("links-list")?.querySelector(".sigma-btn");
+  if(btn)btn.textContent=show?"Hide YAML":"Show YAML";
+}
+
+function copyDrawerSigmaYaml(){
+  const pre=document.getElementById("drawer-sigma-yaml");if(!pre)return;
+  navigator.clipboard.writeText(pre.textContent||"").catch(()=>{});
+}
+
+async function draftSigmaFromDrawer(btn){
+  const t=_currentDrawerTtp;if(!t)return;
+  const urlSrcs=(t.sources||[]).filter(u=>/^https?:\/\//.test(u));
+  const src=urlSrcs[0];if(!src)return;
+  if(btn){btn.disabled=true;btn.textContent="Drafting…";}
+  try{
+    const resp=await fetch("/api/draft-sigma",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({technique_id:t.technique_id,source_article:src})});
+    if(!resp.ok){const j=await resp.json().catch(()=>({}));throw new Error(j.error||`HTTP ${resp.status}`);}
+    const {sigma_rule}=await resp.json();
+    if(sigma_rule){
+      _sigmaByTechnique[t.technique_id]=sigma_rule;
+      if(!_sigmaExport.find(r=>r.id===sigma_rule.id))_sigmaExport.push(sigma_rule);
+      renderSigmaRules(_sigmaExport);
+      openTtpDrawer(t.technique_id);
+    }
+  }catch(e){
+    console.error("draft sigma failed",e);
+    if(btn){btn.disabled=false;btn.textContent="Draft Sigma Rule";}
+    alert("Failed to draft Sigma rule: "+e.message);
+  }
+}
+
 /* ── Update dashboard ── */
 /* ─── Home Tab ─── */
 function goToIoc(val){switchTab('iocs');const inp=document.getElementById('ioc-search');if(inp){inp.value=val;filterIocs(val);}}
@@ -2699,7 +2847,7 @@ function renderHome({activeSites,quietSites,failingSites,weekTotal,iocExport,ttp
   }
 }
 
-function updateDashboard({sites,activeSites,quietSites,failingSites,weekTotal,sparkData,state,sevenDay,prevRunLinks,iocExport,ttpExport,updatedAt}){
+function updateDashboard({sites,activeSites,quietSites,failingSites,weekTotal,sparkData,state,sevenDay,prevRunLinks,iocExport,ttpExport,sigmaExport,updatedAt}){
   lastSevenDay=sevenDay;lastState=state;lastPrevRunLinks=prevRunLinks||[];
   window._iocData=iocExport||[];window._ttpData=ttpExport||[];window._sourceCount=activeSites.length;
   document.getElementById("hdr-total").textContent=sites.length;
@@ -2720,6 +2868,7 @@ function updateDashboard({sites,activeSites,quietSites,failingSites,weekTotal,sp
   renderHome({activeSites,quietSites,failingSites,weekTotal,iocExport:iocExport||[],ttpExport:ttpExport||[],prevRunLinks:prevRunLinks||[],updatedAt});
   renderIocs(iocExport||[]);renderDonut(iocExport||[]);
   _ttpExport=ttpExport||[];_allTtps=ttpExport||[];renderTtpMap(getTtpFiltered());renderRadar(getTtpFiltered());renderTtpAnalytics(getTtpFiltered());
+  renderSigmaRules(sigmaExport||[]);
   renderGraph(iocExport||[]);
   _lastDerived={activeSites,quietSites,failingSites,sites,prevRunLinks:prevRunLinks||[]};
   for(const s of activeSites)_lastActive[s.name]=s.lastActive||null;
@@ -2995,9 +3144,9 @@ function switchTab(name){
     document.getElementById('vt-analyst').classList.add('active');
     document.getElementById('vt-executive').classList.remove('active');
     document.getElementById('tab-exec').style.display='none';
-    ["home","sources","iocs","ttps","graph","vm"].forEach(t=>{const p=document.getElementById(`tab-${t}`);if(p)p.style.display='';});
+    ["home","sources","iocs","ttps","sigma","graph","vm"].forEach(t=>{const p=document.getElementById(`tab-${t}`);if(p)p.style.display='';});
   }
-  ["home","sources","iocs","ttps","graph","vm"].forEach(t=>{document.getElementById(`tab-${t}`).classList.toggle("active",t===name);const btn=document.getElementById(`tab-btn-${t}`);if(btn){btn.classList.toggle("active",t===name);btn.setAttribute("aria-selected",t===name);}});
+  ["home","sources","iocs","ttps","sigma","graph","vm"].forEach(t=>{document.getElementById(`tab-${t}`).classList.toggle("active",t===name);const btn=document.getElementById(`tab-btn-${t}`);if(btn){btn.classList.toggle("active",t===name);btn.setAttribute("aria-selected",t===name);}});
   if(name==="graph")requestAnimationFrame(rebuildGraph);
   if(name==="vm")renderVmTab();
   if(name==="home"){const kevEl=document.getElementById('hm-n-kev');if(kevEl&&kevEl.textContent==='—'&&vmData&&vmData.totalKev)animateCountUp(kevEl,vmData.totalKev);}

@@ -90,11 +90,13 @@ module.exports = async function handler(req, res) {
     let prevRunLinks = [];
     let iocExport    = [];
     let ttpExport    = [];
+    let sigmaExport  = [];
     try { prevRunLinks = parseEntry("prev_run_links.json"); } catch (_) {}
     try { iocExport    = parseEntry("ioc_export.json");     } catch (_) {}
     try { ttpExport    = parseEntry("ttp_export.json");     } catch (_) {}
+    try { sigmaExport  = parseEntry("sigma_export.json");   } catch (_) {}
 
-    return res.json({ config, state, lastActive, prevRunLinks, iocExport, ttpExport, updatedAt: artifact.updated_at });
+    return res.json({ config, state, lastActive, prevRunLinks, iocExport, ttpExport, sigmaExport, updatedAt: artifact.updated_at });
   } catch (err) {
     console.error("GET /api/data error:", err);
     const status =

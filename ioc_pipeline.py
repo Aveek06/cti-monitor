@@ -47,6 +47,7 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
         ioc_db.init_schema(conn)
         ioc_db.init_ttp_schema(conn)
         ioc_db.init_ratings_schema(conn)
+        ioc_db.init_sigma_schema(conn)
     except Exception as e:
         print(f"IOC pipeline: schema init failed: {e}")
         conn.close()
@@ -371,6 +372,12 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
         with open("ttp_export.json", "w", encoding="utf-8") as f:
             json.dump(ttp_export, f, indent=2, default=str)
         print(f"IOC pipeline: exported {len(ttp_export)} TTP(s) to ttp_export.json")
+
+        # Export Sigma rules drafted via the dashboard
+        sigma_rules = ioc_db.get_all_sigma_rules(conn)
+        with open("sigma_export.json", "w", encoding="utf-8") as f:
+            json.dump(sigma_rules, f, indent=2, default=str)
+        print(f"IOC pipeline: exported {len(sigma_rules)} Sigma rule(s) to sigma_export.json")
 
         pruned = ioc_db.prune_expired(conn, grace_days=90)
         if pruned:
