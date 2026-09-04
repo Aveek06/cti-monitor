@@ -384,6 +384,10 @@
     .sigma-tbl .sigma-name{color:var(--text);max-width:180px;}
     .sigma-tbl .sigma-tactic{color:var(--text-muted);}
     .sigma-status-sel{font-size:7px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 4px;border:1px solid var(--border-hi);background:var(--surface2);color:var(--text-dim);cursor:pointer;font-family:var(--font-ui);}
+    .sigma-platform-sel{font-size:7px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 5px;border:1px solid rgba(0,212,255,.3);background:var(--surface2);color:var(--cyan);cursor:pointer;font-family:var(--font-ui);}
+    .sigma-converted-wrap{margin-top:6px;}
+    .sigma-converted-lbl{font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan);margin-bottom:3px;}
+    .sigma-converted-pre{font-family:monospace;font-size:8.5px;line-height:1.6;white-space:pre-wrap;word-break:break-all;background:var(--surface);border:1px solid rgba(0,212,255,.2);padding:8px 10px;color:var(--text-dim);max-height:200px;overflow-y:auto;}
     /* tooltip */
     .ttp-tooltip{position:fixed;background:rgba(8,8,8,.96);backdrop-filter:blur(14px) saturate(160%);border:1px solid var(--border-hi);border-left:2px solid var(--green);padding:9px 13px 10px;pointer-events:none;z-index:600;display:none;min-width:196px;max-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.6);}
     .ttp-tip-id{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);font-family:monospace;}
@@ -2395,7 +2399,7 @@ function openTtpDrawer(tid){
   if(blogSrcs.length)html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Observed By</div><div class="ttp-d-chips">${blogSrcs.map(b=>`<span class="ttp-d-chip" style="color:var(--cyan);border-color:rgba(0,212,255,.3)">${esc(b)}</span>`).join("")}</div></div>`;
   if(!urlSrcs.length&&!blogSrcs.length)html+=`<div class="ttp-d-section"><div class="no-links">No source articles recorded.</div></div>`;
   const _sr=_sigmaByTechnique[tid];
-  if(_sr){html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd" style="display:flex;align-items:center;gap:6px">Detection <span class="sigma-badge sigma-${esc(_sr.sigma_status)}">${esc(_sr.sigma_status.toUpperCase())}</span></div><div style="display:flex;gap:6px;margin-top:5px"><button class="sigma-btn" onclick="toggleDrawerSigmaYaml()">Show YAML</button><button class="sigma-btn" onclick="copyDrawerSigmaYaml()">Copy</button></div><pre class="sigma-yaml-pre" id="drawer-sigma-yaml" hidden>${esc(_sr.sigma_yaml||"")}</pre></div>`;}
+  if(_sr){html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd" style="display:flex;align-items:center;gap:6px">Detection <span class="sigma-badge sigma-${esc(_sr.sigma_status)}">${esc(_sr.sigma_status.toUpperCase())}</span></div><div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap"><button class="sigma-btn" onclick="toggleDrawerSigmaYaml()">Show YAML</button><button class="sigma-btn" onclick="copyDrawerSigmaYaml()">Copy YAML</button><select class="sigma-platform-sel" onchange="convertDrawerSigma(this.value,this)"><option value="">Convert →</option><option value="splunk">Splunk SPL</option><option value="sentinel">Sentinel KQL</option><option value="elastic">Elastic EQL</option><option value="qradar">QRadar AQL</option></select></div><pre class="sigma-yaml-pre" id="drawer-sigma-yaml" hidden>${esc(_sr.sigma_yaml||"")}</pre><div class="sigma-converted-wrap" id="drawer-sigma-converted" style="display:none"><div class="sigma-converted-lbl" id="drawer-conv-lbl"></div><pre class="sigma-converted-pre" id="drawer-conv-pre"></pre><button class="sigma-btn" style="margin-top:4px" onclick="navigator.clipboard.writeText(document.getElementById('drawer-conv-pre').textContent)">Copy Query</button></div></div>`;}
   else if(urlSrcs.length&&_isAdmin){
     const _articleHasIocs=_allIocs.some(ioc=>ioc.source_article===urlSrcs[0]);
     if(_articleHasIocs){html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Detection</div><button class="sigma-btn sigma-draft-btn" id="sigma-draft-btn" onclick="draftSigmaFromDrawer(this)">Draft Sigma Rule</button></div>`;}
@@ -2653,7 +2657,15 @@ function renderSigmaRules(data){
       <td title="${esc(src)}">${srcShort}</td>
       <td>${_isAdmin?`<select class="sigma-status-sel" onchange="updateSigmaStatus(${r.id||0},this.value,this)">${["draft","reviewed","promoted","retired"].map(s=>`<option value="${s}"${s===st?" selected":""}>${s}</option>`).join("")}</select>`:`<span class="sigma-badge sigma-${esc(st)}">${esc(st.toUpperCase())}</span>`}</td>
       <td><button class="sigma-btn" style="white-space:nowrap" onclick="toggleSigmaRow('${yamlId}',this)">YAML</button>
-      <pre class="sigma-yaml-pre" id="${yamlId}" hidden>${esc(r.sigma_yaml||"")}</pre></td>
+      <select class="sigma-platform-sel" style="margin-left:4px" onchange="convertSigmaFromTab(${r.id||0},${i},this.value,this)">
+        <option value="">Convert →</option>
+        <option value="splunk">Splunk SPL</option>
+        <option value="sentinel">Sentinel KQL</option>
+        <option value="elastic">Elastic EQL</option>
+        <option value="qradar">QRadar AQL</option>
+      </select>
+      <pre class="sigma-yaml-pre" id="${yamlId}" hidden>${esc(r.sigma_yaml||"")}</pre>
+      <div class="sigma-converted-wrap" id="conv-${i}" style="display:none"><div class="sigma-converted-lbl" id="conv-lbl-${i}"></div><pre class="sigma-converted-pre" id="conv-pre-${i}"></pre><button class="sigma-btn" style="margin-top:4px" onclick="navigator.clipboard.writeText(document.getElementById('conv-pre-${i}').textContent)">Copy Query</button></div></td>
       <td>${_isAdmin?`<button class="sigma-btn" style="color:var(--red);border-color:rgba(255,59,48,.3)" onclick="deleteSigmaRule(${r.id||0},this)">Delete</button>`:""}</td>
     </tr>`;
   }).join("");
@@ -2693,6 +2705,68 @@ function toggleSigmaRow(yamlId,btn){
   const pre=document.getElementById(yamlId);if(!pre)return;
   const show=pre.hidden;pre.hidden=!show;
   if(btn)btn.textContent=show?"Hide":"YAML";
+}
+
+const _convCache={};
+async function convertSigmaFromTab(id,rowIdx,platform,sel){
+  if(!platform)return;
+  const rule=_sigmaExport.find(r=>r.id===id);
+  if(!rule)return;
+  await convertSigmaRule(id,rule.sigma_yaml||"",platform,`conv-${rowIdx}`,sel);
+}
+async function convertSigmaRule(id,yaml,platform,wrapId,sel){
+  if(!platform){return;}
+  const cacheKey=`${id}:${platform}`;
+  const wrapEl=document.getElementById(wrapId);
+  const lblEl=document.getElementById(`${wrapId.replace('conv-','conv-lbl-')}`);
+  const preEl=document.getElementById(`${wrapId.replace('conv-','conv-pre-')}`);
+  if(_convCache[cacheKey]){
+    if(wrapEl)wrapEl.style.display="";
+    if(lblEl)lblEl.textContent=_convCache[cacheKey].label;
+    if(preEl)preEl.textContent=_convCache[cacheKey].query;
+    if(sel)sel.value="";return;
+  }
+  if(sel){sel.disabled=true;sel.options[0].text="Converting…";}
+  try{
+    const resp=await fetch("/api/sigma-convert",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sigma_yaml:yaml,platform})});
+    if(!resp.ok)throw new Error((await resp.json().catch(()=>({}))).error||`HTTP ${resp.status}`);
+    const d=await resp.json();
+    _convCache[cacheKey]={query:d.query,label:d.label};
+    if(wrapEl)wrapEl.style.display="";
+    if(lblEl)lblEl.textContent=d.label;
+    if(preEl)preEl.textContent=d.query;
+  }catch(e){alert("Conversion failed: "+e.message);}
+  finally{if(sel){sel.disabled=false;sel.options[0].text="Convert →";sel.value="";}}
+}
+
+async function convertDrawerSigma(platform,sel){
+  if(!platform)return;
+  const pre=document.getElementById("drawer-sigma-yaml");
+  if(!pre)return;
+  const yaml=pre.textContent||"";
+  const sr=_sigmaByTechnique[_currentDrawerTtp?.technique_id];
+  const id=sr?.id||0;
+  const cacheKey=`${id}:${platform}`;
+  const wrapEl=document.getElementById("drawer-sigma-converted");
+  const lblEl=document.getElementById("drawer-conv-lbl");
+  const preEl=document.getElementById("drawer-conv-pre");
+  if(_convCache[cacheKey]){
+    if(wrapEl)wrapEl.style.display="";
+    if(lblEl)lblEl.textContent=_convCache[cacheKey].label;
+    if(preEl)preEl.textContent=_convCache[cacheKey].query;
+    if(sel)sel.value="";return;
+  }
+  if(sel){sel.disabled=true;sel.options[0].text="Converting…";}
+  try{
+    const resp=await fetch("/api/sigma-convert",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sigma_yaml:yaml,platform})});
+    if(!resp.ok)throw new Error((await resp.json().catch(()=>({}))).error||`HTTP ${resp.status}`);
+    const d=await resp.json();
+    _convCache[cacheKey]={query:d.query,label:d.label};
+    if(wrapEl)wrapEl.style.display="";
+    if(lblEl)lblEl.textContent=d.label;
+    if(preEl)preEl.textContent=d.query;
+  }catch(e){alert("Conversion failed: "+e.message);}
+  finally{if(sel){sel.disabled=false;sel.options[0].text="Convert →";sel.value="";}}
 }
 
 function toggleDrawerSigmaYaml(){
