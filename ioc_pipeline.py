@@ -131,14 +131,6 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
             # Filter AI TTPs to known ATT&CK IDs only
             ai_ttps = [t for t in (ai["ttps"] or [])
                        if t.get("technique_id", "") in ttp_extractor.TECHNIQUE_LOOKUP]
-            # For long articles, extract TTPs from the tail that the main call didn't see
-            if len(text) > 8000:
-                tail_ttps = ttp_extractor.extract_ttps_ai(text[7500:], anthropic_key)
-                seen_ids = {t["technique_id"] for t in ai_ttps}
-                for t in tail_ttps:
-                    if t["technique_id"] not in seen_ids:
-                        ai_ttps.append(t)
-                        seen_ids.add(t["technique_id"])
             ttps = ai_ttps if ai_ttps else ttp_extractor.extract_ttps(text, "")
             _seen = {(r["value"], r["type"]) for r in iocs}
             for ai_ioc in (ai["iocs"] or []):

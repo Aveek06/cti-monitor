@@ -23,25 +23,27 @@ Article URL: {link}
 
 {text}"""
 
-# Reliability threshold above which Sonnet is used instead of Haiku
-_SONNET_REL_THRESHOLD = 70
+_MODEL = "claude-haiku-4-5-20251001"
+# Haiku handles 200K context; send full article so the IOC section at the
+# bottom of CTI blogs is never truncated. Cap at 150K chars (~37K tokens)
+# which is well within Haiku's context window and covers any real blog post.
+_MAX_TEXT_CHARS = 150_000
 
 
 def extract_all(text: str, link: str, api_key: str, site: str = "", rel_score: int = 50) -> dict:
-    """Single Claude call returning ttps, iocs, apt. Uses Sonnet for high-reliability sites."""
+    """Single Haiku call returning ttps, iocs, apt from the full article text."""
     empty: dict = {"ttps": [], "iocs": [], "apt": None}
     if not api_key or not text:
         return empty
-    model = "claude-sonnet-4-5" if rel_score >= _SONNET_REL_THRESHOLD else "claude-haiku-4-5-20251001"
     try:
         client = anthropic.Anthropic(api_key=api_key)
         msg = client.messages.create(
-            model=model,
-            max_tokens=1200,
+            model=_MODEL,
+            max_tokens=2048,
             messages=[{"role": "user", "content": _PROMPT.format(
                 site=site or link,
                 link=link,
-                text=text[:8000],
+                text=text[:_MAX_TEXT_CHARS],
             )}],
         )
         raw = msg.content[0].text.strip()
