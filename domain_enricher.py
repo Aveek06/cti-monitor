@@ -71,7 +71,7 @@ def enrich_pending_domains(conn, limit: int = 50) -> None:
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute(
             "SELECT id, value FROM ioc_indicators "
-            "WHERE domain_meta_checked = FALSE AND type = 'fqdn' "
+            "WHERE domain_meta_checked = FALSE AND type = 'domain'"
             "ORDER BY created_at DESC LIMIT %s",
             (limit,)
         )
