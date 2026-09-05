@@ -936,6 +936,43 @@
       .exec-stagger{animation:none!important;opacity:1!important;transform:none!important;}
       .exec-velocity,.exec-kpi-delta{transition:none!important;}
     }
+    /* ── Admin Console ── */
+    .adm-hd-row{display:flex;align-items:baseline;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+    .adm-hd-title{font:700 17px/1 var(--font-mono);color:var(--green);letter-spacing:.04em;text-transform:uppercase;}
+    .adm-hd-meta{font:400 11px/1 var(--font-mono);color:#666;margin-left:auto;}
+    .adm-refresh-btn{padding:4px 10px;font:600 10px/1 var(--font-mono);background:none;border:1px solid #2a2a2a;color:#888;border-radius:3px;cursor:pointer;letter-spacing:.04em;transition:border-color 120ms,color 120ms;}
+    .adm-refresh-btn:hover{border-color:var(--green);color:var(--green);}
+    .adm-kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:24px;}
+    .adm-kpi{background:#080808;border:1px solid #1a1a1a;border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;}
+    .adm-kpi-val{font:700 26px/1 var(--font-mono);letter-spacing:-.02em;}
+    .adm-kpi-val.green{color:var(--green);}
+    .adm-kpi-val.amber{color:var(--amber);}
+    .adm-kpi-val.red{color:var(--red);}
+    .adm-kpi-val.cyan{color:var(--cyan);}
+    .adm-kpi-lbl{font:400 10px/1 var(--font-mono);color:#555;text-transform:uppercase;letter-spacing:.06em;}
+    .adm-section{margin-bottom:28px;}
+    .adm-section-hd{font:600 10px/1 var(--font-mono);color:#555;text-transform:uppercase;letter-spacing:.08em;padding-bottom:8px;border-bottom:1px solid #111;margin-bottom:10px;}
+    .adm-table-wrap{overflow-x:auto;}
+    .adm-table{width:100%;border-collapse:collapse;font:400 11px/1.4 var(--font-mono);}
+    .adm-table th{text-align:left;font:600 9px/1 var(--font-mono);color:#444;text-transform:uppercase;letter-spacing:.06em;padding:6px 10px;border-bottom:1px solid #111;}
+    .adm-table td{padding:7px 10px;border-bottom:1px solid #0d0d0d;color:#aaa;vertical-align:middle;}
+    .adm-table tbody tr:hover td{background:#0a0a0a;color:#ccc;}
+    .adm-badge{display:inline-block;padding:2px 6px;border-radius:2px;font:600 9px/1.4 var(--font-mono);text-transform:uppercase;letter-spacing:.04em;}
+    .adm-badge.green{background:rgba(0,255,65,.1);color:var(--green);}
+    .adm-badge.red{background:rgba(255,59,48,.1);color:var(--red);}
+    .adm-badge.amber{background:rgba(255,149,0,.1);color:var(--amber);}
+    .adm-badge.muted{background:#111;color:#555;}
+    .adm-live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);margin-right:5px;vertical-align:middle;animation:admPulse 2s ease-in-out infinite;}
+    .adm-live-dot.dim{background:#333;box-shadow:none;animation:none;}
+    @keyframes admPulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+    .adm-two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px;}
+    @media(max-width:900px){.adm-two-col{grid-template-columns:1fr;}}
+    .adm-panel{background:#060606;border:1px solid #141414;border-radius:6px;padding:14px 16px;}
+    .adm-panel-hd{font:600 10px/1 var(--font-mono);color:#444;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
+    .adm-star{color:var(--amber);font-size:11px;letter-spacing:1px;}
+    .adm-loading{text-align:center;padding:40px;font:400 12px var(--font-mono);color:#333;}
+    .adm-empty{text-align:center;padding:24px;font:400 11px var(--font-mono);color:#333;}
+    .adm-ua{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#444;font-size:10px;}
   </style>
 </head>
 <body>
@@ -1020,6 +1057,15 @@
       <line x1="9" y1="12" x2="11" y2="14"/><line x1="15" y1="10" x2="11" y2="14"/>
     </svg>
     <span class="nav-label">Vuln</span>
+  </button>
+  <button class="nav-btn" id="tab-btn-admin" onclick="switchTab('admin')" title="Admin Console" style="display:none">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
+      <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
+      <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
+      <line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>
+    </svg>
+    <span class="nav-label">Admin</span>
   </button>
   <div class="sidebar-divider"></div>
   <div class="sidebar-footer">
@@ -1547,6 +1593,58 @@
         <div class="exec-panel-sub">Unpatched CVEs with CVSS 9.0+ requiring immediate attention</div>
         <div id="exec-cves"></div>
       </div>
+    </div>
+
+    <!-- Admin Console Tab -->
+    <div class="tab-pane" id="tab-admin" style="padding:24px 28px;">
+      <div id="adm-loading" class="adm-loading">Loading admin data…</div>
+      <div id="adm-body" style="display:none">
+        <div class="adm-hd-row">
+          <span class="adm-hd-title">Admin Console</span>
+          <span class="adm-hd-meta" id="adm-ts"></span>
+          <button class="adm-refresh-btn" onclick="loadAdminData()">Refresh</button>
+        </div>
+        <!-- KPI row -->
+        <div class="adm-kpi-row" id="adm-kpis"></div>
+        <!-- User roster -->
+        <div class="adm-section">
+          <div class="adm-section-hd">User Roster</div>
+          <div class="adm-table-wrap"><table class="adm-table">
+            <thead><tr>
+              <th>Email</th><th>Role</th><th>Status</th><th>Last Login</th><th>Added By</th>
+            </tr></thead>
+            <tbody id="adm-users"></tbody>
+          </table></div>
+        </div>
+        <!-- Sessions + Login attempts -->
+        <div class="adm-two-col">
+          <div class="adm-panel">
+            <div class="adm-panel-hd">Recent Sessions</div>
+            <div class="adm-table-wrap"><table class="adm-table">
+              <thead><tr><th>User</th><th>IP</th><th>Last Seen</th></tr></thead>
+              <tbody id="adm-sessions"></tbody>
+            </table></div>
+          </div>
+          <div class="adm-panel">
+            <div class="adm-panel-hd">Failed Logins — Last 24 h</div>
+            <div class="adm-table-wrap"><table class="adm-table">
+              <thead><tr><th>IP</th><th>Attempts</th><th>Last Attempt</th></tr></thead>
+              <tbody id="adm-attempts"></tbody>
+            </table></div>
+          </div>
+        </div>
+        <!-- Site ratings -->
+        <div class="adm-section">
+          <div class="adm-section-hd">Recent Site Ratings</div>
+          <div class="adm-table-wrap"><table class="adm-table">
+            <thead><tr>
+              <th>Site</th><th>Rating</th><th>Note</th><th>Rater</th><th>Rated At</th><th>IP</th>
+            </tr></thead>
+            <tbody id="adm-ratings"></tbody>
+          </table></div>
+        </div>
+      </div>
+      <div id="adm-error" style="display:none;color:var(--red);font:400 12px var(--font-mono);padding:20px 0;"></div>
     </div>
 
 </main>
@@ -3332,12 +3430,14 @@ function switchTab(name){
     document.getElementById('vt-analyst').classList.add('active');
     document.getElementById('vt-executive').classList.remove('active');
     document.getElementById('tab-exec').style.display='none';
-    ["home","sources","iocs","ttps","sigma","graph","vm"].forEach(t=>{const p=document.getElementById(`tab-${t}`);if(p)p.style.display='';});
+    ["home","sources","iocs","ttps","sigma","graph","vm","admin"].forEach(t=>{const p=document.getElementById(`tab-${t}`);if(p)p.style.display='';});
   }
-  ["home","sources","iocs","ttps","sigma","graph","vm"].forEach(t=>{document.getElementById(`tab-${t}`).classList.toggle("active",t===name);const btn=document.getElementById(`tab-btn-${t}`);if(btn){btn.classList.toggle("active",t===name);btn.setAttribute("aria-selected",t===name);}});
+  ["home","sources","iocs","ttps","sigma","graph","vm","admin"].forEach(t=>{document.getElementById(`tab-${t}`)?.classList.toggle("active",t===name);const btn=document.getElementById(`tab-btn-${t}`);if(btn){btn.classList.toggle("active",t===name);btn.setAttribute("aria-selected",t===name);}});
   try{localStorage.setItem("cti_tab",name);}catch{}
   if(name==="graph")requestAnimationFrame(rebuildGraph);
   if(name==="vm")renderVmTab();
+  if(name==="admin"&&!_isAdmin)return switchTab("home");
+  if(name==="admin")loadAdminData();
   if(name==="home"){const kevEl=document.getElementById('hm-n-kev');if(kevEl&&kevEl.textContent==='—'&&vmData&&vmData.totalKev)animateCountUp(kevEl,vmData.totalKev);}
 }
 
@@ -3374,7 +3474,7 @@ async function init(){
     _routeHash();
     /* Restore last active tab after a hard refresh (skip if a page view is open) */
     if(!location.hash||location.hash==="#"){
-      const _TABS=["home","sources","iocs","ttps","sigma","graph","vm"];
+      const _TABS=["home","sources","iocs","ttps","sigma","graph","vm","admin"];
       const _saved=(()=>{try{return localStorage.getItem("cti_tab");}catch{return null;}})();
       if(_saved&&_TABS.includes(_saved)&&_saved!=="home")switchTab(_saved);
     }
@@ -3385,6 +3485,7 @@ async function init(){
         document.getElementById('live-users-wrap').style.display='';
         _refreshLiveUsers();
         setInterval(_refreshLiveUsers,30000);
+        document.getElementById('tab-btn-admin').style.display='';
       }
     }).catch(()=>{});
     // Send heartbeat every 60s to keep session registered as live
@@ -3866,6 +3967,87 @@ function renderExecRecs(iocs, ttps, aptSet) {
       <span class="exec-rec-text">${r.text}</span>
       <span class="exec-rec-urgency">${r.urgency}</span>
     </div>`).join('');
+}
+
+/* ── Admin Console ── */
+function _admTimeAgo(dt) {
+  if (!dt) return '—';
+  const s = Math.floor((Date.now() - new Date(dt)) / 1000);
+  if (s < 60) return s + 's ago';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  if (s < 86400) return Math.floor(s/3600) + 'h ago';
+  return Math.floor(s/86400) + 'd ago';
+}
+function _admFmtDt(dt) {
+  if (!dt) return '—';
+  return new Date(dt).toLocaleString(undefined, {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function _admStars(n) {
+  if (!n) return '<span class="adm-star">—</span>';
+  const filled = '★'.repeat(Math.max(0,Math.min(5,n)));
+  const empty = '☆'.repeat(5 - Math.max(0,Math.min(5,n)));
+  return `<span class="adm-star">${filled}${empty}</span>`;
+}
+
+async function loadAdminData() {
+  const loading = document.getElementById('adm-loading');
+  const body = document.getElementById('adm-body');
+  const errEl = document.getElementById('adm-error');
+  loading.style.display = 'block';
+  body.style.display = 'none';
+  errEl.style.display = 'none';
+  try {
+    const r = await fetch('/api/admin');
+    if (!r.ok) { const e = await r.json().catch(()=>({error:r.statusText})); throw new Error(e.error||r.statusText); }
+    const d = await r.json();
+    renderAdminTab(d);
+    document.getElementById('adm-ts').textContent = 'Updated ' + new Date().toLocaleTimeString();
+    loading.style.display = 'none';
+    body.style.display = '';
+  } catch(e) {
+    loading.style.display = 'none';
+    errEl.style.display = '';
+    errEl.textContent = 'Error loading admin data: ' + e.message;
+  }
+}
+
+function renderAdminTab(d) {
+  const s = d.stats || {};
+  // KPI row
+  document.getElementById('adm-kpis').innerHTML = [
+    {val: s.totalUsers||0, lbl:'Total Users', cls:'green'},
+    {val: s.activeUsers||0, lbl:'Active Users', cls:'cyan'},
+    {val: s.adminCount||0, lbl:'Admins', cls:'amber'},
+    {val: s.liveSessions||0, lbl:'Live Now', cls: s.liveSessions>0?'green':'muted'},
+    {val: s.failedLogins24h||0, lbl:'Failed Logins 24h', cls: s.failedLogins24h>10?'red':s.failedLogins24h>3?'amber':'green'},
+    {val: s.activeRevocations||0, lbl:'Revoked Tokens', cls: s.activeRevocations>0?'amber':'muted'},
+  ].map(k=>`<div class="adm-kpi"><span class="adm-kpi-val ${k.cls}">${k.val}</span><span class="adm-kpi-lbl">${k.lbl}</span></div>`).join('');
+
+  // User roster
+  document.getElementById('adm-users').innerHTML = (d.users||[]).map(u=>{
+    const role = u.is_admin ? '<span class="adm-badge amber">Admin</span>' : '<span class="adm-badge muted">User</span>';
+    const status = u.active ? '<span class="adm-badge green">Active</span>' : '<span class="adm-badge red">Disabled</span>';
+    return `<tr><td>${esc(u.email)}</td><td>${role}</td><td>${status}</td><td>${_admFmtDt(u.last_login)}</td><td>${u.added_by?esc(u.added_by):'—'}</td></tr>`;
+  }).join('') || '<tr><td colspan="5" class="adm-empty">No users</td></tr>';
+
+  // Sessions
+  const liveThreshold = Date.now() - 3*60*1000;
+  document.getElementById('adm-sessions').innerHTML = (d.sessions||[]).slice(0,20).map(s=>{
+    const isLive = new Date(s.last_seen).getTime() > liveThreshold;
+    return `<tr><td><span class="adm-live-dot ${isLive?'':'dim'}"></span>${esc(s.email)}</td><td>${s.ip||'—'}</td><td>${_admTimeAgo(s.last_seen)}</td></tr>`;
+  }).join('') || '<tr><td colspan="3" class="adm-empty">No sessions</td></tr>';
+
+  // Login attempts
+  document.getElementById('adm-attempts').innerHTML = (d.loginAttempts||[]).map(a=>{
+    const cnt = parseInt(a.count,10);
+    const cls = cnt>=5?'red':cnt>=3?'amber':'muted';
+    return `<tr><td>${esc(a.ip)}</td><td><span class="adm-badge ${cls}">${cnt}</span></td><td>${_admTimeAgo(a.last_attempt)}</td></tr>`;
+  }).join('') || '<tr><td colspan="3" class="adm-empty">No failed logins in 24h</td></tr>';
+
+  // Ratings
+  document.getElementById('adm-ratings').innerHTML = (d.ratings||[]).map(r=>{
+    return `<tr><td>${esc(r.site_name||'—')}</td><td>${_admStars(r.rating)}</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.note?esc(r.note):'—'}</td><td>${r.rater?esc(r.rater):'anon'}</td><td>${_admFmtDt(r.rated_at)}</td><td style="color:#333;font-size:10px">${r.rater_ip||'—'}</td></tr>`;
+  }).join('') || '<tr><td colspan="6" class="adm-empty">No ratings yet</td></tr>';
 }
 </script>
 </body>
