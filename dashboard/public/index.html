@@ -3481,9 +3481,9 @@ function switchTab(name){
     document.getElementById('vt-analyst').classList.add('active');
     document.getElementById('vt-executive').classList.remove('active');
     document.getElementById('tab-exec').style.display='none';
-    ["home","sources","iocs","ttps","sigma","graph","vm","admin"].forEach(t=>{const p=document.getElementById(`tab-${t}`);if(p)p.style.display='';});
+    ["home","sources","iocs","ttps","sigma","actors","graph","vm","admin"].forEach(t=>{const p=document.getElementById(`tab-${t}`);if(p)p.style.display='';});
   }
-  ["home","sources","iocs","ttps","sigma","graph","vm","admin"].forEach(t=>{document.getElementById(`tab-${t}`)?.classList.toggle("active",t===name);const btn=document.getElementById(`tab-btn-${t}`);if(btn){btn.classList.toggle("active",t===name);btn.setAttribute("aria-selected",t===name);}});
+  ["home","sources","iocs","ttps","sigma","actors","graph","vm","admin"].forEach(t=>{document.getElementById(`tab-${t}`)?.classList.toggle("active",t===name);const btn=document.getElementById(`tab-btn-${t}`);if(btn){btn.classList.toggle("active",t===name);btn.setAttribute("aria-selected",t===name);}});
   try{localStorage.setItem("cti_tab",name);}catch{}
   if(name==="graph")requestAnimationFrame(rebuildGraph);
   if(name==="vm")renderVmTab();
@@ -3525,7 +3525,7 @@ async function init(){
     _routeHash();
     /* Restore last active tab after a hard refresh (skip if a page view is open) */
     if(!location.hash||location.hash==="#"){
-      const _TABS=["home","sources","iocs","ttps","sigma","graph","vm","admin"];
+      const _TABS=["home","sources","iocs","ttps","sigma","actors","graph","vm","admin"];
       const _saved=(()=>{try{return localStorage.getItem("cti_tab");}catch{return null;}})();
       if(_saved&&_TABS.includes(_saved)&&_saved!=="home")switchTab(_saved);
     }
@@ -3621,7 +3621,7 @@ function setViewMode(mode) {
     renderExecView();
   } else {
     document.getElementById('tab-exec').style.display = 'none';
-    ["home","sources","iocs","ttps","graph","vm"].forEach(t => {
+    ["home","sources","iocs","ttps","sigma","actors","graph","vm"].forEach(t => {
       const p = document.getElementById(`tab-${t}`);
       if (p) p.style.display = '';
     });
