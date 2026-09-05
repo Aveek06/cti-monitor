@@ -995,6 +995,7 @@
       <button class="vt-btn active" id="vt-analyst" onclick="setViewMode('analyst')">Analyst</button>
       <button class="vt-btn" id="vt-executive" onclick="setViewMode('executive')">Executive</button>
     </div>
+    <button id="tab-btn-admin" onclick="switchTab('admin')" title="Admin Console" style="display:none;margin-left:8px;padding:4px 12px;font:700 10px/1 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;background:rgba(255,149,0,.08);border:1px solid rgba(255,149,0,.3);color:var(--amber);border-radius:4px;cursor:pointer;transition:background 120ms,border-color 120ms;">Admin</button>
     <div class="topbar-meta">
       <span id="hdr-updated"></span>
       <span id="sys-clock"></span>
@@ -1057,15 +1058,6 @@
       <line x1="9" y1="12" x2="11" y2="14"/><line x1="15" y1="10" x2="11" y2="14"/>
     </svg>
     <span class="nav-label">Vuln</span>
-  </button>
-  <button class="nav-btn" id="tab-btn-admin" onclick="switchTab('admin')" title="Admin Console" style="display:none">
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-      <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
-      <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
-      <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
-      <line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>
-    </svg>
-    <span class="nav-label">Admin</span>
   </button>
   <div class="sidebar-divider"></div>
   <div class="sidebar-footer">
