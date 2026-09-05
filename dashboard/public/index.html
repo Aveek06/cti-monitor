@@ -2217,7 +2217,7 @@ function getSiteArticles(siteName){
   return[...dated,...undated];
 }
 function buildIocCountByArticle(iocs){const m={};iocs.forEach(r=>{const k=r.source_article;if(k)m[k]=(m[k]||0)+1;});return m;}
-function buildTtpCountByArticle(ttps){const m={};ttps.forEach(t=>{(t.sources||[]).forEach(s=>{if(/^https?:\/\//.test(s))m[s]=(m[s]||0)+1;});});return m;}
+function buildTtpCountByArticle(ttps){const m={};ttps.forEach(t=>{(t.sources||[]).forEach(s=>{const u=typeof s==="string"?s:(s.url||"");if(/^https?:\/\//.test(u))m[u]=(m[u]||0)+1;});});return m;}
 function getArticleIocs(url){return _allIocs.filter(r=>r.source_article===url);}
 function getArticleTtps(url){return _allTtps.filter(t=>(t.sources||[]).some(s=>s===url));}
 function resolveArticleMeta(url){return(lastPrevRunLinks||[]).find(it=>(typeof it==="string"?it:it.url)===url)||null;}
@@ -2793,7 +2793,7 @@ function renderSigmaRules(data){
     const apt=esc(r.attributed_apt||"—");
     // Multi-source chips: prefer TTP observation sources, fall back to rule columns
     const _ttp=_ttpById?.[r.technique_id];
-    const _srcUrls=(_ttp?.sources||[]).filter(u=>/^https?:\/\//.test(u));
+    const _srcUrls=(_ttp?.sources||[]).map(s=>typeof s==="string"?s:(s.url||"")).filter(u=>/^https?:\/\//.test(u));
     const _hosts=_srcUrls.length
       ?[...new Set(_srcUrls.map(u=>{try{return new URL(u).hostname.replace(/^www\./,'');}catch(e){return u.slice(0,20);}}))]
       :(r.source_blog?[r.source_blog]:r.source_article?[r.source_article]:[]);
@@ -2972,7 +2972,7 @@ function copyDrawerSigmaYaml(){
 
 async function draftSigmaFromDrawer(btn,platform){
   const t=_currentDrawerTtp;if(!t)return;
-  const urlSrcs=(t.sources||[]).filter(u=>/^https?:\/\//.test(u));
+  const urlSrcs=(t.sources||[]).map(s=>typeof s==="string"?s:(s.url||"")).filter(u=>/^https?:\/\//.test(u));
   const src=urlSrcs[0];if(!src)return;
   platform=platform||"yaml";
   const origText=btn?btn.textContent:"";
