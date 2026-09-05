@@ -2538,8 +2538,8 @@ function openTtpDrawer(tid){
       +`<div style="margin-top:6px"><button class="sigma-btn" style="opacity:0.5;font-size:9px" onclick="toggleDrawerSigmaYaml()">Show Sigma YAML</button></div>`
       +`</div></div>`;
   }
-  else if(urlSrcs.length&&_isAdmin){
-    const _articleHasIocs=_allIocs.some(ioc=>ioc.source_article===urlSrcs[0]);
+  else if(srcObjs.length&&_isAdmin){
+    const _articleHasIocs=_allIocs.some(ioc=>ioc.source_article===srcObjs[0].url);
     if(_articleHasIocs){html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Detection</div><div style="font-size:9px;color:var(--text-muted);margin-bottom:6px">Generate detection rule for:</div><div style="display:flex;flex-wrap:wrap;gap:4px" id="sigma-platform-btns"><button class="sigma-btn" onclick="draftSigmaFromDrawer(this,'splunk')">Splunk SPL</button><button class="sigma-btn" onclick="draftSigmaFromDrawer(this,'sentinel')">Sentinel KQL</button><button class="sigma-btn" onclick="draftSigmaFromDrawer(this,'elastic')">Elastic EQL</button><button class="sigma-btn" onclick="draftSigmaFromDrawer(this,'qradar')">QRadar AQL</button><button class="sigma-btn" onclick="draftSigmaFromDrawer(this,'yaml')">Sigma YAML</button></div></div>`;}
     else{html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Detection</div><div style="font-size:8px;color:var(--text-muted);padding:4px 0">No IOCs extracted from this article — draft quality will be low. Run the pipeline first or choose an article with confirmed IOCs.</div></div>`;}
   }
