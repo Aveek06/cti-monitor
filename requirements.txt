@@ -3,7 +3,12 @@ rapidfuzz
 iocsearcher
 requests
 playwright
+playwright-stealth
 beautifulsoup4
 crawl4ai
 scrapling[fetchers]
 openpyxl
+anthropic
+psycopg2-binary
+htmldate
+curl-cffi

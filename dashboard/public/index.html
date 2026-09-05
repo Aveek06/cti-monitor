@@ -1046,6 +1046,12 @@
     </svg>
     <span class="nav-label">Sigma</span>
   </button>
+  <button class="nav-btn" id="tab-btn-actors" onclick="switchTab('actors')" title="Threat Actors">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+    <span class="nav-label">Actors</span>
+  </button>
   <button class="nav-btn" id="tab-btn-graph" onclick="switchTab('graph')" title="IOC Graph">
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
@@ -1383,6 +1389,16 @@
           </table>
         </div>
       </div>
+    </div>
+
+    <!-- ACTORS TAB -->
+    <div id="tab-actors" class="tab-pane">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+        <span style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text)">Threat Actors</span>
+        <span id="actors-count" style="font-size:9px;color:var(--text-muted)"></span>
+      </div>
+      <div id="actors-none" style="display:none;font-size:11px;color:var(--text-muted);padding:24px 0">No threat actor attributions found yet. Run the pipeline with AI extraction enabled to populate this view.</div>
+      <div id="actors-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px"></div>
     </div>
 
     <!-- GRAPH TAB -->
@@ -1832,7 +1848,7 @@ function esc(s){return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").re
 /* ── Load & derive ── */
 async function loadData(){const res=await fetch("/api/data");if(!res.ok){const j=await res.json().catch(()=>({}));throw new Error(j.error||`HTTP ${res.status}`);}return res.json();}
 
-function derive({config,state,lastActive,prevRunLinks,iocExport,ttpExport,sigmaExport,updatedAt}){
+function derive({config,state,lastActive,prevRunLinks,iocExport,ttpExport,sigmaExport,actorExport,updatedAt}){
   const cutoff=new Date(Date.now()-STALE_DAYS*86400000);
   const cutoffStr=cutoff.toISOString().slice(0,10);
   const failing=new Set(lastActive._currently_failing||[]);
@@ -1854,7 +1870,7 @@ function derive({config,state,lastActive,prevRunLinks,iocExport,ttpExport,sigmaE
   const sparkDays=[];
   for(let i=6;i>=0;i--)sparkDays.push(new Date(Date.now()-i*86400000).toISOString().slice(0,10));
   const sparkData=sparkDays.map(date=>({date,count:sites.reduce((sum,s)=>sum+(sevenDay[s.name]?.[date]||0),0)}));
-  return{sites,activeSites,quietSites,failingSites,weekTotal,sparkData,state,sevenDay,prevRunLinks:prevRunLinks||[],iocExport:iocExport||[],ttpExport:ttpExport||[],sigmaExport:sigmaExport||[],updatedAt};
+  return{sites,activeSites,quietSites,failingSites,weekTotal,sparkData,state,sevenDay,prevRunLinks:prevRunLinks||[],iocExport:iocExport||[],ttpExport:ttpExport||[],sigmaExport:sigmaExport||[],actorExport:actorExport||[],updatedAt};
 }
 
 /* ── Reliability Score ── */
@@ -1873,7 +1889,7 @@ function buildTtpSiteSet(ttpExport,sites){
   const hostMap={};
   for(const s of sites){try{hostMap[new URL(s.url).hostname.replace(/^www\./,"")]=s.name;}catch{}}
   const set=new Set();
-  for(const t of ttpExport){for(const url of(t.sources||[])){try{const h=new URL(url).hostname.replace(/^www\./,"");if(hostMap[h])set.add(hostMap[h]);}catch{}}}
+  for(const t of ttpExport){for(const src of(t.sources||[])){try{const u=typeof src==="string"?src:(src.url||"");const h=new URL(u).hostname.replace(/^www\./,"");if(hostMap[h])set.add(hostMap[h]);}catch{}}}
   return set;
 }
 function computeReliability(name,weekCount,lastTs,isFailing){
@@ -2488,15 +2504,23 @@ function openTtpDrawer(tid){
   const d2=document.getElementById("d-week");d2.previousElementSibling.textContent="Observations";d2.classList.remove("green");d2.textContent=t.total_observations||"—";
   const tacticLabel=(t.tactic||"").split("-").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" ");
   const apts=(t.apts||[]).filter(Boolean);
-  const allSrcs=(t.sources||[]).filter(s=>typeof s==="string"&&s.trim());
-  const urlSrcs=allSrcs.filter(u=>/^https?:\/\//.test(u));
-  const blogSrcs=allSrcs.filter(u=>!/^https?:\/\//.test(u));
+  // sources is now an array of objects {url, blog, apt, confidence, evidence, last_seen}
+  const srcObjs=(t.sources||[]).map(s=>typeof s==="string"?{url:s}:s).filter(s=>s.url&&/^https?:\/\//.test(s.url));
   const extIcon=`<svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M3.5 2H2C1.45 2 1 2.45 1 3V8C1 8.55 1.45 9 2 9H7C7.55 9 8 8.55 8 8V6.5M6 1H9M9 1V4M9 1L4.5 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-  let html=`<div class="ttp-d-meta"><div class="ttp-d-row"><span class="ttp-d-lbl">Tactic</span><span class="ttp-d-val">${esc(tacticLabel||"—")}</span></div><div class="ttp-d-row"><span class="ttp-d-lbl">Last seen</span><span class="ttp-d-val">${esc(t.last_seen||"—")}</span></div><div class="ttp-d-row"><span class="ttp-d-lbl">MITRE</span><span class="ttp-d-val"><a href="${esc(mitreUrl)}" target="_blank" rel="noopener" style="color:var(--green)">${esc(t.technique_id)}</a></span></div></div>`;
+  const confBadge=(c)=>{if(c==null)return"";const col=c>=80?"var(--green)":c>=60?"var(--amber)":"var(--red)";return`<span style="font-size:8px;padding:1px 5px;border-radius:3px;border:1px solid ${col};color:${col};margin-left:6px;vertical-align:middle">${Math.round(c)}% conf</span>`;};
+  let html=`<div class="ttp-d-meta"><div class="ttp-d-row"><span class="ttp-d-lbl">Tactic</span><span class="ttp-d-val">${esc(tacticLabel||"—")}</span></div><div class="ttp-d-row"><span class="ttp-d-lbl">Last seen</span><span class="ttp-d-val">${esc(t.last_seen||"—")}</span></div>${t.avg_confidence!=null?`<div class="ttp-d-row"><span class="ttp-d-lbl">Avg confidence</span><span class="ttp-d-val">${Math.round(t.avg_confidence)}%</span></div>`:""}<div class="ttp-d-row"><span class="ttp-d-lbl">MITRE</span><span class="ttp-d-val"><a href="${esc(mitreUrl)}" target="_blank" rel="noopener" style="color:var(--green)">${esc(t.technique_id)}</a></span></div></div>`;
   if(apts.length)html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">APT Groups</div><div class="ttp-d-chips">${apts.map(a=>`<span class="ttp-d-chip">${esc(a)}</span>`).join("")}</div></div>`;
-  if(urlSrcs.length)html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${urlSrcs.length} Source Article${urlSrcs.length!==1?"s":""}</div>${urlSrcs.map(url=>`<a class="ttp-d-link" href="${esc(url)}" target="_blank" rel="noopener"><span class="ttp-d-src-host">${esc(urlHost(url))}</span><span class="ttp-d-src-path">${esc(urlPath(url))}</span>${extIcon}</a>`).join("")}</div>`;
-  if(blogSrcs.length)html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Observed By</div><div class="ttp-d-chips">${blogSrcs.map(b=>`<span class="ttp-d-chip" style="color:var(--cyan);border-color:rgba(0,212,255,.3)">${esc(b)}</span>`).join("")}</div></div>`;
-  if(!urlSrcs.length&&!blogSrcs.length)html+=`<div class="ttp-d-section"><div class="no-links">No source articles recorded.</div></div>`;
+  if(srcObjs.length){
+    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${srcObjs.length} Source Article${srcObjs.length!==1?"s":""}</div>`;
+    for(const s of srcObjs){
+      html+=`<a class="ttp-d-link" href="${esc(s.url)}" target="_blank" rel="noopener" style="display:block;margin-bottom:4px">`;
+      html+=`<span class="ttp-d-src-host">${esc(s.blog||urlHost(s.url))}</span><span class="ttp-d-src-path">${esc(urlPath(s.url))}</span>${extIcon}${confBadge(s.confidence)}`;
+      html+=`</a>`;
+      if(s.evidence)html+=`<div style="font-size:9px;color:var(--text-muted);font-style:italic;padding:2px 0 6px 2px;line-height:1.4;border-left:2px solid var(--border);padding-left:8px;margin-bottom:4px">${esc(s.evidence)}</div>`;
+    }
+    html+=`</div>`;
+  }
+  if(!srcObjs.length)html+=`<div class="ttp-d-section"><div class="no-links">No source articles recorded.</div></div>`;
   const _sr=_sigmaByTechnique[tid];
   if(_sr){
     const _cKey=_sr.id?['splunk','sentinel','elastic','qradar'].find(p=>_convCache[`${_sr.id}:${p}`]):null;
@@ -2605,7 +2629,10 @@ function filterIocs(q){
     :`<td class="ioc-site" title="${esc(r.source_blog||'')}">${r.source_article?`<a href="${esc(r.source_article)}" target="_blank" rel="noopener">${esc(r.source_blog||'—')}</a>`:esc(r.source_blog||'—')}</td>`;
   const clipSvg=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M17 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>`;
   const delay=i<25?`animation-delay:${i*22}ms`:"animation-fill-mode:both;opacity:1";
-  return`<tr class="ioc-tbody-row" style="${delay}"><td onclick="copyIoc(this,'${esc(r.value)}')" title="${isUrl?esc(r.value):'Click to copy'}"><div style="white-space:nowrap"><span class="ioc-val">${esc(displayVal)}</span><button class="ioc-copy-btn" onclick="event.stopPropagation();copyIoc(this,'${esc(r.value)}')" title="Copy to clipboard">${clipSvg}</button><span class="ioc-copied">✓</span></div>${enrichRow}${domEnrichRow}${hashEnrichRow}${corrBadge?`<div style="margin-top:3px">${corrBadge}</div>`:""}</td><td><span class="ioc-badge">${esc(r.type)}</span></td>${sourceCell}<td>${apt}</td><td><span style="font-variant-numeric:tabular-nums;color:${col};font-weight:600">${s.toFixed(1)}</span>${vt?`<br>${vt}`:""}</td><td><div class="ioc-decay-track"><div class="ioc-decay-fill" style="width:${bar}%;background:${col}"></div></div><span style="font-size:8px;color:var(--text-muted)">${r.last_seen||""}</span></td></tr>`;}).join("");
+  const _daysAgo=r.last_seen?Math.floor((Date.now()-new Date(r.last_seen+"T00:00:00Z"))/86400000):null;
+  const _freshTxt=_daysAgo===0?"today":_daysAgo===1?"1d ago":_daysAgo!=null?`${_daysAgo}d ago`:"";
+  const _freshCol=_daysAgo!=null?(_daysAgo<=1?"var(--green)":_daysAgo<=7?"var(--amber)":"var(--text-muted)"):"var(--text-muted)";
+  return`<tr class="ioc-tbody-row" style="${delay}"><td onclick="copyIoc(this,'${esc(r.value)}')" title="${isUrl?esc(r.value):'Click to copy'}"><div style="white-space:nowrap"><span class="ioc-val">${esc(displayVal)}</span><button class="ioc-copy-btn" onclick="event.stopPropagation();copyIoc(this,'${esc(r.value)}')" title="Copy to clipboard">${clipSvg}</button><span class="ioc-copied">✓</span></div>${enrichRow}${domEnrichRow}${hashEnrichRow}${corrBadge?`<div style="margin-top:3px">${corrBadge}</div>`:""}</td><td><span class="ioc-badge">${esc(r.type)}</span></td>${sourceCell}<td>${apt}</td><td><span style="font-variant-numeric:tabular-nums;color:${col};font-weight:600">${s.toFixed(1)}</span>${vt?`<br>${vt}`:""}</td><td><div class="ioc-decay-track"><div class="ioc-decay-fill" style="width:${bar}%;background:${col}"></div></div><span style="font-size:8px;color:${_freshCol};font-weight:${_daysAgo!=null&&_daysAgo<=1?'600':'400'}" title="${esc(r.last_seen||'')}">${_freshTxt||esc(r.last_seen||"")}</span></td></tr>`;}).join("");
 }
 
 /* ── IOC Export ── */
@@ -3116,7 +3143,37 @@ function renderHome({activeSites,quietSites,failingSites,weekTotal,iocExport,ttp
   }
 }
 
-function updateDashboard({sites,activeSites,quietSites,failingSites,weekTotal,sparkData,state,sevenDay,prevRunLinks,iocExport,ttpExport,sigmaExport,updatedAt}){
+/* ── Actors Tab ── */
+function renderActors(actorExport){
+  const grid=document.getElementById("actors-grid");
+  const none=document.getElementById("actors-none");
+  const cnt=document.getElementById("actors-count");
+  if(!grid)return;
+  const actors=(actorExport||[]).filter(a=>a.actor);
+  if(cnt)cnt.textContent=actors.length?`${actors.length} actor${actors.length!==1?"s":""}`:""
+  if(!actors.length){if(none)none.style.display="";grid.innerHTML="";return;}
+  if(none)none.style.display="none";
+  grid.innerHTML=actors.map((a,i)=>{
+    const daysAgo=a.last_seen?Math.floor((Date.now()-new Date(a.last_seen+"T00:00:00Z"))/86400000):null;
+    const freshTxt=daysAgo===0?"today":daysAgo===1?"yesterday":daysAgo!=null?`${daysAgo}d ago`:"";
+    const techs=(a.techniques||[]).slice(0,8);
+    const techHtml=techs.map(tid=>`<span onclick="switchTab('ttps');setTimeout(()=>openTtpDrawer('${esc(tid)}'),200)" style="cursor:pointer;font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid rgba(0,255,65,.25);color:var(--green);white-space:nowrap">${esc(tid)}</span>`).join("");
+    const moreLabel=(a.techniques||[]).length>8?`<span style="font-size:8px;color:var(--text-muted)">+${(a.techniques||[]).length-8} more</span>`:"";
+    return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;animation:tabIn 160ms var(--ease) both;animation-delay:${i*30}ms">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
+        <span style="font-size:12px;font-weight:700;color:var(--text)">${esc(a.actor)}</span>
+        <span style="font-size:8px;color:var(--text-muted)">${esc(freshTxt)}</span>
+      </div>
+      <div style="display:flex;gap:16px;margin-bottom:10px">
+        <div><span style="font-size:18px;font-weight:700;color:var(--green)">${a.article_count}</span><br><span style="font-size:8px;color:var(--text-muted)">articles</span></div>
+        <div><span style="font-size:18px;font-weight:700;color:var(--cyan)">${a.technique_count}</span><br><span style="font-size:8px;color:var(--text-muted)">techniques</span></div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${techHtml}${moreLabel}</div>
+    </div>`;
+  }).join("");
+}
+
+function updateDashboard({sites,activeSites,quietSites,failingSites,weekTotal,sparkData,state,sevenDay,prevRunLinks,iocExport,ttpExport,sigmaExport,actorExport,updatedAt}){
   lastSevenDay=sevenDay;lastState=state;lastPrevRunLinks=prevRunLinks||[];
   // Populate IOC source dropdown with all configured sites
   const _srcSel=document.getElementById('ioc-source-sel');
@@ -3148,6 +3205,7 @@ function updateDashboard({sites,activeSites,quietSites,failingSites,weekTotal,sp
   renderIocs(iocExport||[]);renderDonut(iocExport||[]);
   _ttpExport=ttpExport||[];_allTtps=ttpExport||[];renderTtpMap(getTtpFiltered());renderRadar(getTtpFiltered());renderTtpAnalytics(getTtpFiltered());
   renderSigmaRules(sigmaExport||[]);
+  renderActors(actorExport||[]);
   renderGraph(iocExport||[]);
   _lastDerived={activeSites,quietSites,failingSites,sites,prevRunLinks:prevRunLinks||[]};
   for(const s of activeSites)_lastActive[s.name]=s.lastActive||null;

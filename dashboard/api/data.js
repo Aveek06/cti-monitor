@@ -53,7 +53,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const [config, state, lastActive, prevRunLinks, iocExport, ttpExport, sigmaExport] =
+    const [config, state, lastActive, prevRunLinks, iocExport, ttpExport, sigmaExport, actorExport] =
       await Promise.all([
         fetchConfig(token),
         getPipelineState("state"),
@@ -62,6 +62,7 @@ module.exports = async function handler(req, res) {
         getPipelineState("ioc_export"),
         getPipelineState("ttp_export"),
         getPipelineState("sigma_export"),
+        getPipelineState("actor_export"),
       ]);
 
     if (!state && !lastActive) {
@@ -80,6 +81,7 @@ module.exports = async function handler(req, res) {
       iocExport:    iocExport   || [],
       ttpExport:    ttpExport   || [],
       sigmaExport:  sigmaExport || [],
+      actorExport:  actorExport || [],
       updatedAt:    new Date().toISOString(),
     });
   } catch (err) {

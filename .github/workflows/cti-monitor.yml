@@ -13,6 +13,10 @@ on:
     - cron: "0 12 * * *"   # fallback: fires 4h after cron-job.org 08:00 UTC (1:30 PM IST) if missed
     - cron: "0 20 * * *"   # fallback: fires 4h after cron-job.org 16:00 UTC (9:30 PM IST) if missed
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   guard:
     runs-on: ubuntu-latest
@@ -66,7 +70,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install feedparser requests playwright beautifulsoup4 crawl4ai "scrapling[fetchers]" anthropic psycopg2-binary htmldate iocsearcher openpyxl
+          pip install -r requirements.txt
           playwright install chromium
           crawl4ai-setup
           scrapling install

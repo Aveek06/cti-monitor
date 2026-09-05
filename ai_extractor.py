@@ -1,4 +1,5 @@
 import json
+import logging
 import anthropic
 
 _PROMPT = """\
@@ -6,13 +7,15 @@ You are a cybersecurity intelligence analyst. Extract structured data from the a
 
 Return ONLY valid JSON — no markdown fences, no prose — in this exact schema:
 {{
-  "ttps": [{{"technique_id": "T1566.001", "technique_name": "Spearphishing Attachment", "tactic": "initial-access"}}],
+  "ttps": [{{"technique_id": "T1566.001", "technique_name": "Spearphishing Attachment", "tactic": "initial-access", "confidence": 90, "evidence": "Attackers sent spearphishing emails with malicious Word attachments"}}],
   "iocs": [{{"value": "evil.com", "type": "domain"}}],
   "apt": "APT28"
 }}
 
 Rules:
 - ttps: MITRE ATT&CK technique IDs the article explicitly describes an attacker PERFORMING — not techniques merely mentioned or referenced in passing. Empty array if nothing clearly demonstrated.
+  - confidence: integer 0-100. 90-100 = article explicitly shows attacker performing it with specific details. 60-89 = clearly described but moderate specificity. 40-59 = inferred from context. <40 = uncertain. Omit a technique rather than assign confidence below 40.
+  - evidence: a short verbatim quote (≤120 chars) from the article that most clearly demonstrates the technique. Use null if no specific sentence stands out.
 - iocs: only values explicitly stated in the text. Do NOT invent or hallucinate.
   Allowed types: domain, url, ipv4-addr, ipv6-addr, sha256, sha1, md5, email-addr
 - apt: most specific known threat actor / group name, or null if attribution is unclear.
@@ -54,11 +57,21 @@ def extract_all(text: str, link: str, api_key: str, site: str = "", rel_score: i
             if raw.startswith("json"):
                 raw = raw[4:]
         data = json.loads(raw.strip())
+        # Normalise TTP entries — ensure confidence/evidence fields are always present
+        ttps = []
+        for t in (data.get("ttps") or []):
+            ttps.append({
+                "technique_id":   t.get("technique_id"),
+                "technique_name": t.get("technique_name"),
+                "tactic":         t.get("tactic"),
+                "confidence":     t.get("confidence"),
+                "evidence":       (t.get("evidence") or "")[:120] or None,
+            })
         return {
-            "ttps": data.get("ttps") or [],
+            "ttps": ttps,
             "iocs": data.get("iocs") or [],
             "apt":  data.get("apt") or None,
         }
     except Exception as e:
-        print(f"  [ai_extractor] {link[:70]}: {e}")
+        logging.warning(f"  [ai_extractor] {link[:70]}: {e}")
         return empty

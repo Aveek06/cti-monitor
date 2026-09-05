@@ -201,6 +201,8 @@ CREATE TABLE IF NOT EXISTS ttp_observations (
     first_seen        DATE NOT NULL DEFAULT CURRENT_DATE,
     last_seen         DATE NOT NULL DEFAULT CURRENT_DATE,
     observation_count INT  NOT NULL DEFAULT 1,
+    confidence        FLOAT DEFAULT NULL,
+    evidence_text     TEXT DEFAULT NULL,
     UNIQUE(technique_id, source_article)
 );
 """
@@ -209,26 +211,34 @@ CREATE TABLE IF NOT EXISTS ttp_observations (
 def init_ttp_schema(conn):
     with conn.cursor() as cur:
         cur.execute(TTP_SCHEMA)
+        # Migrate existing tables that predate confidence/evidence_text columns
+        cur.execute("ALTER TABLE ttp_observations ADD COLUMN IF NOT EXISTS confidence FLOAT DEFAULT NULL")
+        cur.execute("ALTER TABLE ttp_observations ADD COLUMN IF NOT EXISTS evidence_text TEXT DEFAULT NULL")
     conn.commit()
 
 
 def upsert_ttp(conn, technique_id: str, technique_name: str | None,
                tactic: str | None, source_article: str, source_blog: str | None,
-               apt: str | None, date_str: str):
+               apt: str | None, date_str: str,
+               confidence: float | None = None, evidence_text: str | None = None):
     with conn.cursor() as cur:
         cur.execute("""
             INSERT INTO ttp_observations
                 (technique_id, technique_name, tactic,
                  source_article, source_blog, attributed_apt,
-                 first_seen, last_seen, observation_count)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 1)
+                 first_seen, last_seen, observation_count,
+                 confidence, evidence_text)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 1, %s, %s)
             ON CONFLICT (technique_id, source_article) DO UPDATE SET
                 last_seen         = EXCLUDED.last_seen,
                 technique_name    = COALESCE(EXCLUDED.technique_name, ttp_observations.technique_name),
                 tactic            = COALESCE(EXCLUDED.tactic,         ttp_observations.tactic),
-                observation_count = ttp_observations.observation_count + 1
+                observation_count = ttp_observations.observation_count + 1,
+                confidence        = COALESCE(EXCLUDED.confidence,     ttp_observations.confidence),
+                evidence_text     = COALESCE(EXCLUDED.evidence_text,  ttp_observations.evidence_text)
         """, (technique_id, technique_name, tactic,
-              source_article, source_blog, apt, date_str, date_str))
+              source_article, source_blog, apt, date_str, date_str,
+              confidence, evidence_text))
     conn.commit()
 
 
@@ -297,13 +307,43 @@ def get_all_ttps(conn) -> list[dict]:
                 COUNT(*)                                     AS article_count,
                 SUM(observation_count)                       AS total_observations,
                 MAX(last_seen::text)                         AS last_seen,
+                ROUND(AVG(confidence) FILTER (WHERE confidence IS NOT NULL)::numeric, 1)
+                                                             AS avg_confidence,
                 array_agg(DISTINCT attributed_apt)
                     FILTER (WHERE attributed_apt IS NOT NULL) AS apts,
-                array_agg(DISTINCT source_article)
-                    FILTER (WHERE source_article IS NOT NULL) AS sources
+                json_agg(
+                    json_build_object(
+                        'url',        source_article,
+                        'blog',       source_blog,
+                        'apt',        attributed_apt,
+                        'confidence', confidence,
+                        'evidence',   evidence_text,
+                        'last_seen',  last_seen::text
+                    )
+                    ORDER BY last_seen DESC
+                ) FILTER (WHERE source_article IS NOT NULL)  AS sources
             FROM ttp_observations
             GROUP BY technique_id
             ORDER BY total_observations DESC, last_seen DESC
+        """)
+        return [dict(r) for r in cur.fetchall()]
+
+
+def get_all_actors(conn) -> list[dict]:
+    """Return threat actors aggregated across all TTP observations."""
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute("""
+            SELECT
+                attributed_apt                               AS actor,
+                COUNT(DISTINCT source_article)               AS article_count,
+                COUNT(DISTINCT technique_id)                 AS technique_count,
+                MAX(last_seen::text)                         AS last_seen,
+                array_agg(DISTINCT technique_id)             AS techniques,
+                array_agg(DISTINCT source_article)           AS sources
+            FROM ttp_observations
+            WHERE attributed_apt IS NOT NULL
+            GROUP BY attributed_apt
+            ORDER BY article_count DESC, last_seen DESC
         """)
         return [dict(r) for r in cur.fetchall()]
 

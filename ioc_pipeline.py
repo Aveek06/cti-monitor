@@ -190,6 +190,8 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
                     conn,
                     ttp["technique_id"], ttp["technique_name"], ttp["tactic"],
                     item["link"], item["site"], apt, item["date"],
+                    confidence=ttp.get("confidence"),
+                    evidence_text=ttp.get("evidence"),
                 )
                 total_ttps += 1
             except Exception as e:
@@ -374,6 +376,7 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
                 "article_count":       r["article_count"],
                 "total_observations":  r["total_observations"],
                 "last_seen":           r["last_seen"],
+                "avg_confidence":      float(r["avg_confidence"]) if r.get("avg_confidence") is not None else None,
                 "apts":                r["apts"] or [],
                 "sources":             r["sources"] or [],
             }
@@ -386,6 +389,16 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
             ioc_db.upsert_pipeline_state(conn, "ttp_export", ttp_export)
         except Exception as _e:
             print(f"IOC pipeline: failed to write ttp_export to pipeline_state: {_e}")
+
+        # Export actor aggregates for the dashboard Actors tab
+        actor_export = ioc_db.get_all_actors(conn)
+        with open("actor_export.json", "w", encoding="utf-8") as f:
+            json.dump(actor_export, f, indent=2, default=str)
+        print(f"IOC pipeline: exported {len(actor_export)} actor(s) to actor_export.json")
+        try:
+            ioc_db.upsert_pipeline_state(conn, "actor_export", actor_export)
+        except Exception as _e:
+            print(f"IOC pipeline: failed to write actor_export to pipeline_state: {_e}")
 
         # Export Sigma rules drafted via the dashboard
         sigma_rules = ioc_db.get_all_sigma_rules(conn)

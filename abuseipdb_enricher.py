@@ -1,3 +1,4 @@
+import logging
 import requests
 import psycopg2.extras
 
@@ -57,9 +58,9 @@ def enrich_pending_ips(conn, api_key: str, limit: int = 20) -> None:
                 )
             conn.commit()
         except RuntimeError:
-            print("AbuseIPDB rate limit reached — stopping enrichment early.")
+            logging.warning("AbuseIPDB rate limit reached — stopping enrichment early.")
             conn.rollback()
             break
         except Exception as e:
-            print(f"AbuseIPDB enrichment error for {row['value']}: {e}")
+            logging.warning(f"AbuseIPDB enrichment error for {row['value']}: {e}")
             conn.rollback()
