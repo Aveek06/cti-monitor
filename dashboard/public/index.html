@@ -2678,7 +2678,7 @@ function exportIocs(fmt){
 }
 
 /* ── TTP Heat Map ── */
-let _ttpById={},_ttpExport=[],_ttpDays=0,_sigmaByTechnique={},_sigmaExport=[],_currentDrawerTtp=null,_isAdmin=false;
+let _ttpById={},_ttpExport=[],_ttpDays=0,_sigmaByTechnique={},_sigmaExport=[],_currentDrawerTtp=null,_isAdmin=false,_ttpRendered=false;
 const TACTIC_LABELS={"reconnaissance":"Recon","resource-development":"Resource Dev","initial-access":"Initial Access","execution":"Execution","persistence":"Persistence","privilege-escalation":"Priv. Esc.","defense-evasion":"Defense Eva.","credential-access":"Cred. Access","discovery":"Discovery","lateral-movement":"Lateral Mvmt","collection":"Collection","command-and-control":"C2","exfiltration":"Exfil","impact":"Impact"};
 function heatLevel(count){return count>=5?3:count>=2?2:1;}
 function getTtpFiltered(){
@@ -2689,8 +2689,10 @@ function getTtpFiltered(){
 function setTtpDays(d){
   _ttpDays=d;
   document.querySelectorAll(".ttp-days-btn").forEach(b=>b.classList.toggle("active",+b.dataset.days===d));
+  _ttpRendered=false;
   const filtered=getTtpFiltered();
-  renderTtpMap(filtered);renderRadar(filtered);renderTtpAnalytics(filtered);
+  renderTtpMap(filtered);requestAnimationFrame(()=>{renderRadar(filtered);renderTtpAnalytics(filtered);});
+  _ttpRendered=true;
 }
 function urlHost(u){try{return new URL(u).hostname.replace(/^www\./,"");}catch{return u;}}
 function urlPath(u){try{const p=new URL(u).pathname;return p.length>40?p.slice(0,38)+"…":p;}catch{return "";}}
@@ -2738,7 +2740,7 @@ function renderTtpMap(data){
     const techs=byTactic[tac]||[],label=TACTIC_LABELS[tac]||tac,cnt=techs.length;
     const hd=`<div class="ttp-tactic-hd" title="${tac}">${label}${cnt?`<span class="ttp-tactic-count">${cnt}</span>`:""}</div>`;
     if(!cnt)return`<div class="ttp-col">${hd}<div class="ttp-cell-empty">—</div></div>`;
-    return`<div class="ttp-col">${hd}${techs.map(t=>{const heat=heatLevel(t.article_count),name=t.technique_name||t.technique_id,short=name.length>15?name.slice(0,13)+"…":name,apts=t.apts?.length?t.apts.join(", "):"";return`<div class="ttp-cell" data-heat="${heat}" data-id="${esc(t.technique_id)}" data-name="${esc(name)}" data-count="${t.article_count}" data-obs="${t.total_observations||t.article_count}" data-last="${esc(t.last_seen||"")}" data-apts="${esc(apts)}" onclick="openTtpDrawer('${esc(t.technique_id)}')"><div class="ttp-cell-id">${esc(t.technique_id)}</div><div class="ttp-cell-name">${esc(short)}</div></div>`;}).join("")}</div>`;
+    return`<div class="ttp-col">${hd}${techs.map(t=>{const heat=heatLevel(t.article_count),name=t.technique_name||t.technique_id,short=name.length>15?name.slice(0,13)+"…":name,apts=t.apts?.length?t.apts.join(", "):"";return`<div class="ttp-cell" data-heat="${heat}" data-id="${esc(t.technique_id)}" data-name="${esc(name)}" data-count="${t.article_count}" data-obs="${t.total_observations||t.article_count}" data-last="${esc(t.last_seen||"")}" data-apts="${esc(apts)}"><div class="ttp-cell-id">${esc(t.technique_id)}</div><div class="ttp-cell-name">${esc(short)}</div></div>`;}).join("")}</div>`;
   }).join("");
 }
 
@@ -3205,7 +3207,7 @@ function updateDashboard({sites,activeSites,quietSites,failingSites,weekTotal,sp
   renderAreaChart(sparkData);renderTopSourcesChart(activeSites);
   renderHome({activeSites,quietSites,failingSites,weekTotal,iocExport:iocExport||[],ttpExport:ttpExport||[],prevRunLinks:prevRunLinks||[],updatedAt});
   renderIocs(iocExport||[]);renderDonut(iocExport||[]);
-  _ttpExport=ttpExport||[];_allTtps=ttpExport||[];renderTtpMap(getTtpFiltered());renderRadar(getTtpFiltered());renderTtpAnalytics(getTtpFiltered());
+  _ttpExport=ttpExport||[];_allTtps=ttpExport||[];_ttpRendered=false;
   renderSigmaRules(sigmaExport||[]);
   renderActors(actorExport||[]);
   renderGraph(iocExport||[]);
@@ -3472,7 +3474,7 @@ async function _refreshLiveUsers(){
 
 /* ── Refresh ── */
 async function refreshData(){
-  try{const raw=await loadData();if(raw.updatedAt===lastUpdatedAt)return;lastUpdatedAt=raw.updatedAt;resetUI();updateDashboard(derive(raw));flashUpdated(raw.updatedAt);}
+  try{const raw=await loadData();if(raw.updatedAt===lastUpdatedAt)return;lastUpdatedAt=raw.updatedAt;resetUI();updateDashboard(derive(raw));flashUpdated(raw.updatedAt);if(document.getElementById("tab-ttps")?.classList.contains("active")){const _f=getTtpFiltered();renderTtpMap(_f);requestAnimationFrame(()=>{renderRadar(_f);renderTtpAnalytics(_f);});_ttpRendered=true;}}
   catch(err){console.warn("Refresh failed:",err.message);}
 }
 
@@ -3488,6 +3490,7 @@ function switchTab(name){
   ["home","sources","iocs","ttps","sigma","actors","graph","vm","admin"].forEach(t=>{document.getElementById(`tab-${t}`)?.classList.toggle("active",t===name);const btn=document.getElementById(`tab-btn-${t}`);if(btn){btn.classList.toggle("active",t===name);btn.setAttribute("aria-selected",t===name);}});
   try{localStorage.setItem("cti_tab",name);}catch{}
   if(name==="graph")requestAnimationFrame(rebuildGraph);
+  if(name==="ttps"&&!_ttpRendered){const _f=getTtpFiltered();renderTtpMap(_f);requestAnimationFrame(()=>{renderRadar(_f);renderTtpAnalytics(_f);});_ttpRendered=true;}
   if(name==="vm")renderVmTab();
   if(name==="admin"&&!_isAdmin)return switchTab("home");
   if(name==="admin")loadAdminData();
@@ -3517,6 +3520,7 @@ async function init(){
     /* TTP hover tooltip */
     const _ttpTip=document.getElementById("ttp-tooltip");
     function _posTtpTip(e){const x=e.clientX+16,y=e.clientY-8,tw=_ttpTip.offsetWidth,th=_ttpTip.offsetHeight;_ttpTip.style.left=(x+tw>window.innerWidth-10?x-tw-24:x)+"px";_ttpTip.style.top=(y+th>window.innerHeight-10?y-th:y)+"px";}
+    document.getElementById("ttp-map").addEventListener("click",e=>{const cell=e.target.closest(".ttp-cell[data-id]");if(cell)openTtpDrawer(cell.dataset.id);});
     document.getElementById("ttp-map").addEventListener("mouseover",e=>{const cell=e.target.closest(".ttp-cell[data-id]");if(!cell){_ttpTip.style.display="none";return;}_ttpTip.innerHTML=`<div class="ttp-tip-id">${esc(cell.dataset.id)}</div><div class="ttp-tip-name">${esc(cell.dataset.name)}</div><div class="ttp-tip-row"><span class="ttp-tip-lbl">Articles</span><span class="ttp-tip-val">${cell.dataset.count}</span></div><div class="ttp-tip-row"><span class="ttp-tip-lbl">Observations</span><span class="ttp-tip-val">${cell.dataset.obs}</span></div><div class="ttp-tip-row"><span class="ttp-tip-lbl">Last Seen</span><span class="ttp-tip-val">${esc(cell.dataset.last||"—")}</span></div>${cell.dataset.apts?`<div class="ttp-tip-apts">▸ ${esc(cell.dataset.apts)}</div>`:""}`; _ttpTip.style.display="block";});
     document.getElementById("ttp-map").addEventListener("mousemove",e=>{if(_ttpTip.style.display==="block")_posTtpTip(e);});
     document.getElementById("ttp-map").addEventListener("mouseout",e=>{if(!e.relatedTarget?.closest(".ttp-cell[data-id]"))_ttpTip.style.display="none";});
