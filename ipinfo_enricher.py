@@ -32,8 +32,10 @@ def enrich_pending_ips(conn, api_key: str, limit: int = 50) -> None:
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute(
             "SELECT id, value FROM ioc_indicators "
-            "WHERE ipinfo_checked = FALSE AND type IN ('ipv4','ipv6') "
-            "ORDER BY created_at DESC LIMIT %s",
+            "WHERE type IN ('ipv4','ipv6') "
+            "AND (ipinfo_checked = FALSE "
+            "     OR (ipinfo_checked = TRUE AND ipinfo_org IS NULL AND updated_at < NOW() - INTERVAL '7 days')) "
+            "ORDER BY ipinfo_checked ASC, created_at DESC LIMIT %s",
             (limit,)
         )
         rows = cur.fetchall()
