@@ -1864,7 +1864,7 @@ function derive({config,state,lastActive,prevRunLinks,iocExport,ttpExport,sigmaE
     const week7=Object.entries(sevenDay[name]||{}).filter(([d])=>d>=cutoffStr).reduce((sum,[,v])=>sum+v,0);
     const lastTs=lastActive[name];
     const days=daysSince(lastTs);
-    if(week7>0){activeSites.push({name,url:site.url,count:week7});}
+    if(week7>0){activeSites.push({name,url:site.url,count:week7,lastActive:lastTs});}
     else if(lastTs&&days>=STALE_DAYS){quietSites.push({name,url:site.url,lastActive:lastTs,days});}
   }
   activeSites.sort((a,b)=>b.count-a.count);
@@ -3210,7 +3210,7 @@ function updateDashboard({sites,activeSites,quietSites,failingSites,weekTotal,sp
   renderActors(actorExport||[]);
   renderGraph(iocExport||[]);
   _lastDerived={activeSites,quietSites,failingSites,sites,prevRunLinks:prevRunLinks||[]};
-  for(const s of activeSites)_lastActive[s.name]=s.lastActive||null;
+  for(const s of [...activeSites,...quietSites])_lastActive[s.name]=s.lastActive||null;
   _iocBySite=buildIocBySite(iocExport||[]);
   _ttpSiteSet=buildTtpSiteSet(ttpExport||[],sites);
   loadRatings();
