@@ -153,7 +153,11 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
                     iocs.append({"value": v, "type": t})
                     _seen.add((v, t))
             if ai["apt"]:
-                apt = ai["apt"]
+                # Normalize AI's free-text attribution to a canonical name via
+                # the same regex map used for article text; this collapses verbose
+                # strings like "DPRK / Lazarus (decomposed into: ...)" → "APT38".
+                normalized = ioc_extractor.detect_apt(ai["apt"])
+                apt = normalized or ai["apt"][:80]
                 apt_method = "ai"
         else:
             ttps = ttp_extractor.extract_ttps(text, "")
@@ -173,7 +177,7 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
                 ioc_db.upsert_ioc(
                     conn, stix_obj,
                     ioc["value"], ioc["type"],
-                    item["date"], item["date"],
+                    item["date"] or today, item["date"] or today,
                     apt, ltv, tau,
                     item["link"], item["site"],
                     apt_match_method=apt_method,

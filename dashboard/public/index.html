@@ -2554,7 +2554,7 @@ function openTtpDrawer(tid){
 
 /* ── IOC rendering ── */
 let _allIocs=[];
-function liveScore(lastSeen,tau,ltv){const t=(Date.now()-new Date(lastSeen+"T00:00:00Z"))/86400000;return Math.max(0,Math.min(100,100*(1-(t/((tau||30)*(ltv||1.0)))**2)));}
+function liveScore(lastSeen,tau,ltv){if(!lastSeen)return 0;const t=(Date.now()-new Date(lastSeen+"T00:00:00Z"))/86400000;if(isNaN(t)||t<0)return 0;return Math.max(0,Math.min(100,100*(1-(t/((tau||30)*(ltv||1.0)))**2)));}
 function scoreColor(s){return s>=70?"var(--green)":s>=30?"var(--amber)":"var(--red)";}
 function copyIoc(el,value){navigator.clipboard.writeText(value).catch(()=>{});const td=el.closest?el.closest("td"):el;const tag=td?.querySelector(".ioc-copied");const btn=td?.querySelector(".ioc-copy-btn");if(tag){tag.classList.add("show");setTimeout(()=>tag.classList.remove("show"),1400);}if(btn){btn.classList.add("done");setTimeout(()=>btn.classList.remove("done"),1400);}}
 function renderIocs(data){
@@ -2634,7 +2634,8 @@ function filterIocs(q){
   const _daysAgo=r.last_seen?Math.floor((Date.now()-new Date(r.last_seen+"T00:00:00Z"))/86400000):null;
   const _freshTxt=_daysAgo===0?"today":_daysAgo===1?"1d ago":_daysAgo!=null?`${_daysAgo}d ago`:"";
   const _freshCol=_daysAgo!=null?(_daysAgo<=1?"var(--green)":_daysAgo<=7?"var(--amber)":"var(--text-muted)"):"var(--text-muted)";
-  return`<tr class="ioc-tbody-row" style="${delay}"><td onclick="copyIoc(this,'${esc(r.value)}')" title="${isUrl?esc(r.value):'Click to copy'}"><div style="white-space:nowrap"><span class="ioc-val">${esc(displayVal)}</span><button class="ioc-copy-btn" onclick="event.stopPropagation();copyIoc(this,'${esc(r.value)}')" title="Copy to clipboard">${clipSvg}</button><span class="ioc-copied">✓</span></div>${enrichRow}${domEnrichRow}${hashEnrichRow}${corrBadge?`<div style="margin-top:3px">${corrBadge}</div>`:""}</td><td><span class="ioc-badge">${esc(r.type)}</span></td>${sourceCell}<td>${apt}</td><td><span style="font-variant-numeric:tabular-nums;color:${col};font-weight:600">${s.toFixed(1)}</span>${vt?`<br>${vt}`:""}</td><td><div class="ioc-decay-track"><div class="ioc-decay-fill" style="width:${bar}%;background:${col}"></div></div><span style="font-size:8px;color:${_freshCol};font-weight:${_daysAgo!=null&&_daysAgo<=1?'600':'400'}" title="${esc(r.last_seen||'')}">${_freshTxt||esc(r.last_seen||"")}</span></td></tr>`;}).join("");
+  const _hasScore=r.last_seen&&s>0;
+  return`<tr class="ioc-tbody-row" style="${delay}"><td onclick="copyIoc(this,'${esc(r.value)}')" title="${isUrl?esc(r.value):'Click to copy'}"><div style="white-space:nowrap"><span class="ioc-val">${esc(displayVal)}</span><button class="ioc-copy-btn" onclick="event.stopPropagation();copyIoc(this,'${esc(r.value)}')" title="Copy to clipboard">${clipSvg}</button><span class="ioc-copied">✓</span></div>${enrichRow}${domEnrichRow}${hashEnrichRow}${corrBadge?`<div style="margin-top:3px">${corrBadge}</div>`:""}</td><td><span class="ioc-badge">${esc(r.type)}</span></td>${sourceCell}<td>${apt}</td><td>${_hasScore?`<span style="font-variant-numeric:tabular-nums;color:${col};font-weight:600">${s.toFixed(1)}</span>${vt?`<br>${vt}`:""}`:`<span style="color:var(--text-muted)">—</span>`}</td><td>${_hasScore?`<div class="ioc-decay-track"><div class="ioc-decay-fill" style="width:${bar}%;background:${col}"></div></div><span style="font-size:8px;color:${_freshCol};font-weight:${_daysAgo!=null&&_daysAgo<=1?'600':'400'}" title="${esc(r.last_seen||'')}">${_freshTxt||esc(r.last_seen||"")}</span>`:`<span style="color:var(--text-muted)">—</span>`}</td></tr>`;}).join("");
 }
 
 /* ── IOC Export ── */
