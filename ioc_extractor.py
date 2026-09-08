@@ -91,15 +91,23 @@ _FP_IPS = {
 _FP_DOMAINS = {
     # Infrastructure / CDN
     "example.com", "cloudflare.com", "amazonaws.com", "akamai.com", "fastly.com",
+    "cloudfront.net", "azureedge.net", "azurefd.net",
     "w3.org", "schema.org", "jquery.com", "bootstrapcdn.com", "jsdelivr.net",
+    "unpkg.com", "cdnjs.cloudflare.com",
     # Major tech platforms
     "google.com", "googleapis.com", "gstatic.com", "googletagmanager.com",
+    "google-analytics.com", "googleadservices.com", "doubleclick.net",
     "microsoft.com", "azure.com", "azurewebsites.net", "live.com", "office.com",
+    "microsoftonline.com", "office365.com", "sharepoint.com", "teams.microsoft.com",
     "amazon.com", "aws.amazon.com",
     "apple.com", "icloud.com",
     "facebook.com", "instagram.com", "whatsapp.com", "meta.com",
-    "twitter.com", "x.com",
+    "twitter.com", "x.com", "t.co",
     "linkedin.com", "youtube.com", "tiktok.com",
+    "reddit.com", "medium.com", "substack.com",
+    # Short URL services (appear in article share links, not IOCs)
+    "bit.ly", "tinyurl.com", "ow.ly", "buff.ly", "dlvr.it", "goo.gl",
+    "shorturl.at", "rebrand.ly", "tiny.cc",
     # AI / LLM vendors
     "anthropic.com", "claude.com",
     "openai.com", "openai.azure.com",
@@ -119,7 +127,9 @@ _FP_DOMAINS = {
     "hybrid-analysis.com", "any.run", "polyswarm.io", "intezer.com",
     "joesandbox.com", "app.any.run", "triage.abuse.ch", "urlscan.io",
     "malwarebazaar.abuse.ch", "bazaar.abuse.ch", "threatfox.abuse.ch", "abuse.ch",
+    "feodotracker.abuse.ch", "sslbl.abuse.ch",
     "otx.alienvault.com", "exchange.xforce.ibmcloud.com",
+    "lolbas-project.github.io", "gtfobins.github.io",
     # Security vendors (named in articles as tools/vendors, not as C2s)
     "crowdstrike.com", "sentinelone.com", "mandiant.com",
     "paloaltonetworks.com", "unit42.paloaltonetworks.com",
@@ -133,22 +143,56 @@ _FP_DOMAINS = {
     "malwarebytes.com", "elastic.co", "microsoft.com",
     "recordedfuture.com", "anomali.com", "threatconnect.com",
     "aikido.io", "snyk.io", "semgrep.io",
+    "huntress.com", "expel.io", "lumu.io", "vectra.ai", "darktrace.com",
+    "secureworks.com", "rapid7.com", "tenable.com", "qualys.com",
+    "proofpoint.com", "mimecast.com", "cofense.com", "abnormalsecurity.com",
+    "zscaler.com", "netskope.com", "lacework.com", "wiz.io",
     # Threat intel / govt / standards bodies
     "mitre.org", "nist.gov", "cisa.gov", "us-cert.gov", "cert.org",
     "nvd.nist.gov", "cve.org", "first.org",
     "sans.org", "owasp.org", "attack.mitre.org",
+    "dhs.gov", "fbi.gov", "ic3.gov", "cdc.gov", "ncsc.gov.uk",
+    "bsi.bund.de", "anssi.fr", "enisa.europa.eu", "europol.europa.eu",
+    "interpol.int", "un.org",
     # News / research (appear as references, not IOCs)
     "bleepingcomputer.com", "krebsonsecurity.com",
     "therecord.media", "darkreading.com", "securityweek.com",
     "wired.com", "techcrunch.com",
     "arstechnica.com", "thehackernews.com",
     "threatpost.com", "helpnetsecurity.com", "cyberscoop.com",
+    "zdnet.com", "cnet.com", "infosecurity-magazine.com",
+    "scmagazine.com", "securityaffairs.com", "hackread.com",
+    "cybersecuritynews.com", "gbhackers.com", "thedefendopsdiaries.com",
     # File-extension gTLDs — almost always filenames in CTI articles, not C2 domains
     # e.g. "malware.zip", "payload.exe", "document.pdf" extracted as FQDNs
     "zip", "exe", "dll", "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx",
     "ps1", "bat", "cmd", "sh", "py", "js", "vbs", "hta", "jar", "msi",
     "iso", "img", "tar", "gz", "rar", "7z", "cab", "mov", "mp4", "app",
 }
+
+# URL path segments that indicate navigation/sharing links, not IOCs
+_FP_URL_PATH_RE = re.compile(
+    r'/(?:category|categories|tag|tags|page|author|authors|feed|search'
+    r'|archive|archives|topic|topics|series|label|labels|sitemap|rss|atom'
+    r'|newsletter|subscribe|unsubscribe|share|intent|shareArticle|sharing'
+    r'|login|logout|signup|sign-up|register|account|profile'
+    r'|privacy|privacy-policy|terms|terms-of-service|cookie|about|contact|careers'
+    r'|wp-admin|wp-login\.php|cdn-cgi|__cf_chl'
+    r'|redirect|out|go(?:/|$))(?:/|$|\?|#)',
+    re.IGNORECASE,
+)
+
+# Query params that indicate tracking/share links, not IOCs
+_FP_URL_PARAM_RE = re.compile(
+    r'[?&](?:utm_source|utm_medium|utm_campaign|utm_content|utm_term|utm_id'
+    r'|ref|referrer|source|from|via'
+    r'|fbclid|gclid|msclkid|twclid|li_source|li_medium'
+    r'|mc_cid|mc_eid|yclid|dclid|_ga|_gl)=',
+    re.IGNORECASE,
+)
+
+# TLDs that are almost never malicious C2 infrastructure
+_FP_TRUSTED_TLDS = {".gov", ".edu", ".mil", ".int"}
 
 
 def _is_fp(domain: str) -> bool:
@@ -496,12 +540,24 @@ def extract_iocs(text: str, source_url: str | None = None) -> list[dict]:
             # Skip the source article URL itself
             if source_url and v == source_url:
                 continue
+            # Skip navigation / tracking / sharing URLs
+            parsed_path = urlparse(v).path
+            if _FP_URL_PATH_RE.search(parsed_path):
+                continue
+            if _FP_URL_PARAM_RE.search(v):
+                continue
+            # Skip URLs on trusted TLDs
+            if any(url_host.endswith(tld) for tld in _FP_TRUSTED_TLDS):
+                continue
         if t == "domain":
             if _is_fp(v):
                 continue
             if src_host and (v == src_host or v.endswith("." + src_host) or src_host.endswith("." + v)):
                 continue
             if _in_tranco(v):
+                continue
+            # Skip trusted TLDs
+            if any(v.endswith(tld) for tld in _FP_TRUSTED_TLDS):
                 continue
         if t == "ipv4":
             if v in _FP_IPS:

@@ -1292,6 +1292,7 @@
               <button class="ioc-rel-btn active" data-rel="0" onclick="setIocRelFilter(this)">All</button>
               <button class="ioc-rel-btn" data-rel="40" onclick="setIocRelFilter(this)">Rel ≥40</button>
               <button class="ioc-rel-btn" data-rel="70" onclick="setIocRelFilter(this)">Trusted ≥70</button>
+              <button class="ioc-rel-btn" id="ioc-multi-src-btn" onclick="toggleMultiSource(this)" title="Show only IOCs confirmed across 2+ articles">2+ Sources</button>
             </div>
             <span class="ioc-count" id="ioc-count">— IOCs</span>
             <div class="ioc-export-wrap">
@@ -2587,13 +2588,21 @@ function renderIocScoreDist(scored){
   el.innerHTML=counts.map(b=>{const pct=Math.round(b.n/maxN*100);return`<div class="ioc-dist-row"><span class="ioc-dist-lbl">${b.lbl}</span><div class="ioc-dist-track"><div class="ioc-dist-fill" style="width:${pct}%;background:${b.col};opacity:.75;"></div></div><span class="ioc-dist-val">${b.n}</span></div>`;}).join("");
 }
 let _activeTypeFilter="";
+let _multiSourceOnly=false;
 function setIocType(btn){document.querySelectorAll(".ioc-type-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");_activeTypeFilter=btn.dataset.type;filterIocs(document.getElementById("ioc-search")?.value||"");}
-function setIocRelFilter(btn){document.querySelectorAll(".ioc-rel-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");_minReliability=+btn.dataset.rel;filterIocs(document.getElementById("ioc-search")?.value||"");}
+function setIocRelFilter(btn){document.querySelectorAll(".ioc-rel-btn:not(#ioc-multi-src-btn)").forEach(b=>b.classList.remove("active"));btn.classList.add("active");_minReliability=+btn.dataset.rel;filterIocs(document.getElementById("ioc-search")?.value||"");}
+function toggleMultiSource(btn){_multiSourceOnly=!_multiSourceOnly;btn.classList.toggle("active",_multiSourceOnly);filterIocs(document.getElementById("ioc-search")?.value||"");}
 function filterIocs(q){
   const lq=(q||"").toLowerCase();
   const _srcFilter=document.getElementById('ioc-source-sel')?.value||'';
   const _typeMatch=t=>!_activeTypeFilter||(_activeTypeFilter==="ip"?(t==="ipv4"||t==="ipv6"):_activeTypeFilter==="sha"?(t==="sha256"||t==="sha1"):t===_activeTypeFilter);
-  const rows=(_allIocs.filter(r=>{if(_srcFilter&&r.source_blog!==_srcFilter)return false;if(!_typeMatch(r.type))return false;if(_minReliability>0){const _s=_relScoreCache[r.source_blog];if(_s==null||_s<_minReliability)return false;}return!lq||r.value.toLowerCase().includes(lq)||(r.type||"").includes(lq)||(r.source_blog||"").toLowerCase().includes(lq)||(r.apt||"").toLowerCase().includes(lq)||(r.url_threat||"").toLowerCase().includes(lq)||((r.url_tags||[]).join(" ").toLowerCase().includes(lq));}).map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((a,b)=>b._live-a._live));
+  const _now=new Date();
+  const rows=(_allIocs.filter(r=>{if(_srcFilter&&r.source_blog!==_srcFilter)return false;if(!_typeMatch(r.type))return false;if(_minReliability>0){const _s=_relScoreCache[r.source_blog];if(_s==null||_s<_minReliability)return false;}
+  // Fix 3: multi-source filter — hide single-source IOCs
+  if(_multiSourceOnly&&(r.source_count||1)<2)return false;
+  // Fix 4: RDAP age filter — hide domains/URLs registered >5 years ago with no VT signal
+  if(_multiSourceOnly&&r.domain_registered&&(r.type==="domain"||r.type==="url")){const age=(_now-new Date(r.domain_registered))/86400000;if(age>1825&&!(r.vt_malicious>0)&&!(r.vt_domain_malicious>0))return false;}
+  return!lq||r.value.toLowerCase().includes(lq)||(r.type||"").includes(lq)||(r.source_blog||"").toLowerCase().includes(lq)||(r.apt||"").toLowerCase().includes(lq)||(r.url_threat||"").toLowerCase().includes(lq)||((r.url_tags||[]).join(" ").toLowerCase().includes(lq));}).map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((a,b)=>b._live-a._live));
   document.getElementById("ioc-count").textContent=`${rows.length} IOC${rows.length!==1?"s":""}`;
   const empty=document.getElementById("ioc-empty"),tbody=document.getElementById("ioc-tbody");
   if(!rows.length){empty.style.display="block";tbody.innerHTML="";return;}

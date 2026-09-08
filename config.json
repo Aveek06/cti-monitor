@@ -1162,9 +1162,11 @@
     },
     {
       "name": "SOCradar",
-      "type": "skip",
+      "type": "scrapling_stealthy",
       "url": "https://socradar.io/blog/",
-      "notes": "Bot-walled or dead domain as of last check - manual monitoring only"
+      "link_path_prefix": "/blog/",
+      "network_idle": true,
+      "page_timeout_ms": 45000
     },
     {
       "name": "Oligo Security",
