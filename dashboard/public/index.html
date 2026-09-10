@@ -2314,18 +2314,32 @@ function buildTtpCountByArticle(ttps){const m={};ttps.forEach(t=>{(t.sources||[]
 function getArticleIocs(url){return _allIocs.filter(r=>r.source_article===url);}
 function getArticleTtps(url){return _allTtps.filter(t=>(t.sources||[]).some(s=>(typeof s==="string"?s:s.url)===url));}
 function resolveArticleMeta(url){return(lastPrevRunLinks||[]).find(it=>(typeof it==="string"?it:it.url)===url)||null;}
+function _iocEnrichTagsHtml(r){
+  const isIp=r.type==="ipv4"||r.type==="ipv6";
+  const shodan=isIp?(r.shodan_tags||[]).slice(0,2).map(t=>`<span class="ioc-tag">${esc(t)}</span>`).join(" "):"";
+  const abuseScore=isIp&&r.abuseipdb_score!=null?r.abuseipdb_score:null;
+  const abuse=abuseScore!=null?`<span class="ioc-tag" style="background:${abuseScore>=80?'rgba(239,68,68,.18);color:#f87171':abuseScore>=40?'rgba(251,146,60,.18);color:#fb923c':'rgba(148,163,184,.12);color:var(--text-muted)'}">ABUSE:${abuseScore}</span>`:"";
+  const gn=isIp&&r.greynoise_classification?`<span class="ioc-tag" style="${r.greynoise_classification==='malicious'?'background:rgba(239,68,68,.15);color:#f87171':r.greynoise_riot?'background:rgba(34,197,94,.12);color:#4ade80':''}">GN:${esc(r.greynoise_classification)}</span>`:"";
+  const org=isIp&&r.ipinfo_org?`<span class="ioc-tag" style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle" title="${esc(r.ipinfo_org)}">${esc(r.ipinfo_org.length>18?r.ipinfo_org.slice(0,17)+'…':r.ipinfo_org)}</span>`:"";
+
+  const isDomain=r.type==="domain"||r.type==="fqdn";
+  const vtDom=isDomain&&r.vt_domain_malicious!=null?(r.vt_domain_malicious>0?`<span class="ioc-tag" style="background:rgba(239,68,68,.18);color:#f87171">VT:${r.vt_domain_malicious} engines</span>`:`<span class="ioc-tag" style="color:var(--text-muted)">VT:clean</span>`):"";
+  const uhDom=isDomain&&r.urlhaus_domain_status==="listed"?`<span class="ioc-tag" style="background:rgba(239,68,68,.15);color:#f87171">URLhaus${r.urlhaus_domain_threat?`: ${esc(r.urlhaus_domain_threat)}`:""}</span>`:"";
+  const typosquat=isDomain&&r.is_typosquat?`<span class="ioc-tag" style="background:rgba(239,68,68,.2);color:#f87171;font-weight:600" title="Possible typosquat of ${esc(r.typosquat_of||'')}">⚠ typosquat</span>`:"";
+
+  const isHash=r.type==="sha256"||r.type==="sha1"||r.type==="md5";
+  const mbSig=isHash&&r.mb_signature?r.mb_signature:"";
+  const mb=isHash&&r.mb_file_type!=null?(mbSig?`<span class="ioc-tag" style="background:rgba(239,68,68,.15);color:#f87171" title="${esc(r.mb_file_name||'')}">MB:${esc(mbSig)}</span>`:`<span class="ioc-tag" style="color:var(--text-muted)">MB:${esc(r.mb_file_type||'found')}</span>`):"";
+  const tf=isHash&&r.tf_threat_type!=null?`<span class="ioc-tag" style="background:${(r.tf_confidence||0)>=75?'rgba(239,68,68,.15);color:#f87171':'rgba(251,146,60,.18);color:#fb923c'}" title="Confidence:${r.tf_confidence||0}%">TF:${esc(r.tf_threat_type.replace(/_/g," "))}</span>`:"";
+
+  return[shodan,abuse,gn,org,vtDom,uhDom,typosquat,mb,tf].filter(Boolean).join(" ");
+}
 function _iocRowsHtml(iocs,emptyMsg){
   if(!iocs.length)return`<tr><td colspan="6" class="pa-empty">// ${emptyMsg}</td></tr>`;
   const scored=iocs.map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((a,b)=>b._live-a._live);
   return scored.map(r=>{
     const s=r._live,col=scoreColor(s),bar=Math.round(s);
-    const isIp=r.type==="ipv4"||r.type==="ipv6";
-    const shodan=(r.shodan_tags||[]).slice(0,2).map(t=>`<span class="ioc-tag">${esc(t)}</span>`).join(" ");
-    const abuseScore=isIp&&r.abuseipdb_score!=null?r.abuseipdb_score:null;
-    const abuse=abuseScore!=null?`<span class="ioc-tag" style="background:${abuseScore>=80?'rgba(239,68,68,.18);color:#f87171':abuseScore>=40?'rgba(251,146,60,.18);color:#fb923c':'rgba(148,163,184,.12);color:var(--text-muted)'}">ABUSE:${abuseScore}</span>`:"";
-    const gn=isIp&&r.greynoise_classification?`<span class="ioc-tag" style="${r.greynoise_classification==='malicious'?'background:rgba(239,68,68,.15);color:#f87171':r.greynoise_riot?'background:rgba(34,197,94,.12);color:#4ade80':''}">GN:${esc(r.greynoise_classification)}</span>`:"";
-    const org=isIp&&r.ipinfo_org?`<span class="ioc-tag" style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle" title="${esc(r.ipinfo_org)}">${esc(r.ipinfo_org.length>18?r.ipinfo_org.slice(0,17)+'…':r.ipinfo_org)}</span>`:"";
-    const enrich=shodan||abuse||gn||org;
+    const enrich=_iocEnrichTagsHtml(r);
     return`<tr>
       <td><span class="ioc-val" style="font-size:9px">${esc(r.value.length>40?r.value.slice(0,38)+"…":r.value)}</span></td>
       <td><span class="ioc-badge">${esc(r.type)}</span></td>
