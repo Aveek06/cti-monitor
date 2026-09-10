@@ -1837,6 +1837,10 @@
         </div>
       </div>
     </div>
+    <table class="pv-links-table" style="margin-bottom:22px;">
+      <thead><tr><th>Value</th><th>Type</th><th>Score</th><th>APT</th><th>VT</th><th>Enrichment</th></tr></thead>
+      <tbody id="pv-ioc-tbody"></tbody>
+    </table>
     <div class="pv-section-hd" style="margin-top:20px;margin-bottom:8px;">
       <span class="pv-section-title">Captured Articles</span>
       <span id="pv-article-count" style="font-size:9px;color:var(--text-muted);font-family:var(--font-ui)"></span>
@@ -2285,7 +2289,10 @@ function getSiteIocs(siteName,days){
 }
 function getSiteTtps(siteUrl){
   let host="";try{host=new URL(siteUrl).hostname.replace(/^www\./,"");}catch{return[];}
-  return _allTtps.filter(t=>(t.sources||[]).some(s=>{try{return new URL(s).hostname.replace(/^www\./,"")===host;}catch{return false;}}));
+  return _allTtps.filter(t=>(t.sources||[]).some(s=>{
+    const u=typeof s==="string"?s:(s.url||"");
+    try{return new URL(u).hostname.replace(/^www\./,"")===host;}catch{return false;}
+  }));
 }
 function getSiteArticles(siteName){
   const urls=(lastState[siteName]||[]).slice().reverse();
@@ -2305,8 +2312,30 @@ function getSiteArticles(siteName){
 function buildIocCountByArticle(iocs){const m={};iocs.forEach(r=>{const k=r.source_article;if(k)m[k]=(m[k]||0)+1;});return m;}
 function buildTtpCountByArticle(ttps){const m={};ttps.forEach(t=>{(t.sources||[]).forEach(s=>{const u=typeof s==="string"?s:(s.url||"");if(/^https?:\/\//.test(u))m[u]=(m[u]||0)+1;});});return m;}
 function getArticleIocs(url){return _allIocs.filter(r=>r.source_article===url);}
-function getArticleTtps(url){return _allTtps.filter(t=>(t.sources||[]).some(s=>s===url));}
+function getArticleTtps(url){return _allTtps.filter(t=>(t.sources||[]).some(s=>(typeof s==="string"?s:s.url)===url));}
 function resolveArticleMeta(url){return(lastPrevRunLinks||[]).find(it=>(typeof it==="string"?it:it.url)===url)||null;}
+function _iocRowsHtml(iocs,emptyMsg){
+  if(!iocs.length)return`<tr><td colspan="6" class="pa-empty">// ${emptyMsg}</td></tr>`;
+  const scored=iocs.map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((a,b)=>b._live-a._live);
+  return scored.map(r=>{
+    const s=r._live,col=scoreColor(s),bar=Math.round(s);
+    const isIp=r.type==="ipv4"||r.type==="ipv6";
+    const shodan=(r.shodan_tags||[]).slice(0,2).map(t=>`<span class="ioc-tag">${esc(t)}</span>`).join(" ");
+    const abuseScore=isIp&&r.abuseipdb_score!=null?r.abuseipdb_score:null;
+    const abuse=abuseScore!=null?`<span class="ioc-tag" style="background:${abuseScore>=80?'rgba(239,68,68,.18);color:#f87171':abuseScore>=40?'rgba(251,146,60,.18);color:#fb923c':'rgba(148,163,184,.12);color:var(--text-muted)'}">ABUSE:${abuseScore}</span>`:"";
+    const gn=isIp&&r.greynoise_classification?`<span class="ioc-tag" style="${r.greynoise_classification==='malicious'?'background:rgba(239,68,68,.15);color:#f87171':r.greynoise_riot?'background:rgba(34,197,94,.12);color:#4ade80':''}">GN:${esc(r.greynoise_classification)}</span>`:"";
+    const org=isIp&&r.ipinfo_org?`<span class="ioc-tag" style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle" title="${esc(r.ipinfo_org)}">${esc(r.ipinfo_org.length>18?r.ipinfo_org.slice(0,17)+'…':r.ipinfo_org)}</span>`:"";
+    const enrich=shodan||abuse||gn||org;
+    return`<tr>
+      <td><span class="ioc-val" style="font-size:9px">${esc(r.value.length>40?r.value.slice(0,38)+"…":r.value)}</span></td>
+      <td><span class="ioc-badge">${esc(r.type)}</span></td>
+      <td><span style="color:${col};font-weight:600;font-variant-numeric:tabular-nums">${s.toFixed(1)}</span><br><div class="ioc-decay-track" style="margin-top:3px"><div class="ioc-decay-fill" style="width:${bar}%;background:${col}"></div></div></td>
+      <td>${r.apt?`<span class="ioc-apt">${esc(r.apt)}</span>`:`<span class="ioc-dim">—</span>`}</td>
+      <td>${r.vt_malicious!=null&&r.vt_malicious>0?`<span class="ioc-vt">${r.vt_malicious}</span>`:`<span class="ioc-dim">—</span>`}</td>
+      <td>${enrich||`<span class="ioc-dim">—</span>`}</td>
+    </tr>`;
+  }).join("");
+}
 
 /* ── Page View Chart Helpers ── */
 const PV_IOC_COLS={domain:"#00ff41",url:"#ff9f0a",sha256:"#bf5fff",sha1:"#ff9500",md5:"#67e8f9",ip:"#ff3b30",other:"#444"};
@@ -2366,6 +2395,7 @@ function renderSitePage(name){
   // IOCs with time filter
   const iocs=getSiteIocs(name,_pvDays);
   document.getElementById("pv-kpi-iocs").textContent=iocs.length||"—";
+  document.getElementById("pv-ioc-tbody").innerHTML=_iocRowsHtml(iocs,"No IOCs captured from this source yet");
 
   // TTPs for site
   const ttps=getSiteTtps(siteUrl);
@@ -2448,29 +2478,7 @@ function renderArticlePage(url){
   renderPvTacBars("pa-tac-bars",ttps);
 
   // IOC table
-  const tbody=document.getElementById("pa-ioc-tbody");
-  if(!iocs.length){tbody.innerHTML=`<tr><td colspan="6" class="pa-empty">// No IOCs extracted from this article</td></tr>`;}
-  else{
-    const scored=iocs.map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((a,b)=>b._live-a._live);
-    tbody.innerHTML=scored.map(r=>{
-      const s=r._live,col=scoreColor(s),bar=Math.round(s);
-      const isIpPA=r.type==="ipv4"||r.type==="ipv6";
-      const shodan=(r.shodan_tags||[]).slice(0,2).map(t=>`<span class="ioc-tag">${esc(t)}</span>`).join(" ");
-      const paAbuseScore=isIpPA&&r.abuseipdb_score!=null?r.abuseipdb_score:null;
-      const paAbuse=paAbuseScore!=null?`<span class="ioc-tag" style="background:${paAbuseScore>=80?'rgba(239,68,68,.18);color:#f87171':paAbuseScore>=40?'rgba(251,146,60,.18);color:#fb923c':'rgba(148,163,184,.12);color:var(--text-muted)'}">ABUSE:${paAbuseScore}</span>`:"";
-      const paGN=isIpPA&&r.greynoise_classification?`<span class="ioc-tag" style="${r.greynoise_classification==='malicious'?'background:rgba(239,68,68,.15);color:#f87171':r.greynoise_riot?'background:rgba(34,197,94,.12);color:#4ade80':''}">GN:${esc(r.greynoise_classification)}</span>`:"";
-      const paOrg=isIpPA&&r.ipinfo_org?`<span class="ioc-tag" style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle" title="${esc(r.ipinfo_org)}">${esc(r.ipinfo_org.length>18?r.ipinfo_org.slice(0,17)+'…':r.ipinfo_org)}</span>`:"";
-      const enrichPA=shodan||paAbuse||paGN||paOrg;
-      return`<tr>
-        <td><span class="ioc-val" style="font-size:9px">${esc(r.value.length>40?r.value.slice(0,38)+"…":r.value)}</span></td>
-        <td><span class="ioc-badge">${esc(r.type)}</span></td>
-        <td><span style="color:${col};font-weight:600;font-variant-numeric:tabular-nums">${s.toFixed(1)}</span><br><div class="ioc-decay-track" style="margin-top:3px"><div class="ioc-decay-fill" style="width:${bar}%;background:${col}"></div></div></td>
-        <td>${r.apt?`<span class="ioc-apt">${esc(r.apt)}</span>`:`<span class="ioc-dim">—</span>`}</td>
-        <td>${r.vt_malicious!=null&&r.vt_malicious>0?`<span class="ioc-vt">${r.vt_malicious}</span>`:`<span class="ioc-dim">—</span>`}</td>
-        <td>${enrichPA||`<span class="ioc-dim">—</span>`}</td>
-      </tr>`;
-    }).join("");
-  }
+  document.getElementById("pa-ioc-tbody").innerHTML=_iocRowsHtml(iocs,"No IOCs extracted from this article");
 
   // TTP list
   const ttpEl=document.getElementById("pa-ttp-list");
