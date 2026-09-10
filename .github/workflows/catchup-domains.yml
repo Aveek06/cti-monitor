@@ -1,0 +1,48 @@
+name: Domain Enrichment Catchup
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Which enrichers to run"
+        required: false
+        default: "both"
+        type: choice
+        options:
+          - both
+          - vt-only
+          - meta-only
+
+permissions:
+  contents: read
+
+jobs:
+  catchup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run domain enrichment catchup
+        env:
+          DATABASE_URL:      ${{ secrets.DATABASE_URL }}
+          VT_API_KEY_DOMAIN: ${{ secrets.VT_API_KEY_DOMAIN }}
+        run: |
+          MODE="${{ github.event.inputs.mode }}"
+          if [ "$MODE" = "vt-only" ]; then
+            python catchup_domain_enrichment.py --vt-only
+          elif [ "$MODE" = "meta-only" ]; then
+            python catchup_domain_enrichment.py --meta-only
+          else
+            python catchup_domain_enrichment.py
+          fi
