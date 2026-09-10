@@ -284,34 +284,51 @@
     .ioc-decay-fill{height:100%;border-radius:1px;}
     .ioc-empty,.ioc-none{text-align:center;color:var(--text-muted);font-size:10px;padding:40px 0;letter-spacing:.06em;}
     /* IOC DETAIL DRAWER */
-    #ioc-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:450;opacity:0;pointer-events:none;transition:opacity .2s;}
+    #ioc-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:450;opacity:0;pointer-events:none;transition:opacity .22s;}
     #ioc-backdrop.visible{opacity:1;pointer-events:auto;}
-    #ioc-drawer{position:fixed;top:0;right:0;width:min(520px,96vw);height:100%;background:rgba(10,10,10,.97);backdrop-filter:blur(20px) saturate(160%);border-left:1px solid var(--border-hi);z-index:500;transform:translateX(100%);transition:transform .22s cubic-bezier(0.32,0.72,0,1);display:flex;flex-direction:column;}
+    #ioc-drawer{position:fixed;top:0;right:0;width:min(540px,96vw);height:100%;background:rgba(9,9,9,.98);backdrop-filter:blur(24px) saturate(180%);border-left:1px solid var(--border-hi);z-index:500;transform:translateX(100%);transition:transform .24s cubic-bezier(0.32,0.72,0,1);display:flex;flex-direction:column;box-shadow:-24px 0 64px rgba(0,0,0,.7);}
     #ioc-drawer.open{transform:translateX(0);}
-    .ioc-d-hd{display:flex;align-items:flex-start;justify-content:space-between;padding:16px 18px 14px;border-bottom:1px solid var(--border);gap:12px;flex-shrink:0;}
-    .ioc-d-eyebrow{font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--green);margin-bottom:6px;font-family:var(--font-ui);}
-    .ioc-d-value{font-size:11px;font-family:var(--font-mono);color:var(--text-hi);word-break:break-all;line-height:1.5;display:flex;align-items:flex-start;gap:6px;}
-    .ioc-d-copy{flex-shrink:0;margin-top:1px;width:18px;height:18px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .1s,color .1s,transform 80ms ease-out;}
-    .ioc-d-copy:hover{border-color:var(--green);color:var(--green);}
-    .ioc-d-copy:active{transform:scale(.9);transition:transform 80ms ease-out;}
-    .ioc-d-stats{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
-    .ioc-d-stat{flex:1;padding:10px 16px;border-right:1px solid var(--border);}
+    #ioc-drawer-accent{height:2px;flex-shrink:0;transition:background .3s ease;}
+    .ioc-d-hd{display:flex;align-items:flex-start;justify-content:space-between;padding:16px 20px 14px;border-bottom:1px solid var(--border);gap:12px;flex-shrink:0;}
+    .ioc-d-type-chip{display:inline-flex;align-items:center;font-size:8px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:2px 8px;border:1px solid var(--border-hi);color:var(--text-dim);margin-bottom:8px;font-family:var(--font-ui);background:var(--surface2);}
+    .ioc-d-value{font-size:11.5px;font-family:var(--font-mono);color:var(--text-hi);word-break:break-all;line-height:1.55;display:flex;align-items:flex-start;gap:7px;}
+    .ioc-d-copy{flex-shrink:0;margin-top:2px;width:20px;height:20px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .12s,color .12s,background .12s,transform 80ms ease-out;}
+    .ioc-d-copy:hover{border-color:var(--green);color:var(--green);background:rgba(0,255,65,.06);}
+    .ioc-d-copy:active{transform:scale(.88);transition:transform 80ms ease-out;}
+    .ioc-d-copy:focus-visible{outline:1px solid var(--green);outline-offset:2px;}
+    .ioc-d-close{width:26px;height:26px;border:1px solid var(--border);background:transparent;font-size:13px;color:var(--text-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:border-color .12s,color .12s,background .12s,transform 80ms ease-out;margin-top:2px;}
+    .ioc-d-close:hover{border-color:var(--border-hi);color:var(--text);background:var(--surface2);}
+    .ioc-d-close:active{transform:scale(.9);transition:transform 80ms ease-out;}
+    .ioc-d-close:focus-visible{outline:1px solid var(--green);outline-offset:2px;}
+    .ioc-d-stats{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:rgba(0,0,0,.25);}
+    .ioc-d-stat{flex:1;padding:12px 18px;border-right:1px solid var(--border);}
     .ioc-d-stat:last-child{border-right:none;}
-    .ioc-d-stat-lbl{font-size:7px;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;}
-    .ioc-d-stat-val{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text-hi);line-height:1;}
-    .ioc-d-bar{height:3px;background:var(--surface3);border-radius:1px;overflow:hidden;width:100%;margin-top:5px;}
-    .ioc-d-bar-fill{height:100%;border-radius:1px;transition:width .5s cubic-bezier(.16,1,.3,1);}
+    .ioc-d-stat-lbl{font-size:7px;color:var(--text-muted);letter-spacing:.14em;text-transform:uppercase;margin-bottom:5px;font-family:var(--font-ui);}
+    .ioc-d-stat-val{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;}
+    .ioc-d-bar{height:2px;background:var(--surface3);margin-top:7px;overflow:hidden;}
+    .ioc-d-bar-fill{height:100%;transition:width .6s cubic-bezier(.16,1,.3,1);}
+    .ioc-d-date{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text-hi);line-height:1;font-family:var(--font-mono);}
+    .ioc-d-date-sub{font-size:8px;color:var(--text-muted);letter-spacing:.04em;margin-top:4px;}
     .ioc-d-body{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent;}
-    .ioc-d-section{padding:12px 18px;border-bottom:1px solid var(--border);}
-    .ioc-d-section-hd{font-size:8px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;}
-    .ioc-d-row{display:flex;gap:10px;padding:3px 0;font-size:10px;align-items:baseline;}
-    .ioc-d-lbl{font-size:8px;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;width:90px;flex-shrink:0;}
-    .ioc-d-val{color:var(--text);flex:1;word-break:break-all;line-height:1.4;}
-    .ioc-d-pivot-btn{font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px;transition:border-color .1s,color .1s,transform 150ms ease-out;white-space:nowrap;font-family:var(--font-ui);}
-    .ioc-d-pivot-btn:hover{border-color:var(--green);color:var(--green);}
+    .ioc-d-section{border-bottom:1px solid var(--border);}
+    .ioc-d-section-hd{display:flex;align-items:center;gap:7px;font-size:7.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--text-muted);padding:10px 20px 8px;font-family:var(--font-ui);}
+    .ioc-d-section-hd::before{content:'';display:block;width:8px;height:1px;background:var(--green);box-shadow:0 0 4px var(--green);flex-shrink:0;}
+    .ioc-d-rows{padding:2px 20px 10px;}
+    .ioc-d-row{display:flex;gap:12px;padding:5px 0;font-size:10px;align-items:baseline;border-bottom:1px solid rgba(255,255,255,.03);}
+    .ioc-d-row:last-child{border-bottom:none;}
+    .ioc-d-lbl{font-size:7.5px;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;width:96px;flex-shrink:0;padding-top:1px;font-family:var(--font-ui);}
+    .ioc-d-val{color:var(--text);flex:1;word-break:break-all;line-height:1.5;}
+    .ioc-d-pivot{padding:10px 20px 16px;display:flex;flex-wrap:wrap;gap:6px;}
+    .ioc-d-pivot-btn{font-size:8px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;padding:5px 12px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:border-color .12s,color .12s,background .12s,transform 150ms ease-out;white-space:nowrap;font-family:var(--font-ui);}
+    .ioc-d-pivot-btn:hover{border-color:var(--green);color:var(--green);background:rgba(0,255,65,.04);}
     .ioc-d-pivot-btn:active{transform:scale(.95);transition:transform 80ms ease-out;}
+    .ioc-d-pivot-btn:focus-visible{outline:1px solid var(--green);outline-offset:2px;}
+    /* Table row click cues */
     .ioc-table tr.ioc-tbody-row{cursor:pointer;}
-    @media (prefers-reduced-motion:reduce){#ioc-drawer{transition:opacity .18s ease!important;}#ioc-drawer:not(.open){opacity:0;pointer-events:none;}}
+    .ioc-table tr.ioc-tbody-row td:first-child{border-left:2px solid transparent;transition:border-color .12s;}
+    .ioc-table tr.ioc-tbody-row:hover td:first-child{border-left-color:rgba(0,255,65,.5);}
+    .ioc-table tr.ioc-tbody-row:active td{background:rgba(0,255,65,.1)!important;transition:background 80ms ease-out;}
+    @media (prefers-reduced-motion:reduce){#ioc-drawer{transition:opacity .18s ease!important;transform:none!important;}#ioc-drawer:not(.open){opacity:0;pointer-events:none;}}
     .ioc-none{line-height:2;}
 
     /* TTP TAB */
@@ -1717,15 +1734,18 @@
 
 <div id="ioc-backdrop" onclick="closeIocDrawer()"></div>
 <div id="ioc-drawer" role="dialog" aria-modal="true" aria-labelledby="ioc-d-value-txt">
+  <div id="ioc-drawer-accent"></div>
   <div class="ioc-d-hd">
     <div style="flex:1;min-width:0">
-      <div class="ioc-d-eyebrow" id="ioc-d-eyebrow">// IOC</div>
+      <div class="ioc-d-type-chip" id="ioc-d-eyebrow">IOC</div>
       <div class="ioc-d-value">
         <span id="ioc-d-value-txt" style="flex:1"></span>
-        <button class="ioc-d-copy" id="ioc-d-copy-btn" title="Copy value"><svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="9" height="9" rx="1"/><path d="M1 10V2a1 1 0 0 1 1-1h8"/></svg></button>
+        <button class="ioc-d-copy" id="ioc-d-copy-btn" title="Copy value" aria-label="Copy IOC value">
+          <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="9" height="9" rx="1"/><path d="M1 10V2a1 1 0 0 1 1-1h8"/></svg>
+        </button>
       </div>
     </div>
-    <button class="drawer-close" onclick="closeIocDrawer()" aria-label="Close" style="flex-shrink:0;margin-top:16px">&#x2715;</button>
+    <button class="ioc-d-close" id="ioc-d-close-btn" onclick="closeIocDrawer()" aria-label="Close detail panel">&#x2715;</button>
   </div>
   <div class="ioc-d-stats">
     <div class="ioc-d-stat">
@@ -1735,11 +1755,13 @@
     </div>
     <div class="ioc-d-stat">
       <div class="ioc-d-stat-lbl">First Seen</div>
-      <div id="ioc-d-first" style="font-size:11px;font-weight:600;color:var(--text-hi);font-variant-numeric:tabular-nums">—</div>
+      <div class="ioc-d-date" id="ioc-d-first">—</div>
+      <div class="ioc-d-date-sub" id="ioc-d-first-sub"></div>
     </div>
     <div class="ioc-d-stat">
       <div class="ioc-d-stat-lbl">Last Seen</div>
-      <div id="ioc-d-last" style="font-size:11px;font-weight:600;color:var(--text-hi);font-variant-numeric:tabular-nums">—</div>
+      <div class="ioc-d-date" id="ioc-d-last">—</div>
+      <div class="ioc-d-date-sub" id="ioc-d-last-sub"></div>
     </div>
   </div>
   <div class="ioc-d-body" id="ioc-d-body"></div>
@@ -2630,60 +2652,66 @@ function openIocDrawer(idx){
   const isIp=r.type==="ipv4"||r.type==="ipv6";
   const isUrl=r.type==="url";
   const extSvg=`<svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M3.5 2H2C1.45 2 1 2.45 1 3V8C1 8.55 1.45 9 2 9H7C7.55 9 8 8.55 8 8V6.5M6 1H9M9 1V4M9 1L4.5 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const warnSvg=`<svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:middle;margin-right:3px"><path d="M8 2L14 13H2L8 2z"/><path d="M8 6v3.5M8 11.5v.5"/></svg>`;
+  const daysAgo=d=>{if(!d)return null;const n=Math.floor((Date.now()-new Date(d+"T00:00:00Z").getTime())/86400000);return n===0?"today":n===1?"1d ago":`${n}d ago`;};
+  // accent bar — red if high threat, amber if medium, green if low
+  const accentCol=s>=70?`rgba(239,68,68,.9)`:s>=30?`rgba(255,149,0,.8)`:`rgba(0,255,65,.7)`;
+  document.getElementById("ioc-drawer-accent").style.background=accentCol;
   // header
-  document.getElementById("ioc-d-eyebrow").textContent=`// IOC · ${r.type.toUpperCase()}`;
+  document.getElementById("ioc-d-eyebrow").textContent=r.type.toUpperCase();
   document.getElementById("ioc-d-value-txt").textContent=r.value;
-  document.getElementById("ioc-d-copy-btn").onclick=e=>{e.stopPropagation();navigator.clipboard.writeText(r.value).catch(()=>{});const b=document.getElementById("ioc-d-copy-btn");b.style.color="var(--green)";b.style.borderColor="var(--green)";setTimeout(()=>{b.style.color="";b.style.borderColor="";},1200);};
+  document.getElementById("ioc-d-copy-btn").onclick=e=>{e.stopPropagation();navigator.clipboard.writeText(r.value).catch(()=>{});const b=document.getElementById("ioc-d-copy-btn");b.style.color="var(--green)";b.style.borderColor="var(--green)";b.style.background="rgba(0,255,65,.08)";setTimeout(()=>{b.style.color="";b.style.borderColor="";b.style.background="";},1400);};
   // stats
   const scoreEl=document.getElementById("ioc-d-score");scoreEl.textContent=s.toFixed(1);scoreEl.style.color=col;
   const barEl=document.getElementById("ioc-d-bar");barEl.style.width=Math.round(s)+"%";barEl.style.background=col;
   document.getElementById("ioc-d-first").textContent=r.first_seen||"—";
+  document.getElementById("ioc-d-first-sub").textContent=daysAgo(r.first_seen)||"";
   document.getElementById("ioc-d-last").textContent=r.last_seen||"—";
-  // body sections
+  document.getElementById("ioc-d-last-sub").textContent=daysAgo(r.last_seen)||"";
+  // section builder helpers
+  const sec=(title,rows)=>rows.length?`<div class="ioc-d-section"><div class="ioc-d-section-hd">${title}</div><div class="ioc-d-rows">${rows.join("")}</div></div>`:"";
+  const row=(lbl,val)=>`<div class="ioc-d-row"><span class="ioc-d-lbl">${lbl}</span><span class="ioc-d-val">${val}</span></div>`;
   let html="";
   // Attribution
-  if(r.apt||(r.source_count||1)>1){
-    html+=`<div class="ioc-d-section"><div class="ioc-d-section-hd">Attribution</div>`;
-    if(r.apt){const cc=r.apt_confidence==="high"?"var(--green)":r.apt_confidence==="medium"?"var(--amber)":"var(--text-muted)";html+=`<div class="ioc-d-row"><span class="ioc-d-lbl">APT Group</span><span class="ioc-d-val"><span class="ioc-apt">${esc(r.apt)}</span>${r.apt_confidence?`<span style="font-size:8px;color:${cc};margin-left:6px">${r.apt_confidence.toUpperCase()}</span>`:""}</span></div>`;}
-    if((r.source_count||1)>1)html+=`<div class="ioc-d-row"><span class="ioc-d-lbl">Confirmed In</span><span class="ioc-d-val" style="color:var(--green)">${r.source_count} articles</span></div>`;
-    html+=`</div>`;
-  }
+  const attrRows=[];
+  if(r.apt){const cc=r.apt_confidence==="high"?"var(--green)":r.apt_confidence==="medium"?"var(--amber)":"var(--text-muted)";attrRows.push(row("APT Group",`<span class="ioc-apt">${esc(r.apt)}</span>${r.apt_confidence?`<span style="font-size:8px;color:${cc};margin-left:6px">${r.apt_confidence.toUpperCase()}</span>`:""}"`));}
+  if((r.source_count||1)>1)attrRows.push(row("Confirmed In",`<span style="color:var(--green)">${r.source_count} articles</span>`));
+  html+=sec("Attribution",attrRows);
   // Source
-  html+=`<div class="ioc-d-section"><div class="ioc-d-section-hd">Source</div>`;
-  html+=`<div class="ioc-d-row"><span class="ioc-d-lbl">Blog</span><span class="ioc-d-val">${esc(r.source_blog||"—")}</span></div>`;
-  if(r.source_article)html+=`<div class="ioc-d-row"><span class="ioc-d-lbl">Article</span><span class="ioc-d-val" style="font-size:9px"><a href="${esc(r.source_article)}" target="_blank" rel="noopener" style="color:var(--green);text-decoration:none;word-break:break-all">${esc(r.source_article)}</a></span></div>`;
-  html+=`</div>`;
+  const srcRows=[row("Blog",esc(r.source_blog||"—"))];
+  if(r.source_article)srcRows.push(row("Article",`<a href="${esc(r.source_article)}" target="_blank" rel="noopener" style="color:var(--green);text-decoration:none;font-size:9px;word-break:break-all">${esc(r.source_article)}</a>`));
+  html+=sec("Source",srcRows);
   // Enrichment — domain / url
   if(isDomain||isUrl){
     const blocks=[];
-    if(r.vt_malicious!=null)blocks.push(`<div class="ioc-d-row"><span class="ioc-d-lbl">VT Direct</span><span class="ioc-d-val" style="color:${r.vt_malicious>0?"var(--red)":"var(--text-muted)"}">${r.vt_malicious>0?`${r.vt_malicious} engines flagged`:"Clean"}</span></div>`);
-    if(isDomain&&r.vt_domain_malicious!=null)blocks.push(`<div class="ioc-d-row"><span class="ioc-d-lbl">VT Domain</span><span class="ioc-d-val" style="color:${r.vt_domain_malicious>0?"var(--red)":"var(--text-muted)"}">${r.vt_domain_malicious>0?`${r.vt_domain_malicious} engines flagged`:"Clean"}</span></div>`);
-    if(isDomain&&r.domain_registered){const days=Math.floor((Date.now()-new Date(r.domain_registered).getTime())/86400000);blocks.push(`<div class="ioc-d-row"><span class="ioc-d-lbl">Registered</span><span class="ioc-d-val">${esc(r.domain_registered)} <span style="color:var(--text-muted)">(${days}d ago)</span></span></div>`);}
-    if(isDomain&&r.domain_resolves===false)blocks.push(`<div class="ioc-d-row"><span class="ioc-d-lbl">DNS</span><span class="ioc-d-val" style="color:var(--text-muted)">NXDOMAIN — not resolving</span></div>`);
-    if(isDomain&&r.is_typosquat)blocks.push(`<div class="ioc-d-row"><span class="ioc-d-lbl">Typosquat</span><span class="ioc-d-val" style="color:var(--red)">⚠ possible typosquat of ${esc(r.typosquat_of||"")}</span></div>`);
-    if(isDomain&&r.urlhaus_domain_status==="listed")blocks.push(`<div class="ioc-d-row"><span class="ioc-d-lbl">URLhaus</span><span class="ioc-d-val" style="color:var(--red)">Listed${r.urlhaus_domain_threat?`: ${esc(r.urlhaus_domain_threat)}`:""}</span></div>`);
-    if(isUrl&&r.url_threat)blocks.push(`<div class="ioc-d-row"><span class="ioc-d-lbl">Threat</span><span class="ioc-d-val" style="color:var(--red)">${esc(r.url_threat.replace(/_/g," "))}</span></div>`);
-    if(isUrl&&(r.url_tags||[]).length)blocks.push(`<div class="ioc-d-row"><span class="ioc-d-lbl">Tags</span><span class="ioc-d-val">${(r.url_tags||[]).map(t=>`<span class="ioc-tag" style="display:inline-block;margin:1px">${esc(t)}</span>`).join(" ")}</span></div>`);
-    if(blocks.length)html+=`<div class="ioc-d-section"><div class="ioc-d-section-hd">Enrichment</div>${blocks.join("")}</div>`;
+    if(r.vt_malicious!=null)blocks.push(row("VT Direct",`<span style="color:${r.vt_malicious>0?"var(--red)":"var(--text-muted)"}">${r.vt_malicious>0?`${r.vt_malicious} engines flagged`:"Clean"}</span>`));
+    if(isDomain&&r.vt_domain_malicious!=null)blocks.push(row("VT Domain",`<span style="color:${r.vt_domain_malicious>0?"var(--red)":"var(--text-muted)"}">${r.vt_domain_malicious>0?`${r.vt_domain_malicious} engines flagged`:"Clean"}</span>`));
+    if(isDomain&&r.domain_registered){const days=Math.floor((Date.now()-new Date(r.domain_registered).getTime())/86400000);blocks.push(row("Registered",`${esc(r.domain_registered)} <span style="color:var(--text-muted)">(${days}d ago)</span>`));}
+    if(isDomain&&r.domain_resolves===false)blocks.push(row("DNS",`<span style="color:var(--text-muted)">NXDOMAIN — not resolving</span>`));
+    if(isDomain&&r.is_typosquat)blocks.push(row("Typosquat",`<span style="color:var(--red);display:inline-flex;align-items:center">${warnSvg}possible typosquat of <strong style="margin-left:3px">${esc(r.typosquat_of||"")}</strong></span>`));
+    if(isDomain&&r.urlhaus_domain_status==="listed")blocks.push(row("URLhaus",`<span style="color:var(--red)">Listed${r.urlhaus_domain_threat?`: ${esc(r.urlhaus_domain_threat)}`:""}</span>`));
+    if(isUrl&&r.url_threat)blocks.push(row("Threat",`<span style="color:var(--red)">${esc(r.url_threat.replace(/_/g," "))}</span>`));
+    if(isUrl&&(r.url_tags||[]).length)blocks.push(row("Tags",(r.url_tags||[]).map(t=>`<span class="ioc-tag" style="display:inline-block;margin:1px">${esc(t)}</span>`).join(" ")));
+    html+=sec("Enrichment",blocks);
   }
   // Enrichment — hash
   if(isHash){
     const blocks=[];
-    if(r.vt_malicious!=null)blocks.push(`<div class="ioc-d-row"><span class="ioc-d-lbl">VirusTotal</span><span class="ioc-d-val" style="color:${r.vt_malicious>0?"var(--red)":"var(--text-muted)"}">${r.vt_malicious>0?`${r.vt_malicious} engines flagged`:"Clean"}</span></div>`);
-    if(r.mb_file_type!=null){blocks.push(`<div class="ioc-d-row"><span class="ioc-d-lbl">MalwareBazaar</span><span class="ioc-d-val">${r.mb_signature?`<span style="color:var(--red)">${esc(r.mb_signature)}</span>`:esc(r.mb_file_type||"found")}</span></div>`);if(r.mb_file_name)blocks.push(`<div class="ioc-d-row"><span class="ioc-d-lbl">Filename</span><span class="ioc-d-val" style="color:var(--text-muted);word-break:break-all">${esc(r.mb_file_name)}</span></div>`);if((r.mb_tags||[]).length)blocks.push(`<div class="ioc-d-row"><span class="ioc-d-lbl">Tags</span><span class="ioc-d-val">${(r.mb_tags||[]).map(t=>`<span class="ioc-tag" style="display:inline-block;margin:1px">${esc(t)}</span>`).join(" ")}</span></div>`);}
-    if(r.tf_threat_type!=null)blocks.push(`<div class="ioc-d-row"><span class="ioc-d-lbl">ThreatFox</span><span class="ioc-d-val" style="color:${(r.tf_confidence||0)>=75?"var(--red)":"var(--amber)"}">${esc(r.tf_threat_type.replace(/_/g," "))}${r.tf_malware&&r.tf_malware!==r.mb_signature?` / ${esc(r.tf_malware)}`:""} <span style="color:var(--text-muted)">(${r.tf_confidence||0}% conf)</span></span></div>`);
-    if(blocks.length)html+=`<div class="ioc-d-section"><div class="ioc-d-section-hd">Enrichment</div>${blocks.join("")}</div>`;
+    if(r.vt_malicious!=null)blocks.push(row("VirusTotal",`<span style="color:${r.vt_malicious>0?"var(--red)":"var(--text-muted)"}">${r.vt_malicious>0?`${r.vt_malicious} engines flagged`:"Clean"}</span>`));
+    if(r.mb_file_type!=null){blocks.push(row("MalwareBazaar",r.mb_signature?`<span style="color:var(--red)">${esc(r.mb_signature)}</span>`:esc(r.mb_file_type||"found")));if(r.mb_file_name)blocks.push(row("Filename",`<span style="color:var(--text-muted)">${esc(r.mb_file_name)}</span>`));if((r.mb_tags||[]).length)blocks.push(row("Tags",(r.mb_tags||[]).map(t=>`<span class="ioc-tag" style="display:inline-block;margin:1px">${esc(t)}</span>`).join(" ")));}
+    if(r.tf_threat_type!=null)blocks.push(row("ThreatFox",`<span style="color:${(r.tf_confidence||0)>=75?"var(--red)":"var(--amber)"}">${esc(r.tf_threat_type.replace(/_/g," "))}${r.tf_malware&&r.tf_malware!==r.mb_signature?` / ${esc(r.tf_malware)}`:""}</span> <span style="color:var(--text-muted)">(${r.tf_confidence||0}% conf)</span>`));
+    html+=sec("Enrichment",blocks);
   }
   // Enrichment — ip
   if(isIp){
     const blocks=[];
-    if(r.vt_malicious!=null)blocks.push(`<div class="ioc-d-row"><span class="ioc-d-lbl">VirusTotal</span><span class="ioc-d-val" style="color:${r.vt_malicious>0?"var(--red)":"var(--text-muted)"}">${r.vt_malicious>0?`${r.vt_malicious} engines flagged`:"Clean"}</span></div>`);
-    if(r.ipinfo_org)blocks.push(`<div class="ioc-d-row"><span class="ioc-d-lbl">ASN / Org</span><span class="ioc-d-val">${esc(r.ipinfo_org)}${r.ipinfo_country?` <span style="color:var(--text-muted)">${esc(r.ipinfo_country)}</span>`:""}</span></div>`);
-    if(r.abuseipdb_score!=null){const ac=r.abuseipdb_score>=80?"var(--red)":r.abuseipdb_score>=40?"var(--amber)":"var(--text-muted)";blocks.push(`<div class="ioc-d-row"><span class="ioc-d-lbl">AbuseIPDB</span><span class="ioc-d-val" style="color:${ac}">${r.abuseipdb_score}% abuse confidence</span></div>`);}
-    if(r.greynoise_classification!=null)blocks.push(`<div class="ioc-d-row"><span class="ioc-d-lbl">GreyNoise</span><span class="ioc-d-val" style="color:${r.greynoise_riot?"var(--green)":r.greynoise_classification==="malicious"?"var(--red)":"var(--text-muted)"}">${r.greynoise_riot?"Known benign service":r.greynoise_classification}${r.greynoise_name?` — ${esc(r.greynoise_name)}`:""}</span></div>`);
-    if((r.shodan_ports||[]).length)blocks.push(`<div class="ioc-d-row"><span class="ioc-d-lbl">Open Ports</span><span class="ioc-d-val" style="color:var(--text-muted);font-family:var(--font-mono)">${(r.shodan_ports||[]).slice(0,10).join(", ")}</span></div>`);
-    if((r.shodan_tags||[]).length)blocks.push(`<div class="ioc-d-row"><span class="ioc-d-lbl">Shodan Tags</span><span class="ioc-d-val">${(r.shodan_tags||[]).map(t=>`<span class="ioc-tag" style="display:inline-block;margin:1px">${esc(t)}</span>`).join(" ")}</span></div>`);
-    if(blocks.length)html+=`<div class="ioc-d-section"><div class="ioc-d-section-hd">Enrichment</div>${blocks.join("")}</div>`;
+    if(r.vt_malicious!=null)blocks.push(row("VirusTotal",`<span style="color:${r.vt_malicious>0?"var(--red)":"var(--text-muted)"}">${r.vt_malicious>0?`${r.vt_malicious} engines flagged`:"Clean"}</span>`));
+    if(r.ipinfo_org)blocks.push(row("ASN / Org",`${esc(r.ipinfo_org)}${r.ipinfo_country?` <span style="color:var(--text-muted)">${esc(r.ipinfo_country)}</span>`:""}`));
+    if(r.abuseipdb_score!=null){const ac=r.abuseipdb_score>=80?"var(--red)":r.abuseipdb_score>=40?"var(--amber)":"var(--text-muted)";blocks.push(row("AbuseIPDB",`<span style="color:${ac}">${r.abuseipdb_score}% abuse confidence</span>`));}
+    if(r.greynoise_classification!=null)blocks.push(row("GreyNoise",`<span style="color:${r.greynoise_riot?"var(--green)":r.greynoise_classification==="malicious"?"var(--red)":"var(--text-muted)"}">${r.greynoise_riot?"Known benign service":r.greynoise_classification}${r.greynoise_name?` — ${esc(r.greynoise_name)}`:""}</span>`));
+    if((r.shodan_ports||[]).length)blocks.push(row("Open Ports",`<span style="color:var(--text-muted);font-family:var(--font-mono)">${(r.shodan_ports||[]).slice(0,10).join(", ")}</span>`));
+    if((r.shodan_tags||[]).length)blocks.push(row("Shodan Tags",(r.shodan_tags||[]).map(t=>`<span class="ioc-tag" style="display:inline-block;margin:1px">${esc(t)}</span>`).join(" ")));
+    html+=sec("Enrichment",blocks);
   }
   // Pivot links
   const pivots=[];
@@ -2691,11 +2719,13 @@ function openIocDrawer(idx){
   else if(isDomain){pivots.push({l:"VirusTotal",h:`https://www.virustotal.com/gui/domain/${encodeURIComponent(r.value)}`});pivots.push({l:"URLhaus",h:`https://urlhaus.abuse.ch/browse.php?search=${encodeURIComponent(r.value)}`});pivots.push({l:"Shodan",h:`https://www.shodan.io/search?query=${encodeURIComponent(r.value)}`});pivots.push({l:"WHOIS",h:`https://whois.domaintools.com/${encodeURIComponent(r.value)}`});}
   else if(isIp){pivots.push({l:"VirusTotal",h:`https://www.virustotal.com/gui/ip-address/${encodeURIComponent(r.value)}`});pivots.push({l:"AbuseIPDB",h:`https://www.abuseipdb.com/check/${encodeURIComponent(r.value)}`});pivots.push({l:"Shodan",h:`https://www.shodan.io/host/${encodeURIComponent(r.value)}`});pivots.push({l:"GreyNoise",h:`https://www.greynoise.io/viz/ip/${encodeURIComponent(r.value)}`});}
   else if(isUrl){try{pivots.push({l:"VirusTotal",h:`https://www.virustotal.com/gui/url/${btoa(r.value).replace(/\+/g,"-").replace(/\//g,"_").replace(/=/g,"")}`});}catch(e){}pivots.push({l:"URLhaus",h:`https://urlhaus.abuse.ch/browse.php?search=${encodeURIComponent(r.value)}`});}
-  if(pivots.length)html+=`<div class="ioc-d-section"><div class="ioc-d-section-hd">Pivot</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:2px">${pivots.map(p=>`<a href="${esc(p.h)}" target="_blank" rel="noopener" class="ioc-d-pivot-btn">${esc(p.l)} ${extSvg}</a>`).join("")}</div></div>`;
+  if(pivots.length)html+=`<div class="ioc-d-section"><div class="ioc-d-section-hd">Pivot</div><div class="ioc-d-pivot">${pivots.map(p=>`<a href="${esc(p.h)}" target="_blank" rel="noopener" class="ioc-d-pivot-btn">${esc(p.l)} ${extSvg}</a>`).join("")}</div></div>`;
   document.getElementById("ioc-d-body").innerHTML=html;
   document.getElementById("ioc-drawer").classList.add("open");
   document.getElementById("ioc-backdrop").classList.add("visible");
   document.body.style.overflow="hidden";
+  // Move focus to close button for keyboard accessibility
+  requestAnimationFrame(()=>document.getElementById("ioc-d-close-btn")?.focus());
 }
 function copyIoc(el,value){navigator.clipboard.writeText(value).catch(()=>{});const td=el.closest?el.closest("td"):el;const tag=td?.querySelector(".ioc-copied");const btn=td?.querySelector(".ioc-copy-btn");if(tag){tag.classList.add("show");setTimeout(()=>tag.classList.remove("show"),1400);}if(btn){btn.classList.add("done");setTimeout(()=>btn.classList.remove("done"),1400);}}
 function renderIocs(data){
