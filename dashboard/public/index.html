@@ -2332,7 +2332,7 @@ function _iocEnrichTagsHtml(r){
   const mb=isHash&&r.mb_file_type!=null?(mbSig?`<span class="ioc-tag" style="background:rgba(239,68,68,.15);color:#f87171" title="${esc(r.mb_file_name||'')}">MB:${esc(mbSig)}</span>`:`<span class="ioc-tag" style="color:var(--text-muted)">MB:${esc(r.mb_file_type||'found')}</span>`):"";
   const tf=isHash&&r.tf_threat_type!=null?`<span class="ioc-tag" style="background:${(r.tf_confidence||0)>=75?'rgba(239,68,68,.15);color:#f87171':'rgba(251,146,60,.18);color:#fb923c'}" title="Confidence:${r.tf_confidence||0}%">TF:${esc(r.tf_threat_type.replace(/_/g," "))}</span>`:"";
 
-  return[shodan,abuse,gn,org,vtDom,uhDom,typosquat,mb,tf].filter(Boolean).join(" ");
+  return[shodan,abuse,gn,org,vtDom,uhDom,typosquat,mb,tf].filter(Boolean).join("");
 }
 function _iocRowsHtml(iocs,emptyMsg){
   if(!iocs.length)return`<tr><td colspan="6" class="pa-empty">// ${emptyMsg}</td></tr>`;
@@ -2346,7 +2346,7 @@ function _iocRowsHtml(iocs,emptyMsg){
       <td><span style="color:${col};font-weight:600;font-variant-numeric:tabular-nums">${s.toFixed(1)}</span><br><div class="ioc-decay-track" style="margin-top:3px"><div class="ioc-decay-fill" style="width:${bar}%;background:${col}"></div></div></td>
       <td>${r.apt?`<span class="ioc-apt">${esc(r.apt)}</span>`:`<span class="ioc-dim">—</span>`}</td>
       <td>${r.vt_malicious!=null&&r.vt_malicious>0?`<span class="ioc-vt">${r.vt_malicious}</span>`:`<span class="ioc-dim">—</span>`}</td>
-      <td>${enrich||`<span class="ioc-dim">—</span>`}</td>
+      <td>${enrich?`<div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center">${enrich}</div>`:`<span class="ioc-dim">—</span>`}</td>
     </tr>`;
   }).join("");
 }
