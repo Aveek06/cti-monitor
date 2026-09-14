@@ -594,6 +594,14 @@ def extract_iocs(text: str, source_url: str | None = None) -> list[dict]:
                     continue
             except ValueError:
                 pass
+        # Strict hex validation for hashes — iocsearcher matches 64-char alphanumeric
+        # strings too loosely; real hashes are hex-only with exact lengths.
+        if t == "sha256" and not re.match(r'^[0-9a-f]{64}$', v.lower()):
+            continue
+        if t == "sha1" and not re.match(r'^[0-9a-f]{40}$', v.lower()):
+            continue
+        if t == "md5" and not re.match(r'^[0-9a-f]{32}$', v.lower()):
+            continue
         k = (t, v)
         if k not in seen:
             seen.add(k)
