@@ -929,6 +929,9 @@
     .exec-kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 22px;transition:border-color 200ms var(--ease),transform 200ms var(--ease)}
     .exec-kpi-card:hover{border-color:var(--border-hi);transform:translateY(-1px)}
     .exec-kpi-card:active{transform:translateY(0) scale(.97);transition:transform 80ms ease-out;}
+    .actor-card{transition:border-color 160ms var(--ease),transform 160ms var(--ease);}
+    .actor-card:hover{border-color:var(--border-hi);}
+    .actor-card:active{transform:scale(.97);transition:transform 80ms ease-out;}
     .exec-kpi-label{font:600 10px/1 var(--font-ui);letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px}
     .exec-kpi-val{font:700 38px/1 var(--font-ui);letter-spacing:-0.02em;color:var(--text-hi);font-variant-numeric:tabular-nums;margin-bottom:6px}
     .exec-kpi-sub{font:400 11px/1.4 var(--font-ui);color:var(--text-dim)}
@@ -2656,6 +2659,67 @@ function openTtpDrawer(tid){
   animateDrawer(true);document.getElementById("backdrop").classList.add("visible");document.body.style.overflow="hidden";
 }
 
+function openActorDrawer(idx){
+  const a=_actorRows[idx];if(!a)return;
+  const eyebrow=document.getElementById("drawer-eyebrow");eyebrow.textContent="// Threat Actor";eyebrow.classList.remove("red");
+  document.getElementById("drawer-name").textContent=a.actor;
+  const domainTxt=document.getElementById("drawer-domain-txt");domainTxt.textContent="";document.getElementById("drawer-domain").href="#";
+
+  const daysAgo=a.last_seen?Math.floor((Date.now()-new Date(a.last_seen+"T00:00:00Z"))/86400000):null;
+  const freshTxt=daysAgo===0?"today":daysAgo===1?"1d ago":daysAgo!=null?`${daysAgo}d ago`:"—";
+  const iocs=_allIocs.filter(r=>r.apt===a.actor).map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((x,y)=>y._live-x._live);
+  const techs=(a.techniques||[]).map(tid=>_allTtps.find(t=>t.technique_id===tid)||{technique_id:tid}).sort((x,y)=>(y.total_observations||y.article_count||0)-(x.total_observations||x.article_count||0));
+  const sources=(a.sources||[]).filter(Boolean);
+
+  const d1=document.getElementById("d-total");d1.previousElementSibling.textContent="Articles";d1.textContent=a.article_count;d1.style.color="";d1.className="d-stat-num";
+  const d2=document.getElementById("d-week");d2.previousElementSibling.textContent="IOCs Attributed";d2.classList.add("green");d2.textContent=iocs.length;
+
+  let html=`<div class="ttp-d-meta">
+    <div class="ttp-d-row"><span class="ttp-d-lbl">Last observed</span><span class="ttp-d-val">${esc(freshTxt)}</span></div>
+    <div class="ttp-d-row"><span class="ttp-d-lbl">Techniques used</span><span class="ttp-d-val">${a.technique_count}</span></div>
+    <div class="ttp-d-row"><span class="ttp-d-lbl">Source articles</span><span class="ttp-d-val">${sources.length}</span></div>
+  </div>`;
+
+  if(techs.length){
+    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${techs.length} ATT&amp;CK Technique${techs.length!==1?"s":""}</div>`;
+    html+=techs.map(t=>{
+      const tacticLabel=(t.tactic||"").split("-").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" ");
+      return`<a class="ttp-d-link" style="display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer" onclick="closeDrawer();switchTab('ttps');setTimeout(()=>openTtpDrawer('${esc(t.technique_id)}'),200)">
+        <span><span class="ttp-d-src-host">${esc(t.technique_id)}</span><span class="ttp-d-src-path">${esc(t.technique_name||"")}</span></span>
+        ${tacticLabel?`<span style="font-size:8px;color:var(--text-muted);white-space:nowrap;flex-shrink:0">${esc(tacticLabel)}</span>`:""}
+      </a>`;
+    }).join("");
+    html+=`</div>`;
+  }
+
+  if(sources.length){
+    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${sources.length} Source Article${sources.length!==1?"s":""}</div>`;
+    for(const url of sources){
+      const meta=resolveArticleMeta(url);
+      const site=(meta&&(meta.site||meta.source_blog))||_allIocs.find(r=>r.source_article===url)?.source_blog||"";
+      html+=`<a class="ttp-d-link" href="${esc(url)}" target="_blank" rel="noopener" style="display:block;margin-bottom:4px">
+        <span class="ttp-d-src-host">${esc(site||urlHost(url))}</span><span class="ttp-d-src-path">${esc(urlPath(url))}</span>
+      </a>`;
+    }
+    html+=`</div>`;
+  }
+
+  html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${iocs.length} Indicator${iocs.length!==1?"s":""}</div>`;
+  if(iocs.length){
+    html+=`<div style="overflow-x:auto"><table class="pv-links-table" style="margin-top:4px">
+      <thead><tr><th>Value</th><th>Type</th><th>Score</th><th>APT</th><th>VT</th><th>Enrichment</th></tr></thead>
+      <tbody>${_iocRowsHtml(iocs,"No IOCs attributed to this actor")}</tbody>
+    </table></div>`;
+  }else{
+    html+=`<div class="no-links">No IOCs attributed to this actor yet.</div>`;
+  }
+  html+=`</div>`;
+
+  document.getElementById("links-list").innerHTML=html;
+  document.getElementById("rel-section").style.display="none";
+  animateDrawer(true);document.getElementById("backdrop").classList.add("visible");document.body.style.overflow="hidden";
+}
+
 /* ── IOC rendering ── */
 let _allIocs=[];
 function liveScore(lastSeen,tau,ltv){if(!lastSeen)return 0;const t=(Date.now()-new Date(lastSeen+"T00:00:00Z"))/86400000;if(isNaN(t)||t<0)return 0;return Math.max(0,Math.min(100,100*(1-(t/((tau||30)*(ltv||1.0)))**2)));}
@@ -3353,12 +3417,14 @@ function renderHome({activeSites,quietSites,failingSites,weekTotal,iocExport,ttp
 }
 
 /* ── Actors Tab ── */
+let _actorRows=[];
 function renderActors(actorExport){
   const grid=document.getElementById("actors-grid");
   const none=document.getElementById("actors-none");
   const cnt=document.getElementById("actors-count");
   if(!grid)return;
   const actors=(actorExport||[]).filter(a=>a.actor);
+  _actorRows=actors;
   if(cnt)cnt.textContent=actors.length?`${actors.length} actor${actors.length!==1?"s":""}`:""
   if(!actors.length){if(none)none.style.display="";grid.innerHTML="";return;}
   if(none)none.style.display="none";
@@ -3366,9 +3432,9 @@ function renderActors(actorExport){
     const daysAgo=a.last_seen?Math.floor((Date.now()-new Date(a.last_seen+"T00:00:00Z"))/86400000):null;
     const freshTxt=daysAgo===0?"today":daysAgo===1?"yesterday":daysAgo!=null?`${daysAgo}d ago`:"";
     const techs=(a.techniques||[]).slice(0,8);
-    const techHtml=techs.map(tid=>`<span onclick="switchTab('ttps');setTimeout(()=>openTtpDrawer('${esc(tid)}'),200)" style="cursor:pointer;font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid rgba(0,255,65,.25);color:var(--green);white-space:nowrap">${esc(tid)}</span>`).join("");
+    const techHtml=techs.map(tid=>`<span onclick="event.stopPropagation();switchTab('ttps');setTimeout(()=>openTtpDrawer('${esc(tid)}'),200)" style="cursor:pointer;font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid rgba(0,255,65,.25);color:var(--green);white-space:nowrap">${esc(tid)}</span>`).join("");
     const moreLabel=(a.techniques||[]).length>8?`<span style="font-size:8px;color:var(--text-muted)">+${(a.techniques||[]).length-8} more</span>`:"";
-    return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;animation:tabIn 160ms var(--ease) both;animation-delay:${i*30}ms">
+    return`<div class="actor-card" onclick="openActorDrawer(${i})" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;cursor:pointer;animation:tabIn 160ms var(--ease) both;animation-delay:${i*30}ms">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
         <span style="font-size:12px;font-weight:700;color:var(--text)">${esc(a.actor)}</span>
         <span style="font-size:8px;color:var(--text-muted)">${esc(freshTxt)}</span>
