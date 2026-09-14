@@ -1,0 +1,29 @@
+name: Cleanup Invalid Hash IOCs
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install psycopg2-binary
+
+      - name: Run cleanup
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python cleanup_invalid_hashes.py
