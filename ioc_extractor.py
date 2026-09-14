@@ -170,6 +170,20 @@ _FP_DOMAINS = {
     "iso", "img", "tar", "gz", "rar", "7z", "cab", "mov", "mp4", "app",
 }
 
+# Programming method/attribute names mistaken for TLDs in code snippets
+# e.g. "f.read", "o2.read", "user.email" — none are real C2 infrastructure TLDs
+_PROG_PSEUDO_TLDS = {
+    "read", "write", "open", "close", "split", "strip", "join",
+    "lower", "upper", "find", "replace", "format", "decode", "encode",
+    "append", "extend", "sort", "reverse", "pop", "push", "keys",
+    "values", "items", "load", "dump", "parse", "execute", "connect",
+    "recv", "send", "flush", "seek", "tell", "readline", "readlines",
+    "writelines", "count", "index", "copy", "delete", "update", "insert",
+    "select", "create", "exit", "run", "start", "stop", "get", "set",
+    "name", "path", "text", "body", "head", "tail", "size", "length",
+    "type", "email", "username", "password", "token", "session",
+}
+
 # URL path segments that indicate navigation/sharing links, not IOCs
 _FP_URL_PATH_RE = re.compile(
     r'/(?:category|categories|tag|tags|page|author|authors|feed|search'
@@ -558,6 +572,9 @@ def extract_iocs(text: str, source_url: str | None = None) -> list[dict]:
                 continue
             # Skip trusted TLDs
             if any(v.endswith(tld) for tld in _FP_TRUSTED_TLDS):
+                continue
+            # Skip code constructs extracted as FQDNs: f.read, o2.read, user.email, etc.
+            if v.split(".")[-1].lower() in _PROG_PSEUDO_TLDS:
                 continue
         if t == "ipv4":
             if v in _FP_IPS:
