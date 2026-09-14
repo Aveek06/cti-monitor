@@ -594,6 +594,9 @@ def extract_iocs(text: str, source_url: str | None = None) -> list[dict]:
                     continue
             except ValueError:
                 pass
+        # Windows SIDs (S-1-5-21-...) are misidentified as SHA1 by iocsearcher
+        if t in ("sha256", "sha1", "md5") and re.match(r'^S-\d+-\d', v, re.IGNORECASE):
+            continue
         # Strict hex validation for hashes — iocsearcher matches 64-char alphanumeric
         # strings too loosely; real hashes are hex-only with exact lengths.
         if t == "sha256" and not re.match(r'^[0-9a-f]{64}$', v.lower()):
