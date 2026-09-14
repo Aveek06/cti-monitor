@@ -1,4 +1,4 @@
-name: Domain Enrichment Catchup
+name: IOC Enrichment Catchup
 
 on:
   workflow_dispatch:
@@ -6,11 +6,12 @@ on:
       mode:
         description: "Which enrichers to run"
         required: false
-        default: "both"
+        default: "all"
         type: choice
         options:
-          - both
-          - vt-only
+          - all
+          - domain-vt-only
+          - hash-vt-only
           - meta-only
 
 permissions:
@@ -33,14 +34,17 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run domain enrichment catchup
+      - name: Run IOC enrichment catchup
         env:
           DATABASE_URL:      ${{ secrets.DATABASE_URL }}
           VT_API_KEY_DOMAIN: ${{ secrets.VT_API_KEY_DOMAIN }}
+          VT_API_KEY:        ${{ secrets.VT_API_KEY }}
         run: |
           MODE="${{ github.event.inputs.mode }}"
-          if [ "$MODE" = "vt-only" ]; then
-            python catchup_domain_enrichment.py --vt-only
+          if [ "$MODE" = "domain-vt-only" ]; then
+            python catchup_domain_enrichment.py --domain-vt-only
+          elif [ "$MODE" = "hash-vt-only" ]; then
+            python catchup_domain_enrichment.py --hash-vt-only
           elif [ "$MODE" = "meta-only" ]; then
             python catchup_domain_enrichment.py --meta-only
           else

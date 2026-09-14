@@ -94,13 +94,14 @@ def enrich_pending_ips(conn, api_key: str) -> None:
             conn.rollback()
 
 
-def enrich_pending_hashes(conn, api_key: str) -> None:
+def enrich_pending_hashes(conn, api_key: str, limit: int = 30) -> None:
     import psycopg2.extras
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute(
             "SELECT id, value, type FROM ioc_indicators "
-            "WHERE vt_verified = FALSE AND type IN ('sha256','sha1') "
-            "ORDER BY created_at DESC LIMIT 20"
+            "WHERE vt_verified = FALSE AND type IN ('sha256','sha1','md5') "
+            "ORDER BY created_at DESC LIMIT %s",
+            (limit,)
         )
         rows = cur.fetchall()
     for row in rows:
