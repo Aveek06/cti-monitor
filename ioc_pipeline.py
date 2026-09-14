@@ -417,6 +417,10 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
         pruned = ioc_db.prune_expired(conn, grace_days=90)
         if pruned:
             print(f"IOC pipeline: pruned {pruned} IOC(s) older than 90 days.")
+
+        pruned_sigma = ioc_db.prune_sigma_rules(conn, max_age_days=7)
+        if pruned_sigma:
+            print(f"IOC pipeline: pruned {pruned_sigma} sigma rule(s) older than 7 days.")
     except Exception as e:
         print(f"IOC pipeline: result query / export failed: {e}")
 

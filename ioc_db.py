@@ -189,6 +189,18 @@ def prune_expired(conn, grace_days: int = 90) -> int:
     return deleted
 
 
+def prune_sigma_rules(conn, max_age_days: int = 7) -> int:
+    """Delete sigma rules older than max_age_days. Returns deleted row count."""
+    with conn.cursor() as cur:
+        cur.execute(
+            "DELETE FROM sigma_rules WHERE created_at < NOW() - INTERVAL '%s days'",
+            (max_age_days,),
+        )
+        deleted = cur.rowcount
+    conn.commit()
+    return deleted
+
+
 TTP_SCHEMA = """
 CREATE TABLE IF NOT EXISTS ttp_observations (
     id                SERIAL PRIMARY KEY,
