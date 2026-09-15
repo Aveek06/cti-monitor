@@ -168,6 +168,8 @@ _FP_DOMAINS = {
     "zip", "exe", "dll", "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx",
     "ps1", "bat", "cmd", "sh", "py", "js", "vbs", "hta", "jar", "msi",
     "iso", "img", "tar", "gz", "rar", "7z", "cab", "mov", "mp4", "app",
+    "md", "txt", "csv", "json", "xml", "yaml", "yml", "toml", "ini", "cfg",
+    "log", "bak", "tmp", "conf",
 }
 
 # Programming method/attribute names mistaken for TLDs in code snippets
@@ -183,6 +185,19 @@ _PROG_PSEUDO_TLDS = {
     "name", "path", "text", "body", "head", "tail", "size", "length",
     "type", "email", "username", "password", "token", "session",
 }
+
+# Common programming variable names that appear as SLDs paired with short ccTLDs.
+# e.g. "user.id", "obj.id", "self.id" are property accesses, not Indonesian domains.
+# Only applied when the domain has exactly two parts (no subdomain prefix).
+_PROG_VARIABLE_NAMES = {
+    "user", "obj", "self", "req", "res", "ctx", "app", "item", "row",
+    "record", "entity", "model", "node", "el", "element", "ev", "event",
+    "data", "payload", "request", "response", "result", "entry", "config",
+    "value", "param", "arg", "val", "var", "ref", "key", "attr", "field",
+}
+
+# Short ccTLDs that double as common attribute names in code
+_PROG_ATTR_CCTLDS = {"id", "is", "my", "me"}
 
 # URL path segments that indicate navigation/sharing links, not IOCs
 _FP_URL_PATH_RE = re.compile(
@@ -575,6 +590,11 @@ def extract_iocs(text: str, source_url: str | None = None) -> list[dict]:
                 continue
             # Skip code constructs extracted as FQDNs: f.read, o2.read, user.email, etc.
             if v.split(".")[-1].lower() in _PROG_PSEUDO_TLDS:
+                continue
+            # Skip property-access patterns with short ccTLDs: user.id, obj.id, etc.
+            # Only for bare two-part domains so real subdomains like evil.user.id aren't blocked.
+            _dparts = v.lower().split(".")
+            if len(_dparts) == 2 and _dparts[1] in _PROG_ATTR_CCTLDS and _dparts[0] in _PROG_VARIABLE_NAMES:
                 continue
         if t == "ipv4":
             if v in _FP_IPS:
