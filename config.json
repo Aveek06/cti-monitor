@@ -84,7 +84,12 @@
       "type": "scrapling_fetcher",
       "url": "https://www.paloaltonetworks.com/blog/identity-security/",
       "link_path_prefix": "/blog/identity-security/",
-      "path_exclude": ["/tag/", "/author/", "/category/", "/page/"],
+      "path_exclude": [
+        "/tag/",
+        "/author/",
+        "/category/",
+        "/page/"
+      ],
       "notes": "CyberArk content moved to Palo Alto Networks identity-security blog. scrapling_fetcher used."
     },
     {
@@ -233,7 +238,9 @@
       "type": "scrapling_fetcher",
       "url": "https://www.elliptic.co/insights/",
       "link_path_prefix": "/insights/",
-      "path_exclude": ["/page/"],
+      "path_exclude": [
+        "/page/"
+      ],
       "notes": "Blog moved from /blog/ to /insights/. RSS dead. scrapling_fetcher gets 9 article links. path_exclude /page/ removes pagination."
     },
     {
@@ -313,7 +320,9 @@
       "name": "Picus Security",
       "type": "feed",
       "url": "https://www.picussecurity.com/resource/rss.xml",
-      "path_exclude": ["/resource/case-study/"]
+      "path_exclude": [
+        "/resource/case-study/"
+      ]
     },
     {
       "name": "ASEC",
@@ -343,7 +352,7 @@
     },
     {
       "name": "haxrob (security researchers)",
-      "type": "feed",
+      "type": "scrapling_feed",
       "url": "https://haxrob.net/feed/"
     },
     {
@@ -428,7 +437,12 @@
       "type": "scrapling_fetcher",
       "url": "https://jscrambler.com/blog/",
       "link_path_prefix": "/blog/",
-      "path_exclude": ["#", "?category=", "?tag=", "?author="],
+      "path_exclude": [
+        "#",
+        "?category=",
+        "?tag=",
+        "?author="
+      ],
       "min_slug_length": 8,
       "notes": "RSS 404 dead. scrapling_fetcher bypasses 403. path_exclude blocks category/pagination (all contain #). min_slug_length=8 filters out the /blog/ base URL (slug='blog', len=4)."
     },
@@ -628,7 +642,9 @@
       "type": "feed",
       "url": "https://www.silentpush.com/feed/",
       "link_path_prefix": "silentpush.com",
-      "path_exclude": ["/press-releases"]
+      "path_exclude": [
+        "/press-releases"
+      ]
     },
     {
       "name": "SAM CERT",
@@ -772,7 +788,9 @@
       "name": "Sygnia",
       "type": "feed",
       "url": "https://www.sygnia.co/feed/",
-      "path_exclude": ["/webinars/"]
+      "path_exclude": [
+        "/webinars/"
+      ]
     },
     {
       "name": "Zimperium",
@@ -921,7 +939,7 @@
     },
     {
       "name": "Akamai",
-      "type": "crawl4ai",
+      "type": "scrapling_fetcher",
       "url": "https://www.akamai.com/blog/security-research",
       "notes": "crawl4ai stealth mode bypasses Akamai WAF (was 403 with plain Playwright); seeded locally",
       "link_path_prefix": "/blog/security-research/",
@@ -1041,7 +1059,7 @@
     },
     {
       "name": "IBM X-Force",
-      "type": "html",
+      "type": "scrapling_stealthy",
       "url": "https://securityintelligence.com/x-force/",
       "post_container": "div.horizontal-media-group__item",
       "link_selector": "a",
@@ -1279,7 +1297,11 @@
       "type": "scrapling_fetcher",
       "url": "https://blackpointcyber.com/blog/",
       "link_path_prefix": "/blog/",
-      "path_exclude": ["/blog/soc-2", "/blog/see-the-", "/blog/compassone"],
+      "path_exclude": [
+        "/blog/soc-2",
+        "/blog/see-the-",
+        "/blog/compassone"
+      ],
       "notes": "curl_cffi TLS bypasses Cloudflare bot-wall (plain requests = 403). Shows ~7 recent posts per run."
     },
     {
@@ -1362,7 +1384,12 @@
       "type": "scrapling_fetcher",
       "url": "https://www.aisi.gov.uk/blog/",
       "link_path_prefix": "/blog/",
-      "path_exclude": ["/tag/", "/author/", "/category/", "/page/"],
+      "path_exclude": [
+        "/tag/",
+        "/author/",
+        "/category/",
+        "/page/"
+      ],
       "min_slug_length": 8,
       "notes": "UK AI Safety Institute. No RSS. scrapling_fetcher 200, 97 links. Articles at /blog/slug. min_slug_length=8 filters base /blog/ URL."
     },
@@ -1371,7 +1398,10 @@
       "type": "scrapling_fetcher",
       "url": "https://www.manifold.security/blog/",
       "link_path_prefix": "/blog/blog/",
-      "path_exclude": ["/author/", "/tag/"],
+      "path_exclude": [
+        "/author/",
+        "/tag/"
+      ],
       "notes": "No RSS. scrapling_fetcher 200. Articles at /blog/blog/slug (double path). 9 current articles."
     },
     {
