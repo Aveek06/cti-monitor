@@ -3,6 +3,11 @@ import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 
+# Minimum AI self-reported confidence (0-100) for a TTP to be trusted and stored.
+# The prompt already asks the model to omit anything below 40; this enforces it
+# in code instead of relying on the model to always comply.
+MIN_TTP_CONFIDENCE = 50
+
 # AI extractor sometimes returns STIX SCO type names; normalize to internal names.
 _AI_TYPE_NORM = {
     "ipv4-addr": "ipv4",
@@ -128,10 +133,18 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
             )
             if ai.get("ttps") or ai.get("iocs") or ai.get("apt"):
                 ttp_ai_budget -= 1
-            # Filter AI TTPs to known ATT&CK IDs only
-            ai_ttps = [t for t in (ai["ttps"] or [])
-                       if t.get("technique_id", "") in ttp_extractor.TECHNIQUE_LOOKUP]
-            ttps = ai_ttps if ai_ttps else ttp_extractor.extract_ttps(text, "")
+            # Filter AI TTPs to known ATT&CK IDs and a minimum confidence.
+            # Trust the AI's own "nothing clearly demonstrated" verdict — do NOT
+            # fall back to the unguarded regex scan just because this list is empty.
+            # extract_ttps_regex() matches any T-ID-shaped string anywhere in the
+            # text with no "performed vs. merely referenced" awareness, and CTI
+            # articles routinely end with a full ATT&CK reference table for the
+            # malware family in general — regex would indiscriminately absorb it.
+            ttps = [
+                t for t in (ai["ttps"] or [])
+                if t.get("technique_id", "") in ttp_extractor.TECHNIQUE_LOOKUP
+                and (t.get("confidence") or 0) >= MIN_TTP_CONFIDENCE
+            ]
             _seen = {(r["value"], r["type"]) for r in iocs}
             for ai_ioc in (ai["iocs"] or []):
                 v, t = ai_ioc.get("value", "").strip(), ai_ioc.get("type", "").strip()
