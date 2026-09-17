@@ -524,6 +524,22 @@ def get_all_actors(conn) -> list[dict]:
         return [dict(r) for r in cur.fetchall()]
 
 
+def refresh_actor_export(conn) -> list[dict]:
+    """Recompute get_all_actors() and write it to pipeline_state["actor_export"].
+
+    ioc_pipeline.py's run() already does this as part of the full daily
+    pipeline. The standalone sync_mitre_groups.py and sync_ransomware_live.py
+    scripts write directly to threat_actor_profiles/ioc_indicators but never
+    touch pipeline_state -- without this, the dashboard (which reads the
+    pipeline_state cache, not live queries) would keep showing stale actor
+    data until the next full pipeline run. Both scripts call this at the end
+    of their sync() so the dashboard reflects new data immediately.
+    """
+    actor_export = get_all_actors(conn)
+    upsert_pipeline_state(conn, "actor_export", actor_export)
+    return actor_export
+
+
 PIPELINE_STATE_SCHEMA = """
 CREATE TABLE IF NOT EXISTS pipeline_state (
     key        TEXT PRIMARY KEY,

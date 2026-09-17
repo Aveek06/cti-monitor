@@ -102,6 +102,7 @@ def _build_negotiation_stats(chats: list[dict]) -> dict | None:
 
 def sync(conn, api_key: str, rel_lookup: dict | None = None) -> dict:
     ioc_db.init_actor_profile_schema(conn)
+    ioc_db.init_pipeline_state_schema(conn)
 
     print("sync_ransomware_live: fetching bulk index endpoints...")
     groups_idx = _get("/groups", api_key).get("groups", [])
@@ -250,6 +251,14 @@ def sync(conn, api_key: str, rel_lookup: dict | None = None) -> dict:
     print(f"sync_ransomware_live: done. exact={stats['exact']} alias={stats['alias']} "
           f"unmatched={stats['unmatched']} iocs_imported={stats['iocs_imported']} "
           f"iocs_skipped_unsupported={stats['iocs_skipped_unsupported']}")
+
+    try:
+        exported = ioc_db.refresh_actor_export(conn)
+        print(f"sync_ransomware_live: refreshed pipeline_state actor_export ({len(exported)} actors) "
+              f"so the dashboard reflects this sync immediately.")
+    except Exception as e:
+        print(f"sync_ransomware_live: actor_export refresh failed: {e}")
+
     return stats
 
 

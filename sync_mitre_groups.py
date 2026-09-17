@@ -119,6 +119,7 @@ def build_group_profiles(objects: list[dict]) -> dict[str, dict]:
 
 def sync(conn) -> dict:
     ioc_db.init_actor_profile_schema(conn)
+    ioc_db.init_pipeline_state_schema(conn)
 
     print("sync_mitre_groups: fetching MITRE ATT&CK Enterprise bundle...")
     objects = fetch_bundle()
@@ -156,6 +157,14 @@ def sync(conn) -> dict:
 
     print(f"sync_mitre_groups: done. exact={stats['exact']} alias={stats['alias']} "
           f"unmatched={stats['unmatched']} ambiguous={stats['ambiguous']}")
+
+    try:
+        exported = ioc_db.refresh_actor_export(conn)
+        print(f"sync_mitre_groups: refreshed pipeline_state actor_export ({len(exported)} actors) "
+              f"so the dashboard reflects this sync immediately.")
+    except Exception as e:
+        print(f"sync_mitre_groups: actor_export refresh failed: {e}")
+
     return stats
 
 
