@@ -399,6 +399,17 @@
     .ttp-d-val{color:var(--text);text-align:right;}
     .ttp-d-section{margin-bottom:12px;}
     .ttp-d-section-hd{font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);padding:0 0 5px;border-bottom:1px solid var(--border);margin-bottom:5px;font-family:var(--font-ui);}
+    /* collapsible accordion sections (dense/optional drawer content) */
+    .ttp-d-acc{margin-bottom:8px;border:1px solid var(--border);background:var(--surface2);}
+    .ttp-d-acc>summary{cursor:pointer;padding:8px 10px;font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);font-family:var(--font-ui);list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;user-select:none;transition:color .1s,background .1s;}
+    .ttp-d-acc>summary::-webkit-details-marker{display:none;}
+    .ttp-d-acc>summary:hover{color:var(--text-dim);background:rgba(255,255,255,.03);}
+    .ttp-d-acc>summary:focus-visible{outline:2px solid var(--cyan);outline-offset:-2px;}
+    .ttp-d-acc>summary::after{content:"+";font-size:11px;color:var(--text-muted);flex-shrink:0;}
+    .ttp-d-acc[open]>summary::after{content:"\2212";}
+    .ttp-d-acc[open]>summary{border-bottom:1px solid var(--border);}
+    .ttp-d-acc-body{padding:10px;}
+    .ttp-d-acc-body>*:last-child{margin-bottom:0;}
     .ttp-d-chips{display:flex;flex-wrap:wrap;gap:4px;padding:3px 0;}
     .ttp-d-chip{font-size:8px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border:1px solid;background:var(--surface2);color:var(--amber);border-color:rgba(255,149,0,.3);}
     .ttp-d-link{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;padding:6px 10px;text-decoration:none;border-left:2px solid transparent;transition:background .1s,border-color .1s;}
@@ -503,6 +514,8 @@
     .backdrop.visible{opacity:1;pointer-events:auto;}
     .drawer{position:fixed;top:0;right:0;width:min(480px,94vw);height:100%;background:rgba(8,8,8,.92);backdrop-filter:blur(20px) saturate(160%);border-left:1px solid var(--border-hi);z-index:400;transform:translateX(100%);display:flex;flex-direction:column;}
     .drawer.open{transform:translateX(0);}
+    .drawer.drawer-wide{width:min(1040px,94vw);}
+    .drawer.drawer-wide .ttp-d-src-path{max-width:480px;}
     .drawer-hd{display:flex;align-items:flex-start;justify-content:space-between;padding:18px 18px 14px;border-bottom:1px solid var(--border);gap:12px;flex-shrink:0;}
     .drawer-eyebrow{font-size:8px;color:var(--green);letter-spacing:.16em;text-transform:uppercase;margin-bottom:5px;font-family:var(--font-ui);}
     .drawer-eyebrow.red{color:var(--red);}
@@ -2283,7 +2296,7 @@ function openDrawer(name,sites,state,isFailing=false){
   relEl.innerHTML=renderRelSection(name,site?.count||0,_lastActive[name],isFailing);
   animateDrawer(true);document.getElementById("backdrop").classList.add("visible");document.body.style.overflow="hidden";
 }
-function closeDrawer(){animateDrawer(false);document.getElementById("backdrop").classList.remove("visible");document.body.style.overflow="";setTimeout(()=>document.querySelectorAll(".link-item").forEach(li=>li.classList.remove("show")),420);}
+function closeDrawer(){animateDrawer(false);document.getElementById("backdrop").classList.remove("visible");document.body.style.overflow="";setTimeout(()=>{document.querySelectorAll(".link-item").forEach(li=>li.classList.remove("show"));document.getElementById("drawer").classList.remove("drawer-wide");},420);}
 
 /* ── Page View Data Helpers ── */
 function getSiteIocs(siteName,days){
@@ -2659,8 +2672,16 @@ function openTtpDrawer(tid){
   animateDrawer(true);document.getElementById("backdrop").classList.add("visible");document.body.style.overflow="hidden";
 }
 
+function _accordion(title,bodyHtml,open){
+  return `<details class="ttp-d-acc"${open?" open":""}>
+    <summary>${title}</summary>
+    <div class="ttp-d-acc-body">${bodyHtml}</div>
+  </details>`;
+}
+
 function openActorDrawer(idx){
   const a=_actorRows[idx];if(!a)return;
+  document.getElementById("drawer").classList.add("drawer-wide");
   const eyebrow=document.getElementById("drawer-eyebrow");eyebrow.textContent="// Threat Actor";eyebrow.classList.remove("red");
   document.getElementById("drawer-name").textContent=a.actor;
   const domainTxt=document.getElementById("drawer-domain-txt");domainTxt.textContent="";document.getElementById("drawer-domain").href="#";
@@ -2691,23 +2712,22 @@ function openActorDrawer(idx){
   }
 
   if(techs.length){
-    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${techs.length} Technique${techs.length!==1?"s":""} Observed by Us</div>`;
-    html+=techs.map(t=>{
+    const body=techs.map(t=>{
       const tacticLabel=(t.tactic||"").split("-").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" ");
       return`<a class="ttp-d-link" style="display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer" onclick="closeDrawer();switchTab('ttps');setTimeout(()=>openTtpDrawer('${esc(t.technique_id)}'),200)">
         <span><span class="ttp-d-src-host">${esc(t.technique_id)}</span><span class="ttp-d-src-path">${esc(t.technique_name||"")}</span></span>
         ${tacticLabel?`<span style="font-size:8px;color:var(--text-muted);white-space:nowrap;flex-shrink:0">${esc(tacticLabel)}</span>`:""}
       </a>`;
     }).join("");
-    html+=`</div>`;
+    html+=_accordion(`${techs.length} Technique${techs.length!==1?"s":""} Observed by Us`,body,true);
   }
 
   const mitreOnly=(a.mitre_techniques||[]).filter(tid=>!(a.techniques||[]).includes(tid)).sort();
   if(mitreOnly.length){
-    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${mitreOnly.length} MITRE-Attributed (Not Yet Observed)</div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px">${mitreOnly.map(tid=>
+    const body=`<div style="display:flex;flex-wrap:wrap;gap:4px">${mitreOnly.map(tid=>
         `<span onclick="closeDrawer();switchTab('ttps');setTimeout(()=>openTtpDrawer('${esc(tid)}'),200)" style="cursor:pointer;font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid rgba(0,229,255,.25);color:var(--cyan);white-space:nowrap">${esc(tid)}</span>`
-      ).join("")}</div></div>`;
+      ).join("")}</div>`;
+    html+=_accordion(`${mitreOnly.length} MITRE-Attributed (Not Yet Observed)`,body,false);
   }
 
   const rwTtps=a.ransomware_ttps||[];
@@ -2721,114 +2741,115 @@ function openActorDrawer(idx){
       });
     });
     if(rwChips.length){
-      html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${rwChips.length} Technique${rwChips.length!==1?"s":""} (ransomware.live-mapped)</div>
-        <div style="display:flex;flex-wrap:wrap;gap:4px">${rwChips.join("")}</div></div>`;
+      html+=_accordion(`${rwChips.length} Technique${rwChips.length!==1?"s":""} (ransomware.live-mapped)`,
+        `<div style="display:flex;flex-wrap:wrap;gap:4px">${rwChips.join("")}</div>`,false);
     }
   }
 
   const mitreSoftware=a.software||[];
   const rwTools=a.tools||{};
   if(mitreSoftware.length||Object.keys(rwTools).length){
-    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Software &amp; Tooling</div>`;
+    let body="";
     if(mitreSoftware.length){
-      html+=`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">${mitreSoftware.map(s=>
+      body+=`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">${mitreSoftware.map(s=>
         `<span style="font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid var(--border);color:var(--text-dim);white-space:nowrap">${esc(s)}</span>`
       ).join("")}</div>`;
     }
     Object.entries(rwTools).forEach(([category,names])=>{
       if(!names||!names.length)return;
-      html+=`<div style="font-size:9px;color:var(--text-muted);margin:6px 0 3px">${esc(category)}</div>
+      body+=`<div style="font-size:9px;color:var(--text-muted);margin:6px 0 3px">${esc(category)}</div>
         <div style="display:flex;flex-wrap:wrap;gap:4px">${names.map(n=>
           `<span style="font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid var(--border);color:var(--text-dim);white-space:nowrap">${esc(n)}</span>`
         ).join("")}</div>`;
     });
-    html+=`</div>`;
+    html+=_accordion("Software &amp; Tooling",body,false);
   }
 
   const campaigns=a.campaigns||[];
   if(campaigns.length){
-    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${campaigns.length} Campaign${campaigns.length!==1?"s":""}</div>`;
+    let body="";
     campaigns.forEach(c=>{
       const range=c.first_seen||c.last_seen?`${esc((c.first_seen||"").slice(0,10)||"?")} — ${esc((c.last_seen||"").slice(0,10)||"ongoing")}`:"";
-      html+=`<div style="margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:var(--text)">${esc(c.name||"")}</div>
+      body+=`<div style="margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:var(--text)">${esc(c.name||"")}</div>
         ${range?`<div style="font-size:8px;color:var(--text-muted);margin-bottom:2px">${range}</div>`:""}
         ${c.description?`<div style="font-size:10px;color:var(--text-dim);line-height:1.4">${esc(c.description)}</div>`:""}
       </div>`;
     });
-    html+=`</div>`;
+    html+=_accordion(`${campaigns.length} Campaign${campaigns.length!==1?"s":""}`,body,true);
   }
 
   const vulns=a.vulnerabilities||[];
   if(vulns.length){
-    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${vulns.length} Vulnerabilit${vulns.length!==1?"ies":"y"} Exploited</div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px">${vulns.map(v=>{
+    const body=`<div style="display:flex;flex-wrap:wrap;gap:4px">${vulns.map(v=>{
         const cve=typeof v==="string"?v:(v.cve||v.id||v.name||"");
         return cve?`<a href="https://nvd.nist.gov/vuln/detail/${esc(cve)}" target="_blank" rel="noopener" style="font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid rgba(255,69,58,.3);color:#ff453a;white-space:nowrap">${esc(cve)}</a>`:"";
-      }).join("")}</div></div>`;
+      }).join("")}</div>`;
+    html+=_accordion(`${vulns.length} Vulnerabilit${vulns.length!==1?"ies":"y"} Exploited`,body,false);
   }
 
   const neg=a.negotiation_stats;
   if(neg&&neg.chat_count){
-    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Negotiation Behavior</div>
+    const body=`<div class="ttp-d-meta" style="margin-bottom:0">
       <div class="ttp-d-row"><span class="ttp-d-lbl">Negotiation chats seen</span><span class="ttp-d-val">${neg.chat_count}</span></div>
       ${neg.avg_initial_usd?`<div class="ttp-d-row"><span class="ttp-d-lbl">Avg. initial demand</span><span class="ttp-d-val">$${neg.avg_initial_usd.toLocaleString()}</span></div>`:""}
       ${neg.avg_negotiated_usd?`<div class="ttp-d-row"><span class="ttp-d-lbl">Avg. negotiated amount</span><span class="ttp-d-val">$${neg.avg_negotiated_usd.toLocaleString()}</span></div>`:""}
       <div class="ttp-d-row"><span class="ttp-d-lbl">Payment rate</span><span class="ttp-d-val">${Math.round((neg.payment_rate||0)*100)}%</span></div>
     </div>`;
+    html+=_accordion("Negotiation Behavior",body,true);
   }
 
   const noteNames=a.ransom_note_names||[];
   if(noteNames.length){
-    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Known Ransom Note Filenames</div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px">${noteNames.map(n=>
+    const body=`<div style="display:flex;flex-wrap:wrap;gap:4px">${noteNames.map(n=>
         `<span style="font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid var(--border);color:var(--text-dim);white-space:nowrap;font-family:monospace">${esc(n)}</span>`
-      ).join("")}</div></div>`;
+      ).join("")}</div>`;
+    html+=_accordion("Known Ransom Note Filenames",body,false);
   }
 
   const ransomNotes=a.ransom_notes||[];
   if(ransomNotes.length){
-    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Ransom Note Content</div>`;
+    let body="";
     ransomNotes.forEach(n=>{
-      html+=`<details style="margin-bottom:6px">
+      body+=`<details style="margin-bottom:6px">
         <summary style="cursor:pointer;font-size:10px;font-family:monospace;color:var(--text)">${esc(n.name||"")}${n.extension?esc(n.extension):""}</summary>
         <pre style="white-space:pre-wrap;word-break:break-word;font-size:9px;color:var(--text-dim);background:var(--surface-2,rgba(255,255,255,.03));border:1px solid var(--border);border-radius:4px;padding:8px;margin-top:4px;max-height:240px;overflow-y:auto">${esc(n.content||"")}</pre>
       </details>`;
     });
-    html+=`</div>`;
+    html+=_accordion("Ransom Note Content",body,false);
   }
 
   const yaraRules=a.yara_rules||[];
   if(yaraRules.length){
-    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${yaraRules.length} YARA Rule${yaraRules.length!==1?"s":""}</div>`;
+    let body="";
     yaraRules.forEach(r=>{
-      html+=`<details style="margin-bottom:6px">
+      body+=`<details style="margin-bottom:6px">
         <summary style="cursor:pointer;font-size:10px;font-family:monospace;color:var(--text)">${esc(r.filename||"rule")}</summary>
         <pre style="white-space:pre-wrap;word-break:break-word;font-size:9px;color:var(--text-dim);background:var(--surface-2,rgba(255,255,255,.03));border:1px solid var(--border);border-radius:4px;padding:8px;margin-top:4px;max-height:280px;overflow-y:auto">${esc(r.content||"")}</pre>
       </details>`;
     });
-    html+=`</div>`;
+    html+=_accordion(`${yaraRules.length} YARA Rule${yaraRules.length!==1?"s":""}`,body,false);
   }
 
   const leakSites=a.leak_sites||[];
   if(leakSites.length){
-    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${leakSites.length} Leak Site${leakSites.length!==1?"s":""}</div>`;
+    let body="";
     leakSites.forEach(ls=>{
       const status=ls.available===false?"down":ls.available===true?"up":"";
-      html+=`<div class="ttp-d-row"><span class="ttp-d-lbl">${esc(ls.title||ls.type||"Site")}</span><span class="ttp-d-val" style="font-family:monospace;font-size:9px;word-break:break-all">${esc(ls.fqdn||ls.slug||"")}${status?` (${status})`:""}</span></div>`;
+      body+=`<div class="ttp-d-row"><span class="ttp-d-lbl">${esc(ls.title||ls.type||"Site")}</span><span class="ttp-d-val" style="font-family:monospace;font-size:9px;word-break:break-all">${esc(ls.fqdn||ls.slug||"")}${status?` (${status})`:""}</span></div>`;
     });
-    html+=`</div>`;
+    html+=_accordion(`${leakSites.length} Leak Site${leakSites.length!==1?"s":""}`,`<div class="ttp-d-meta" style="margin-bottom:0">${body}</div>`,false);
   }
 
   const recentVictims=a.recent_victims||[];
   if(recentVictims.length){
-    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${recentVictims.length} Recent Victim${recentVictims.length!==1?"s":""}</div>`;
+    let body="";
     recentVictims.forEach(v=>{
-      html+=`<div style="margin-bottom:6px;font-size:10px">
+      body+=`<div style="margin-bottom:6px;font-size:10px">
         <span style="font-weight:700;color:var(--text)">${esc(v.victim||"")}</span>
         <span style="color:var(--text-muted)"> — ${esc(v.activity||"")}${v.country?", "+esc(v.country):""}${v.attackdate?" — "+esc(v.attackdate):""}</span>
       </div>`;
     });
-    html+=`</div>`;
+    html+=_accordion(`${recentVictims.length} Recent Victim${recentVictims.length!==1?"s":""}`,body,false);
   }
   const sectorsTargeted=a.sectors_targeted||[];
   if(sectorsTargeted.length){
@@ -2839,27 +2860,24 @@ function openActorDrawer(idx){
   }
 
   if(sources.length){
-    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${sources.length} Source Article${sources.length!==1?"s":""}</div>`;
+    let body="";
     for(const url of sources){
       const meta=resolveArticleMeta(url);
       const site=(meta&&(meta.site||meta.source_blog))||_allIocs.find(r=>r.source_article===url)?.source_blog||"";
-      html+=`<a class="ttp-d-link" href="${esc(url)}" target="_blank" rel="noopener" style="display:block;margin-bottom:4px">
+      body+=`<a class="ttp-d-link" href="${esc(url)}" target="_blank" rel="noopener" style="display:block;margin-bottom:4px">
         <span class="ttp-d-src-host">${esc(site||urlHost(url))}</span><span class="ttp-d-src-path">${esc(urlPath(url))}</span>
       </a>`;
     }
-    html+=`</div>`;
+    html+=_accordion(`${sources.length} Source Article${sources.length!==1?"s":""}`,body,true);
   }
 
-  html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${iocs.length} Indicator${iocs.length!==1?"s":""}</div>`;
-  if(iocs.length){
-    html+=`<div style="overflow-x:auto"><table class="pv-links-table" style="margin-top:4px">
+  const iocsBody=iocs.length
+    ?`<div style="overflow-x:auto"><table class="pv-links-table" style="margin-top:4px">
       <thead><tr><th>Value</th><th>Type</th><th>Score</th><th>APT</th><th>VT</th><th>Enrichment</th></tr></thead>
       <tbody>${_iocRowsHtml(iocs,"No IOCs attributed to this actor")}</tbody>
-    </table></div>`;
-  }else{
-    html+=`<div class="no-links">No IOCs attributed to this actor yet.</div>`;
-  }
-  html+=`</div>`;
+    </table></div>`
+    :`<div class="no-links">No IOCs attributed to this actor yet.</div>`;
+  html+=_accordion(`${iocs.length} Indicator${iocs.length!==1?"s":""}`,iocsBody,true);
 
   document.getElementById("links-list").innerHTML=html;
   document.getElementById("rel-section").style.display="none";
