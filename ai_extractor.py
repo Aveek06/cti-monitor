@@ -13,9 +13,14 @@ Return ONLY valid JSON — no markdown fences, no prose — in this exact schema
 }}
 
 Rules:
-- ttps: MITRE ATT&CK technique IDs the article explicitly describes an attacker PERFORMING — not techniques merely mentioned or referenced in passing. Empty array if nothing clearly demonstrated.
-  - confidence: integer 0-100. 90-100 = article explicitly shows attacker performing it with specific details. 60-89 = clearly described but moderate specificity. 40-59 = inferred from context. <40 = uncertain. Omit a technique rather than assign confidence below 40.
-  - evidence: a short verbatim quote (≤120 chars) from the article that most clearly demonstrates the technique. Use null if no specific sentence stands out.
+- ttps: MITRE ATT&CK technique IDs the article's narrative prose explicitly describes an attacker PERFORMING in this specific incident — not techniques merely mentioned, referenced in passing, or catalogued in a summary/background section.
+  - IGNORE standalone technique tables, "ATT&CK Navigator" mappings, or appendix-style lists that catalog techniques for a malware family or actor in general. Only count a technique if the prose narrates a concrete action taken during this incident.
+  - If the article explicitly cites a technique ID inline while describing a specific action in this incident (e.g. "...used PowerShell (T1059.001) to..."), USE THAT EXACT ID — it overrides whatever ID you would otherwise infer semantically — and assign confidence 90-100, since it is the author's own explicit attribution.
+  - Otherwise, identify the technique yourself from the described behavior using your own knowledge of MITRE ATT&CK (e.g. recognizing "sent a malicious Word attachment via email" as T1566.001 even though no ID is written), and score confidence per the scale below.
+  - Prefer the most specific sub-technique ID (e.g. T1059.001 over T1059) when the text is specific enough to identify one.
+  - Empty array if nothing is clearly demonstrated in prose.
+  - confidence: integer 0-100. 90-100 = the article explicitly cites this technique's ID inline, or the narrative explicitly shows the attacker performing it with specific technical detail. 60-89 = clearly described but moderate specificity. 40-59 = inferred from context. <40 = uncertain, or the only support is a summary table/list rather than prose. Omit a technique rather than assign confidence below 40.
+  - evidence: a short verbatim quote (≤120 chars) from the narrative prose (never a table row or bare technique-ID list) that most clearly demonstrates the technique. Use null if no specific sentence stands out.
 - iocs: only values explicitly stated in the text. Do NOT invent or hallucinate.
   Allowed types: domain, url, ipv4-addr, ipv6-addr, sha256, sha1, md5, email-addr
 - apt: most specific known threat actor / group name, or null if attribution is unclear.
