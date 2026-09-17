@@ -69,6 +69,23 @@ def _date_only(iso_str: str | None) -> str | None:
     return iso_str.split("T")[0]
 
 
+def _sanitize(obj):
+    """Recursively strip NUL characters from strings before JSON encoding.
+
+    Postgres's jsonb type rejects the \\u0000 codepoint outright ("unsupported
+    Unicode escape sequence") even though it's valid JSON -- raw YARA rule
+    content and ransom note text occasionally contain literal NUL bytes, so
+    every string sourced from the API is sanitized before storage.
+    """
+    if isinstance(obj, str):
+        return obj.replace("\x00", "")
+    if isinstance(obj, dict):
+        return {k: _sanitize(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize(v) for v in obj]
+    return obj
+
+
 def _build_negotiation_stats(chats: list[dict]) -> dict | None:
     if not chats:
         return None
@@ -182,28 +199,31 @@ def sync(conn, api_key: str, rel_lookup: dict | None = None) -> dict:
             ioc_db.upsert_ransomware_profile(
                 conn, canonical,
                 ransomware_live_id=slug,
-                ransomware_description=detail.get("description"),
+                ransomware_description=_sanitize(detail.get("description")),
                 victim_count=detail.get("victims"),
                 first_seen_rw=_date_only(detail.get("firstseen")),
                 last_seen_rw=_date_only(detail.get("lastseen")),
-                recent_victims=recent_victims,
+                recent_victims=_sanitize(recent_victims),
                 sectors_targeted=sorted(sectors),
-                tools=detail.get("tools", {}),
-                ransomware_ttps=detail.get("ttps", []),
-                leak_sites=detail.get("locations", []),
-                vulnerabilities=detail.get("vulnerabilities", []),
+                tools=_sanitize(detail.get("tools", {})),
+                ransomware_ttps=_sanitize(detail.get("ttps", [])),
+                leak_sites=_sanitize(detail.get("locations", [])),
+                vulnerabilities=_sanitize(detail.get("vulnerabilities", [])),
                 negotiation_stats=_build_negotiation_stats(chats),
-                ransom_note_names=ransom_note_names,
-                ransom_notes=ransom_notes,
-                yara_rules=yara_rules,
+                ransom_note_names=_sanitize(ransom_note_names),
+                ransom_notes=_sanitize(ransom_notes),
+                yara_rules=_sanitize(yara_rules),
                 match_method=method,
             )
         except Exception as e:
-            print(f"sync_ransomware_live: upsert failed for '{canonical}': {e}")
+            print(f"sync_ransomware_live: profile upsert failed for '{canonical}': {e}")
             conn.rollback()
-            continue
+            # Don't skip IOC import for this group -- a profile-metadata
+            # failure (e.g. bad content in a YARA rule or ransom note) is
+            # unrelated to the IOC values, which are independently valuable.
 
-        # Feed supported-type IOCs into the main pipeline.
+        # Feed supported-type IOCs into the main pipeline, regardless of
+        # whether the profile upsert above succeeded.
         group_permalink = f"https://www.ransomware.live/group/{slug}"
         last_seen = _date_only(detail.get("lastseen")) or datetime.date.today().isoformat()
         site_rel = 80
