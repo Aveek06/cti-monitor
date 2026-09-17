@@ -278,6 +278,118 @@ def init_sigma_schema(conn):
     conn.commit()
 
 
+# Threat actor profiles, enriched from two independent external sources:
+# MITRE ATT&CK (nation-state groups) and ransomware.live (financial/extortion
+# brands). Columns are grouped by which sync owns them so the two sync jobs
+# never clobber each other's data on the same actor_name row.
+ACTOR_PROFILE_SCHEMA = """
+CREATE TABLE IF NOT EXISTS threat_actor_profiles (
+    id                      SERIAL PRIMARY KEY,
+    actor_name              TEXT UNIQUE NOT NULL,
+    match_method            TEXT,
+    -- MITRE-owned columns
+    mitre_group_id          TEXT,
+    mitre_url               TEXT,
+    aliases                 JSONB DEFAULT '[]',
+    description             TEXT,
+    techniques              JSONB DEFAULT '[]',
+    software                JSONB DEFAULT '[]',
+    campaigns               JSONB DEFAULT '[]',
+    mitre_synced            TIMESTAMPTZ,
+    -- ransomware.live-owned columns
+    ransomware_live_id      TEXT,
+    ransomware_description  TEXT,
+    victim_count            INT,
+    first_seen_rw           DATE,
+    last_seen_rw            DATE,
+    recent_victims          JSONB DEFAULT '[]',
+    sectors_targeted        JSONB DEFAULT '[]',
+    tools                   JSONB DEFAULT '[]',
+    ransomware_ttps         JSONB DEFAULT '[]',
+    leak_sites              JSONB DEFAULT '[]',
+    vulnerabilities         JSONB DEFAULT '[]',
+    negotiation_stats       JSONB,
+    ransom_note_names       JSONB DEFAULT '[]',
+    ransomware_synced       TIMESTAMPTZ,
+    created_at              TIMESTAMPTZ DEFAULT NOW(),
+    updated_at              TIMESTAMPTZ DEFAULT NOW()
+);
+"""
+
+
+def init_actor_profile_schema(conn):
+    with conn.cursor() as cur:
+        cur.execute(ACTOR_PROFILE_SCHEMA)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_actor_profiles_mitre_id ON threat_actor_profiles(mitre_group_id)")
+    conn.commit()
+
+
+def upsert_mitre_profile(conn, actor_name: str, mitre_group_id: str | None, mitre_url: str | None,
+                          aliases: list, description: str | None, techniques: list,
+                          software: list, campaigns: list, match_method: str | None):
+    with conn.cursor() as cur:
+        cur.execute("""
+            INSERT INTO threat_actor_profiles
+                (actor_name, mitre_group_id, mitre_url, aliases, description,
+                 techniques, software, campaigns, match_method, mitre_synced, updated_at)
+            VALUES (%s, %s, %s, %s::jsonb, %s, %s::jsonb, %s::jsonb, %s::jsonb, %s, NOW(), NOW())
+            ON CONFLICT (actor_name) DO UPDATE SET
+                mitre_group_id = EXCLUDED.mitre_group_id,
+                mitre_url      = EXCLUDED.mitre_url,
+                aliases        = EXCLUDED.aliases,
+                description    = EXCLUDED.description,
+                techniques     = EXCLUDED.techniques,
+                software       = EXCLUDED.software,
+                campaigns      = EXCLUDED.campaigns,
+                mitre_synced   = NOW(),
+                updated_at     = NOW(),
+                match_method   = COALESCE(threat_actor_profiles.match_method, EXCLUDED.match_method)
+        """, (actor_name, mitre_group_id, mitre_url, json.dumps(aliases), description,
+              json.dumps(techniques), json.dumps(software), json.dumps(campaigns), match_method))
+    conn.commit()
+
+
+def upsert_ransomware_profile(conn, actor_name: str, ransomware_live_id: str | None,
+                               ransomware_description: str | None, victim_count: int | None,
+                               first_seen_rw: str | None, last_seen_rw: str | None,
+                               recent_victims: list, sectors_targeted: list, tools,
+                               ransomware_ttps: list, leak_sites: list, vulnerabilities: list,
+                               negotiation_stats: dict | None, ransom_note_names: list,
+                               match_method: str | None):
+    with conn.cursor() as cur:
+        cur.execute("""
+            INSERT INTO threat_actor_profiles
+                (actor_name, ransomware_live_id, ransomware_description, victim_count,
+                 first_seen_rw, last_seen_rw, recent_victims, sectors_targeted, tools,
+                 ransomware_ttps, leak_sites, vulnerabilities, negotiation_stats,
+                 ransom_note_names, match_method, ransomware_synced, updated_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, %s::jsonb,
+                    %s::jsonb, %s::jsonb, %s::jsonb, %s::jsonb, %s::jsonb, %s, NOW(), NOW())
+            ON CONFLICT (actor_name) DO UPDATE SET
+                ransomware_live_id     = EXCLUDED.ransomware_live_id,
+                ransomware_description = EXCLUDED.ransomware_description,
+                victim_count           = EXCLUDED.victim_count,
+                first_seen_rw          = EXCLUDED.first_seen_rw,
+                last_seen_rw           = EXCLUDED.last_seen_rw,
+                recent_victims         = EXCLUDED.recent_victims,
+                sectors_targeted       = EXCLUDED.sectors_targeted,
+                tools                  = EXCLUDED.tools,
+                ransomware_ttps        = EXCLUDED.ransomware_ttps,
+                leak_sites             = EXCLUDED.leak_sites,
+                vulnerabilities        = EXCLUDED.vulnerabilities,
+                negotiation_stats      = EXCLUDED.negotiation_stats,
+                ransom_note_names      = EXCLUDED.ransom_note_names,
+                ransomware_synced      = NOW(),
+                updated_at             = NOW(),
+                match_method           = COALESCE(threat_actor_profiles.match_method, EXCLUDED.match_method)
+        """, (actor_name, ransomware_live_id, ransomware_description, victim_count,
+              first_seen_rw, last_seen_rw, json.dumps(recent_victims), json.dumps(sectors_targeted),
+              json.dumps(tools), json.dumps(ransomware_ttps), json.dumps(leak_sites),
+              json.dumps(vulnerabilities), json.dumps(negotiation_stats) if negotiation_stats else None,
+              json.dumps(ransom_note_names), match_method))
+    conn.commit()
+
+
 def upsert_sigma_rule(conn, technique_id: str, technique_name: str | None,
                       tactic: str | None, source_article: str, source_blog: str | None,
                       attributed_apt: str | None, sigma_yaml: str):
@@ -342,20 +454,59 @@ def get_all_ttps(conn) -> list[dict]:
 
 
 def get_all_actors(conn) -> list[dict]:
-    """Return threat actors aggregated across all TTP observations."""
+    """Return threat actors aggregated across all TTP observations, enriched
+    with external profile data (MITRE ATT&CK, ransomware.live) where available.
+
+    Uses a FULL OUTER JOIN (not LEFT JOIN) so an actor with an external
+    profile but zero of our own TTP observations still surfaces -- e.g. a
+    ransomware brand our monitored blogs have never named by article, but
+    that ransomware.live tracks richly. Such actors get article_count=0.
+    """
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute("""
             SELECT
-                attributed_apt                               AS actor,
-                COUNT(DISTINCT source_article)               AS article_count,
-                COUNT(DISTINCT technique_id)                 AS technique_count,
-                MAX(last_seen::text)                         AS last_seen,
-                array_agg(DISTINCT technique_id)             AS techniques,
-                array_agg(DISTINCT source_article)           AS sources
-            FROM ttp_observations
-            WHERE attributed_apt IS NOT NULL
-            GROUP BY attributed_apt
-            ORDER BY article_count DESC, last_seen DESC
+                COALESCE(t.actor_name, p.actor_name)        AS actor,
+                COALESCE(t.article_count, 0)                AS article_count,
+                COALESCE(t.technique_count, 0)               AS technique_count,
+                COALESCE(t.last_seen, p.last_seen_rw::text)  AS last_seen,
+                COALESCE(t.techniques, ARRAY[]::text[])      AS techniques,
+                COALESCE(t.sources, ARRAY[]::text[])         AS sources,
+                p.mitre_group_id,
+                p.mitre_url,
+                p.aliases,
+                p.description,
+                p.techniques         AS mitre_techniques,
+                p.software,
+                p.campaigns,
+                p.mitre_synced,
+                p.ransomware_live_id,
+                p.ransomware_description,
+                p.victim_count,
+                p.first_seen_rw,
+                p.last_seen_rw,
+                p.recent_victims,
+                p.sectors_targeted,
+                p.tools,
+                p.ransomware_ttps,
+                p.leak_sites,
+                p.vulnerabilities,
+                p.negotiation_stats,
+                p.ransom_note_names,
+                p.ransomware_synced
+            FROM (
+                SELECT
+                    attributed_apt                        AS actor_name,
+                    COUNT(DISTINCT source_article)        AS article_count,
+                    COUNT(DISTINCT technique_id)          AS technique_count,
+                    MAX(last_seen::text)                  AS last_seen,
+                    array_agg(DISTINCT technique_id)      AS techniques,
+                    array_agg(DISTINCT source_article)    AS sources
+                FROM ttp_observations
+                WHERE attributed_apt IS NOT NULL
+                GROUP BY attributed_apt
+            ) t
+            FULL OUTER JOIN threat_actor_profiles p ON p.actor_name = t.actor_name
+            ORDER BY article_count DESC NULLS LAST, last_seen DESC NULLS LAST
         """)
         return [dict(r) for r in cur.fetchall()]
 

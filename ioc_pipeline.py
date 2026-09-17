@@ -33,6 +33,7 @@ import typosquat_checker
 import ttp_extractor
 import urlhaus_fetcher
 import ai_extractor
+import sync_ransomware_live
 
 
 def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
@@ -53,6 +54,7 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
         ioc_db.init_ttp_schema(conn)
         ioc_db.init_ratings_schema(conn)
         ioc_db.init_sigma_schema(conn)
+        ioc_db.init_actor_profile_schema(conn)
     except Exception as e:
         print(f"IOC pipeline: schema init failed: {e}")
         conn.close()
@@ -295,6 +297,16 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
         typosquat_checker.enrich_pending_domains(conn)
     except Exception as e:
         print(f"Typosquat check error: {e}")
+
+    ransomware_live_key = os.environ.get("RANSOMWARE_LIVE_API_KEY", "")
+    if ransomware_live_key:
+        print("Running ransomware.live actor profile + IOC sync...")
+        try:
+            sync_ransomware_live.sync(conn, ransomware_live_key, rel_lookup)
+        except Exception as e:
+            print(f"ransomware.live sync error: {e}")
+    else:
+        print("RANSOMWARE_LIVE_API_KEY not set — skipping ransomware.live sync.")
 
     try:
         results["new"]      = ioc_db.get_new_iocs_since(conn, today)

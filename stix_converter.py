@@ -13,6 +13,9 @@ STIX_PATTERNS = {
     "ipv6":       "[ipv6-addr:value = '{v}']",
     "url":        "[url:value = '{v}']",
     "email-addr": "[email-addr:value = '{v}']",
+    # Internal type name after _AI_TYPE_NORM normalizes "email-addr" -> "email"
+    # (ai_extractor.py IOCs and ransomware.live-fed IOCs both use "email").
+    "email":      "[email-addr:value = '{v}']",
 }
 
 

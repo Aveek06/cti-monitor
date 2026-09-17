@@ -124,6 +124,7 @@ jobs:
           GREYNOISE_API_KEY: ${{ secrets.GREYNOISE_API_KEY }}
           IPINFO_TOKEN:      ${{ secrets.IPINFO_TOKEN }}
           URLHAUS_API_KEY:   ${{ secrets.URLHAUS_API_KEY }}
+          RANSOMWARE_LIVE_API_KEY: ${{ secrets.RANSOMWARE_LIVE_API_KEY }}
           DATABASE_URL:      ${{ secrets.DATABASE_URL }}
         run: python run_check.py config.json state.json last_active.json prev_run_links.json
 

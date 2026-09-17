@@ -2674,14 +2674,24 @@ function openActorDrawer(idx){
   const d1=document.getElementById("d-total");d1.previousElementSibling.textContent="Articles";d1.textContent=a.article_count;d1.style.color="";d1.className="d-stat-num";
   const d2=document.getElementById("d-week");d2.previousElementSibling.textContent="IOCs Attributed";d2.classList.add("green");d2.textContent=iocs.length;
 
+  const activeRange=a.first_seen_rw||a.last_seen_rw?`${esc(a.first_seen_rw||"?")} — ${esc(a.last_seen_rw||"present")}`:"";
+
   let html=`<div class="ttp-d-meta">
     <div class="ttp-d-row"><span class="ttp-d-lbl">Last observed</span><span class="ttp-d-val">${esc(freshTxt)}</span></div>
     <div class="ttp-d-row"><span class="ttp-d-lbl">Techniques used</span><span class="ttp-d-val">${a.technique_count}</span></div>
     <div class="ttp-d-row"><span class="ttp-d-lbl">Source articles</span><span class="ttp-d-val">${sources.length}</span></div>
+    ${a.mitre_group_id?`<div class="ttp-d-row"><span class="ttp-d-lbl">MITRE Group ID</span><span class="ttp-d-val"><a href="${esc(a.mitre_url||'#')}" target="_blank" rel="noopener">${esc(a.mitre_group_id)}</a></span></div>`:""}
+    ${activeRange?`<div class="ttp-d-row"><span class="ttp-d-lbl">Active</span><span class="ttp-d-val">${activeRange}</span></div>`:""}
   </div>`;
 
+  const profileDesc=a.description||a.ransomware_description;
+  if(profileDesc){
+    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Profile</div>
+      <div style="font-size:11px;color:var(--text-dim);line-height:1.5">${esc(profileDesc)}</div></div>`;
+  }
+
   if(techs.length){
-    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${techs.length} ATT&amp;CK Technique${techs.length!==1?"s":""}</div>`;
+    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${techs.length} Technique${techs.length!==1?"s":""} Observed by Us</div>`;
     html+=techs.map(t=>{
       const tacticLabel=(t.tactic||"").split("-").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" ");
       return`<a class="ttp-d-link" style="display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer" onclick="closeDrawer();switchTab('ttps');setTimeout(()=>openTtpDrawer('${esc(t.technique_id)}'),200)">
@@ -2690,6 +2700,118 @@ function openActorDrawer(idx){
       </a>`;
     }).join("");
     html+=`</div>`;
+  }
+
+  const mitreOnly=(a.mitre_techniques||[]).filter(tid=>!(a.techniques||[]).includes(tid)).sort();
+  if(mitreOnly.length){
+    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${mitreOnly.length} MITRE-Attributed (Not Yet Observed)</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${mitreOnly.map(tid=>
+        `<span onclick="closeDrawer();switchTab('ttps');setTimeout(()=>openTtpDrawer('${esc(tid)}'),200)" style="cursor:pointer;font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid rgba(0,229,255,.25);color:var(--cyan);white-space:nowrap">${esc(tid)}</span>`
+      ).join("")}</div></div>`;
+  }
+
+  const rwTtps=a.ransomware_ttps||[];
+  if(rwTtps.length){
+    const rwChips=[];
+    rwTtps.forEach(group=>{
+      (group.techniques||[]).forEach(t=>{
+        const tid=t.id||t.technique_id||"";
+        const tname=t.name||t.technique_name||"";
+        if(tid)rwChips.push(`<span title="${esc(tname)}" style="font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid rgba(255,159,10,.25);color:#ff9f0a;white-space:nowrap">${esc(tid)}</span>`);
+      });
+    });
+    if(rwChips.length){
+      html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${rwChips.length} Technique${rwChips.length!==1?"s":""} (ransomware.live-mapped)</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">${rwChips.join("")}</div></div>`;
+    }
+  }
+
+  const mitreSoftware=a.software||[];
+  const rwTools=a.tools||{};
+  if(mitreSoftware.length||Object.keys(rwTools).length){
+    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Software &amp; Tooling</div>`;
+    if(mitreSoftware.length){
+      html+=`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">${mitreSoftware.map(s=>
+        `<span style="font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid var(--border);color:var(--text-dim);white-space:nowrap">${esc(s)}</span>`
+      ).join("")}</div>`;
+    }
+    Object.entries(rwTools).forEach(([category,names])=>{
+      if(!names||!names.length)return;
+      html+=`<div style="font-size:9px;color:var(--text-muted);margin:6px 0 3px">${esc(category)}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">${names.map(n=>
+          `<span style="font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid var(--border);color:var(--text-dim);white-space:nowrap">${esc(n)}</span>`
+        ).join("")}</div>`;
+    });
+    html+=`</div>`;
+  }
+
+  const campaigns=a.campaigns||[];
+  if(campaigns.length){
+    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${campaigns.length} Campaign${campaigns.length!==1?"s":""}</div>`;
+    campaigns.forEach(c=>{
+      const range=c.first_seen||c.last_seen?`${esc((c.first_seen||"").slice(0,10)||"?")} — ${esc((c.last_seen||"").slice(0,10)||"ongoing")}`:"";
+      html+=`<div style="margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:var(--text)">${esc(c.name||"")}</div>
+        ${range?`<div style="font-size:8px;color:var(--text-muted);margin-bottom:2px">${range}</div>`:""}
+        ${c.description?`<div style="font-size:10px;color:var(--text-dim);line-height:1.4">${esc(c.description)}</div>`:""}
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+
+  const vulns=a.vulnerabilities||[];
+  if(vulns.length){
+    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${vulns.length} Vulnerabilit${vulns.length!==1?"ies":"y"} Exploited</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${vulns.map(v=>{
+        const cve=typeof v==="string"?v:(v.cve||v.id||v.name||"");
+        return cve?`<a href="https://nvd.nist.gov/vuln/detail/${esc(cve)}" target="_blank" rel="noopener" style="font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid rgba(255,69,58,.3);color:#ff453a;white-space:nowrap">${esc(cve)}</a>`:"";
+      }).join("")}</div></div>`;
+  }
+
+  const neg=a.negotiation_stats;
+  if(neg&&neg.chat_count){
+    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Negotiation Behavior</div>
+      <div class="ttp-d-row"><span class="ttp-d-lbl">Negotiation chats seen</span><span class="ttp-d-val">${neg.chat_count}</span></div>
+      ${neg.avg_initial_usd?`<div class="ttp-d-row"><span class="ttp-d-lbl">Avg. initial demand</span><span class="ttp-d-val">$${neg.avg_initial_usd.toLocaleString()}</span></div>`:""}
+      ${neg.avg_negotiated_usd?`<div class="ttp-d-row"><span class="ttp-d-lbl">Avg. negotiated amount</span><span class="ttp-d-val">$${neg.avg_negotiated_usd.toLocaleString()}</span></div>`:""}
+      <div class="ttp-d-row"><span class="ttp-d-lbl">Payment rate</span><span class="ttp-d-val">${Math.round((neg.payment_rate||0)*100)}%</span></div>
+    </div>`;
+  }
+
+  const noteNames=a.ransom_note_names||[];
+  if(noteNames.length){
+    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Known Ransom Note Filenames</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${noteNames.map(n=>
+        `<span style="font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid var(--border);color:var(--text-dim);white-space:nowrap;font-family:monospace">${esc(n)}</span>`
+      ).join("")}</div></div>`;
+  }
+
+  const leakSites=a.leak_sites||[];
+  if(leakSites.length){
+    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${leakSites.length} Leak Site${leakSites.length!==1?"s":""}</div>`;
+    leakSites.forEach(ls=>{
+      const status=ls.available===false?"down":ls.available===true?"up":"";
+      html+=`<div class="ttp-d-row"><span class="ttp-d-lbl">${esc(ls.title||ls.type||"Site")}</span><span class="ttp-d-val" style="font-family:monospace;font-size:9px;word-break:break-all">${esc(ls.fqdn||ls.slug||"")}${status?` (${status})`:""}</span></div>`;
+    });
+    html+=`</div>`;
+  }
+
+  const recentVictims=a.recent_victims||[];
+  if(recentVictims.length){
+    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${recentVictims.length} Recent Victim${recentVictims.length!==1?"s":""}</div>`;
+    recentVictims.forEach(v=>{
+      html+=`<div style="margin-bottom:6px;font-size:10px">
+        <span style="font-weight:700;color:var(--text)">${esc(v.victim||"")}</span>
+        <span style="color:var(--text-muted)"> — ${esc(v.activity||"")}${v.country?", "+esc(v.country):""}${v.attackdate?" — "+esc(v.attackdate):""}</span>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+  const sectorsTargeted=a.sectors_targeted||[];
+  if(sectorsTargeted.length){
+    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Sectors Targeted</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${sectorsTargeted.map(s=>
+        `<span style="font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid var(--border);color:var(--text-dim);white-space:nowrap">${esc(s)}</span>`
+      ).join("")}</div></div>`;
   }
 
   if(sources.length){
@@ -3418,6 +3540,7 @@ function renderHome({activeSites,quietSites,failingSites,weekTotal,iocExport,ttp
 
 /* ── Actors Tab ── */
 let _actorRows=[];
+let _actorByName={};
 function renderActors(actorExport){
   const grid=document.getElementById("actors-grid");
   const none=document.getElementById("actors-none");
@@ -3425,23 +3548,29 @@ function renderActors(actorExport){
   if(!grid)return;
   const actors=(actorExport||[]).filter(a=>a.actor);
   _actorRows=actors;
+  _actorByName=Object.fromEntries(actors.map(a=>[a.actor,a]));
   if(cnt)cnt.textContent=actors.length?`${actors.length} actor${actors.length!==1?"s":""}`:""
   if(!actors.length){if(none)none.style.display="";grid.innerHTML="";return;}
   if(none)none.style.display="none";
   grid.innerHTML=actors.map((a,i)=>{
     const daysAgo=a.last_seen?Math.floor((Date.now()-new Date(a.last_seen+"T00:00:00Z"))/86400000):null;
-    const freshTxt=daysAgo===0?"today":daysAgo===1?"yesterday":daysAgo!=null?`${daysAgo}d ago`:"";
+    const freshTxt=a.article_count===0?"no coverage in monitored sources yet":daysAgo===0?"today":daysAgo===1?"yesterday":daysAgo!=null?`${daysAgo}d ago`:"";
     const techs=(a.techniques||[]).slice(0,8);
     const techHtml=techs.map(tid=>`<span onclick="event.stopPropagation();switchTab('ttps');setTimeout(()=>openTtpDrawer('${esc(tid)}'),200)" style="cursor:pointer;font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid rgba(0,255,65,.25);color:var(--green);white-space:nowrap">${esc(tid)}</span>`).join("");
     const moreLabel=(a.techniques||[]).length>8?`<span style="font-size:8px;color:var(--text-muted)">+${(a.techniques||[]).length-8} more</span>`:"";
+    const mitreBadge=a.mitre_group_id?`<span style="font-size:8px;padding:1px 5px;border-radius:3px;border:1px solid rgba(0,229,255,.3);color:var(--cyan);white-space:nowrap">MITRE ${esc(a.mitre_group_id)}</span>`:"";
+    const rwBadge=(a.ransomware_live_id||a.victim_count)?`<span style="font-size:8px;padding:1px 5px;border-radius:3px;border:1px solid rgba(255,159,10,.3);color:#ff9f0a;white-space:nowrap">💰 ${a.victim_count||0} victims</span>`:"";
+    const campaignStat=(a.campaigns||[]).length?`<div><span style="font-size:18px;font-weight:700;color:var(--text)">${a.campaigns.length}</span><br><span style="font-size:8px;color:var(--text-muted)">campaigns</span></div>`:"";
     return`<div class="actor-card" onclick="openActorDrawer(${i})" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;cursor:pointer;animation:tabIn 160ms var(--ease) both;animation-delay:${i*30}ms">
-      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;gap:8px">
         <span style="font-size:12px;font-weight:700;color:var(--text)">${esc(a.actor)}</span>
-        <span style="font-size:8px;color:var(--text-muted)">${esc(freshTxt)}</span>
+        <span style="font-size:8px;color:var(--text-muted);text-align:right">${esc(freshTxt)}</span>
       </div>
-      <div style="display:flex;gap:16px;margin-bottom:10px">
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">${mitreBadge}${rwBadge}</div>
+      <div style="display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap">
         <div><span style="font-size:18px;font-weight:700;color:var(--green)">${a.article_count}</span><br><span style="font-size:8px;color:var(--text-muted)">articles</span></div>
         <div><span style="font-size:18px;font-weight:700;color:var(--cyan)">${a.technique_count}</span><br><span style="font-size:8px;color:var(--text-muted)">techniques</span></div>
+        ${campaignStat}
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:4px">${techHtml}${moreLabel}</div>
     </div>`;
@@ -4178,7 +4307,11 @@ function renderExecView() {
   const topApts = Object.entries(aptCounts).sort((a, b) => b[1] - a[1]).slice(0, 6);
   const actorsEl = document.getElementById('exec-actors');
   actorsEl.innerHTML = topApts.length ? topApts.map(([apt, count], i) => {
-    const meta = _aptMeta(apt);
+    const profile = _actorByName && _actorByName[apt];
+    const desc = profile && (profile.description || profile.ransomware_description);
+    const meta = desc
+      ? { flag: profile.mitre_group_id ? '🎯' : '💰', desc }
+      : _aptMeta(apt);
     return `<div class="exec-actor-item exec-stagger" style="animation-delay:${i*50}ms">
       <div class="exec-actor-flag">${meta.flag}</div>
       <div class="exec-actor-info">

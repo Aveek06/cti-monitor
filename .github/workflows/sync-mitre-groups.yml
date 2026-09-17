@@ -1,0 +1,31 @@
+name: Sync MITRE ATT&CK Groups
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 6 1 * *"   # 06:00 UTC on the 1st of each month
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Sync MITRE ATT&CK group profiles
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python sync_mitre_groups.py
