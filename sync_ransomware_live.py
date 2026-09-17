@@ -12,9 +12,11 @@ Two-phase design, verified directly against the live Pro API:
      lightweight group-name + count summaries -- used to skip a detail call
      entirely for groups with zero data of that kind.
   2. Per matched group, detail calls (/groups/{name}, /negotiations/{name},
-     /iocs/{name}, /ransomnotes/{name}, /victims/) fetch the real content.
-No rate-limit sleep is needed -- 500,000 req/month makes ~160 calls/run a
-non-issue.
+     /iocs/{name}, /ransomnotes/{name}, /yara/{name}, /victims/) fetch the
+     real content. Full ransom note text is fetched per note name (capped
+     at MAX_RANSOM_NOTES_FULLTEXT) via /ransomnotes/{name}/{note_name}.
+No rate-limit sleep is needed -- 500,000 req/month makes the extra YARA and
+full-ransom-note calls a non-issue against the budget.
 """
 import datetime
 import ipaddress
@@ -30,6 +32,8 @@ import stix_converter
 BASE_URL = "https://api-pro.ransomware.live"
 RECENT_VICTIM_WINDOW_DAYS = 90
 RECENT_VICTIM_LIMIT = 25
+MAX_RANSOM_NOTES_FULLTEXT = 5   # cap per group: fetch full content for at most this many note names
+MAX_NOTE_CONTENT_CHARS = 3000   # truncate stored note content to keep JSONB rows bounded
 
 # ransomware.live IOC type -> our internal type. "ip" needs runtime sniffing
 # (ipv4 vs ipv6), handled separately. Types not listed here (btc, mutex,
@@ -118,11 +122,32 @@ def sync(conn, api_key: str, rel_lookup: dict | None = None) -> dict:
                 print(f"sync_ransomware_live: /negotiations/{slug} failed: {e}")
 
         ransom_note_names = []
+        ransom_notes = []
         if ransomnotes_idx.get(slug, 0) > 0:
             try:
                 ransom_note_names = _get(f"/ransomnotes/{slug}", api_key).get("ransomnotes", [])
             except Exception as e:
                 print(f"sync_ransomware_live: /ransomnotes/{slug} failed: {e}")
+            for note_name in ransom_note_names[:MAX_RANSOM_NOTES_FULLTEXT]:
+                try:
+                    note = _get(f"/ransomnotes/{slug}/{note_name}", api_key)
+                    ransom_notes.append({
+                        "name": note.get("note_name", note_name),
+                        "extension": note.get("extension"),
+                        "content": (note.get("content") or "")[:MAX_NOTE_CONTENT_CHARS],
+                    })
+                except Exception as e:
+                    print(f"sync_ransomware_live: /ransomnotes/{slug}/{note_name} failed: {e}")
+
+        yara_rules = []
+        try:
+            for rule in _get(f"/yara/{slug}", api_key).get("rules", []):
+                yara_rules.append({
+                    "filename": rule.get("filename"),
+                    "content": rule.get("content"),
+                })
+        except Exception as e:
+            print(f"sync_ransomware_live: /yara/{slug} failed: {e}")
 
         raw_iocs: dict = {}
         if iocs_idx.get(slug):
@@ -169,6 +194,8 @@ def sync(conn, api_key: str, rel_lookup: dict | None = None) -> dict:
                 vulnerabilities=detail.get("vulnerabilities", []),
                 negotiation_stats=_build_negotiation_stats(chats),
                 ransom_note_names=ransom_note_names,
+                ransom_notes=ransom_notes,
+                yara_rules=yara_rules,
                 match_method=method,
             )
         except Exception as e:

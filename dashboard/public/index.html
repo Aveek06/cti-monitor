@@ -2785,6 +2785,30 @@ function openActorDrawer(idx){
       ).join("")}</div></div>`;
   }
 
+  const ransomNotes=a.ransom_notes||[];
+  if(ransomNotes.length){
+    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Ransom Note Content</div>`;
+    ransomNotes.forEach(n=>{
+      html+=`<details style="margin-bottom:6px">
+        <summary style="cursor:pointer;font-size:10px;font-family:monospace;color:var(--text)">${esc(n.name||"")}${n.extension?esc(n.extension):""}</summary>
+        <pre style="white-space:pre-wrap;word-break:break-word;font-size:9px;color:var(--text-dim);background:var(--surface-2,rgba(255,255,255,.03));border:1px solid var(--border);border-radius:4px;padding:8px;margin-top:4px;max-height:240px;overflow-y:auto">${esc(n.content||"")}</pre>
+      </details>`;
+    });
+    html+=`</div>`;
+  }
+
+  const yaraRules=a.yara_rules||[];
+  if(yaraRules.length){
+    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${yaraRules.length} YARA Rule${yaraRules.length!==1?"s":""}</div>`;
+    yaraRules.forEach(r=>{
+      html+=`<details style="margin-bottom:6px">
+        <summary style="cursor:pointer;font-size:10px;font-family:monospace;color:var(--text)">${esc(r.filename||"rule")}</summary>
+        <pre style="white-space:pre-wrap;word-break:break-word;font-size:9px;color:var(--text-dim);background:var(--surface-2,rgba(255,255,255,.03));border:1px solid var(--border);border-radius:4px;padding:8px;margin-top:4px;max-height:280px;overflow-y:auto">${esc(r.content||"")}</pre>
+      </details>`;
+    });
+    html+=`</div>`;
+  }
+
   const leakSites=a.leak_sites||[];
   if(leakSites.length){
     html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">${leakSites.length} Leak Site${leakSites.length!==1?"s":""}</div>`;

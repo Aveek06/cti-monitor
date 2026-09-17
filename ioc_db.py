@@ -310,6 +310,8 @@ CREATE TABLE IF NOT EXISTS threat_actor_profiles (
     vulnerabilities         JSONB DEFAULT '[]',
     negotiation_stats       JSONB,
     ransom_note_names       JSONB DEFAULT '[]',
+    ransom_notes            JSONB DEFAULT '[]',
+    yara_rules              JSONB DEFAULT '[]',
     ransomware_synced       TIMESTAMPTZ,
     created_at              TIMESTAMPTZ DEFAULT NOW(),
     updated_at              TIMESTAMPTZ DEFAULT NOW()
@@ -321,6 +323,9 @@ def init_actor_profile_schema(conn):
     with conn.cursor() as cur:
         cur.execute(ACTOR_PROFILE_SCHEMA)
         cur.execute("CREATE INDEX IF NOT EXISTS idx_actor_profiles_mitre_id ON threat_actor_profiles(mitre_group_id)")
+        # Migrate tables created before ransom_notes/yara_rules existed
+        cur.execute("ALTER TABLE threat_actor_profiles ADD COLUMN IF NOT EXISTS ransom_notes JSONB DEFAULT '[]'")
+        cur.execute("ALTER TABLE threat_actor_profiles ADD COLUMN IF NOT EXISTS yara_rules JSONB DEFAULT '[]'")
     conn.commit()
 
 
@@ -355,6 +360,7 @@ def upsert_ransomware_profile(conn, actor_name: str, ransomware_live_id: str | N
                                recent_victims: list, sectors_targeted: list, tools,
                                ransomware_ttps: list, leak_sites: list, vulnerabilities: list,
                                negotiation_stats: dict | None, ransom_note_names: list,
+                               ransom_notes: list, yara_rules: list,
                                match_method: str | None):
     with conn.cursor() as cur:
         cur.execute("""
@@ -362,9 +368,11 @@ def upsert_ransomware_profile(conn, actor_name: str, ransomware_live_id: str | N
                 (actor_name, ransomware_live_id, ransomware_description, victim_count,
                  first_seen_rw, last_seen_rw, recent_victims, sectors_targeted, tools,
                  ransomware_ttps, leak_sites, vulnerabilities, negotiation_stats,
-                 ransom_note_names, match_method, ransomware_synced, updated_at)
+                 ransom_note_names, ransom_notes, yara_rules, match_method,
+                 ransomware_synced, updated_at)
             VALUES (%s, %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, %s::jsonb,
-                    %s::jsonb, %s::jsonb, %s::jsonb, %s::jsonb, %s::jsonb, %s, NOW(), NOW())
+                    %s::jsonb, %s::jsonb, %s::jsonb, %s::jsonb, %s::jsonb, %s::jsonb,
+                    %s::jsonb, %s, NOW(), NOW())
             ON CONFLICT (actor_name) DO UPDATE SET
                 ransomware_live_id     = EXCLUDED.ransomware_live_id,
                 ransomware_description = EXCLUDED.ransomware_description,
@@ -379,6 +387,8 @@ def upsert_ransomware_profile(conn, actor_name: str, ransomware_live_id: str | N
                 vulnerabilities        = EXCLUDED.vulnerabilities,
                 negotiation_stats      = EXCLUDED.negotiation_stats,
                 ransom_note_names      = EXCLUDED.ransom_note_names,
+                ransom_notes           = EXCLUDED.ransom_notes,
+                yara_rules             = EXCLUDED.yara_rules,
                 ransomware_synced      = NOW(),
                 updated_at             = NOW(),
                 match_method           = COALESCE(threat_actor_profiles.match_method, EXCLUDED.match_method)
@@ -386,7 +396,8 @@ def upsert_ransomware_profile(conn, actor_name: str, ransomware_live_id: str | N
               first_seen_rw, last_seen_rw, json.dumps(recent_victims), json.dumps(sectors_targeted),
               json.dumps(tools), json.dumps(ransomware_ttps), json.dumps(leak_sites),
               json.dumps(vulnerabilities), json.dumps(negotiation_stats) if negotiation_stats else None,
-              json.dumps(ransom_note_names), match_method))
+              json.dumps(ransom_note_names), json.dumps(ransom_notes), json.dumps(yara_rules),
+              match_method))
     conn.commit()
 
 
@@ -492,6 +503,8 @@ def get_all_actors(conn) -> list[dict]:
                 p.vulnerabilities,
                 p.negotiation_stats,
                 p.ransom_note_names,
+                p.ransom_notes,
+                p.yara_rules,
                 p.ransomware_synced
             FROM (
                 SELECT
