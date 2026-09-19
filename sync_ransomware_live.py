@@ -106,9 +106,14 @@ def sync(conn, api_key: str, rel_lookup: dict | None = None) -> dict:
 
     print("sync_ransomware_live: fetching bulk index endpoints...")
     groups_idx = _get("/groups", api_key).get("groups", [])
-    negotiations_idx = {g["group"]: g.get("chats", 0) for g in _get("/negotiations", api_key).get("groups", [])}
-    iocs_idx = {g["group"]: g.get("ioc_types", {}) for g in _get("/iocs", api_key).get("groups", [])}
-    ransomnotes_idx = {g["group"]: g.get("ransomnotes_count", 0) for g in _get("/ransomnotes", api_key).get("groups", [])}
+    # ransomware.live's bulk-index endpoints are NOT consistently cased against
+    # each other -- /groups uses lowercase slugs ("akira") but /negotiations
+    # returns capitalized display names ("Akira") for the same group. Every
+    # index is keyed lowercase so lookups below (also lowercased) never miss
+    # due to a casing mismatch between endpoints.
+    negotiations_idx = {g["group"].lower(): g.get("chats", 0) for g in _get("/negotiations", api_key).get("groups", []) if g.get("group")}
+    iocs_idx = {g["group"].lower(): g.get("ioc_types", {}) for g in _get("/iocs", api_key).get("groups", []) if g.get("group")}
+    ransomnotes_idx = {g["group"].lower(): g.get("ransomnotes_count", 0) for g in _get("/ransomnotes", api_key).get("groups", []) if g.get("group")}
     print(f"sync_ransomware_live: {len(groups_idx)} groups in index.")
 
     index = actor_matching.build_alias_index()
@@ -133,7 +138,7 @@ def sync(conn, api_key: str, rel_lookup: dict | None = None) -> dict:
             continue
 
         chats = []
-        if negotiations_idx.get(slug, 0) > 0:
+        if negotiations_idx.get(slug.lower(), 0) > 0:
             try:
                 chats = _get(f"/negotiations/{slug}", api_key).get("chats", [])
             except Exception as e:
@@ -141,7 +146,7 @@ def sync(conn, api_key: str, rel_lookup: dict | None = None) -> dict:
 
         ransom_note_names = []
         ransom_notes = []
-        if ransomnotes_idx.get(slug, 0) > 0:
+        if ransomnotes_idx.get(slug.lower(), 0) > 0:
             try:
                 ransom_note_names = _get(f"/ransomnotes/{slug}", api_key).get("ransomnotes", [])
             except Exception as e:
@@ -168,7 +173,7 @@ def sync(conn, api_key: str, rel_lookup: dict | None = None) -> dict:
             print(f"sync_ransomware_live: /yara/{slug} failed: {e}")
 
         raw_iocs: dict = {}
-        if iocs_idx.get(slug):
+        if iocs_idx.get(slug.lower()):
             try:
                 raw_iocs = _get(f"/iocs/{slug}", api_key).get("iocs", {})
             except Exception as e:

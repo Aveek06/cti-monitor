@@ -2363,11 +2363,18 @@ function _iocEnrichTagsHtml(r){
   const typosquat=isDomain&&r.is_typosquat?`<span class="ioc-tag" style="background:rgba(239,68,68,.2);color:#f87171;font-weight:600" title="Possible typosquat of ${esc(r.typosquat_of||'')}">⚠ typosquat</span>`:"";
 
   const isHash=r.type==="sha256"||r.type==="sha1"||r.type==="md5";
+  const vtHash=isHash&&r.vt_malicious!=null?(r.vt_malicious>0?`<span class="ioc-tag" style="background:rgba(239,68,68,.18);color:#f87171">VT:${r.vt_malicious} engines</span>`:`<span class="ioc-tag" style="color:var(--text-muted)">VT:clean</span>`):"";
   const mbSig=isHash&&r.mb_signature?r.mb_signature:"";
   const mb=isHash&&r.mb_file_type!=null?(mbSig?`<span class="ioc-tag" style="background:rgba(239,68,68,.15);color:#f87171" title="${esc(r.mb_file_name||'')}">MB:${esc(mbSig)}</span>`:`<span class="ioc-tag" style="color:var(--text-muted)">MB:${esc(r.mb_file_type||'found')}</span>`):"";
   const tf=isHash&&r.tf_threat_type!=null?`<span class="ioc-tag" style="background:${(r.tf_confidence||0)>=75?'rgba(239,68,68,.15);color:#f87171':'rgba(251,146,60,.18);color:#fb923c'}" title="Confidence:${r.tf_confidence||0}%">TF:${esc(r.tf_threat_type.replace(/_/g," "))}</span>`:"";
 
-  return[shodan,abuse,gn,org,vtDom,uhDom,typosquat,mb,tf].filter(Boolean).join("");
+  return[shodan,abuse,gn,org,vtDom,uhDom,typosquat,vtHash,mb,tf].filter(Boolean).join("");
+}
+function _iocVtColHtml(r){
+  const isHash=r.type==="sha256"||r.type==="sha1"||r.type==="md5";
+  if(isHash)return`<span class="ioc-dim">—</span>`; // shown as a VT tag in Enrichment instead
+  if(r.vt_malicious==null)return`<span class="ioc-dim">—</span>`;
+  return r.vt_malicious>0?`<span class="ioc-vt">${r.vt_malicious}</span>`:`<span style="color:var(--text-muted);font-size:9px">clean</span>`;
 }
 function _iocRowsHtml(iocs,emptyMsg){
   if(!iocs.length)return`<tr><td colspan="6" class="pa-empty">// ${emptyMsg}</td></tr>`;
@@ -2380,7 +2387,7 @@ function _iocRowsHtml(iocs,emptyMsg){
       <td><span class="ioc-badge">${esc(r.type)}</span></td>
       <td><span style="color:${col};font-weight:600;font-variant-numeric:tabular-nums">${s.toFixed(1)}</span><br><div class="ioc-decay-track" style="margin-top:3px"><div class="ioc-decay-fill" style="width:${bar}%;background:${col}"></div></div></td>
       <td>${r.apt?`<span class="ioc-apt">${esc(r.apt)}</span>`:`<span class="ioc-dim">—</span>`}</td>
-      <td>${r.vt_malicious!=null&&r.vt_malicious>0?`<span class="ioc-vt">${r.vt_malicious}</span>`:`<span class="ioc-dim">—</span>`}</td>
+      <td>${_iocVtColHtml(r)}</td>
       <td>${enrich?`<div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center">${enrich}</div>`:`<span class="ioc-dim">—</span>`}</td>
     </tr>`;
   }).join("");
@@ -2819,9 +2826,17 @@ function renderActorPage(name){
 
   const vulns=a.vulnerabilities||[];
   if(vulns.length){
+    // ransomware.live's vulnerability objects use uppercase keys (CVE/CVSS/Vendor/Product),
+    // unlike everything else in this API — check both cases defensively.
     const body=`<div style="display:flex;flex-wrap:wrap;gap:4px">${vulns.map(v=>{
-        const cve=typeof v==="string"?v:(v.cve||v.id||v.name||"");
-        return cve?`<a href="https://nvd.nist.gov/vuln/detail/${esc(cve)}" target="_blank" rel="noopener" style="font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid rgba(255,69,58,.3);color:#ff453a;white-space:nowrap">${esc(cve)}</a>`:"";
+        if(typeof v==="string")return v?`<a href="https://nvd.nist.gov/vuln/detail/${esc(v)}" target="_blank" rel="noopener" style="font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid rgba(255,69,58,.3);color:#ff453a;white-space:nowrap">${esc(v)}</a>`:"";
+        const cve=v.CVE||v.cve||v.id||v.name||"";
+        if(!cve)return"";
+        const cvss=v.CVSS!=null?v.CVSS:v.cvss;
+        const vendor=v.Vendor||v.vendor||"";
+        const product=v.Product||v.product||"";
+        const title=[vendor,product,cvss!=null?`CVSS ${cvss}`:""].filter(Boolean).join(" · ");
+        return`<a href="https://nvd.nist.gov/vuln/detail/${esc(cve)}" target="_blank" rel="noopener" title="${esc(title)}" style="font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid rgba(255,69,58,.3);color:#ff453a;white-space:nowrap">${esc(cve)}</a>`;
       }).join("")}</div>`;
     html+=_accordion(`${vulns.length} Vulnerabilit${vulns.length!==1?"ies":"y"} Exploited`,body,false);
   }
