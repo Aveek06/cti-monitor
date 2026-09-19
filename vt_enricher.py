@@ -3,12 +3,12 @@ import requests
 
 VT_URL        = "https://www.virustotal.com/api/v3/files/{hash}"
 VT_IP_URL     = "https://www.virustotal.com/api/v3/ip_addresses/{ip}"
-MIN_MALICIOUS    = 10  # threshold for hashes (many AV engines)
-MIN_MALICIOUS_IP = 3   # threshold for IPs (fewer engines report IPs)
 RATE_SLEEP    = 15  # free tier = 4 requests/min
 
 
 def enrich_hash(value: str, api_key: str) -> dict | None:
+    """Returns the VT result whatever it is (including 0 = clean); None only
+    means VT has no record for this hash (404) or the lookup failed."""
     try:
         resp = requests.get(
             VT_URL.format(hash=value),
@@ -23,8 +23,6 @@ def enrich_hash(value: str, api_key: str) -> dict | None:
             return None
         attrs = resp.json().get("data", {}).get("attributes", {})
         malicious = attrs.get("last_analysis_stats", {}).get("malicious", 0)
-        if malicious < MIN_MALICIOUS:
-            return None
         first_sub = attrs.get("first_submission_date", 0)
         last_sub  = attrs.get("last_submission_date", 0)
         ttl_days  = max(1, (last_sub - first_sub) // 86400) if first_sub and last_sub else None
@@ -36,6 +34,8 @@ def enrich_hash(value: str, api_key: str) -> dict | None:
 
 
 def enrich_ip(value: str, api_key: str) -> dict | None:
+    """Returns the VT result whatever it is (including 0 = clean); None only
+    means VT has no record for this IP (404) or the lookup failed."""
     try:
         resp = requests.get(
             VT_IP_URL.format(ip=value),
@@ -50,8 +50,6 @@ def enrich_ip(value: str, api_key: str) -> dict | None:
             return None
         attrs = resp.json().get("data", {}).get("attributes", {})
         malicious = attrs.get("last_analysis_stats", {}).get("malicious", 0)
-        if malicious < MIN_MALICIOUS_IP:
-            return None
         return {"malicious_count": malicious, "vt_ttl_days": None}
     except RuntimeError:
         raise

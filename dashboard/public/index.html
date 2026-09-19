@@ -3081,7 +3081,7 @@ function filterIocs(q){
   if(!rows.length){empty.style.display="block";tbody.innerHTML="";return;}
   empty.style.display="none";
   _iocDrawerRows=rows;
-  tbody.innerHTML=rows.map((r,i)=>{const s=r._live,col=scoreColor(s),bar=Math.round(s),vt=r.vt_malicious!=null&&r.vt_malicious>0?`<span class="ioc-vt">${r.vt_malicious} engines</span>`:"";
+  tbody.innerHTML=rows.map((r,i)=>{const s=r._live,col=scoreColor(s),bar=Math.round(s),vt=r.vt_malicious!=null?(r.vt_malicious>0?`<span class="ioc-vt">${r.vt_malicious} engines</span>`:`<span style="font-size:9px;color:var(--text-muted)">VT clean</span>`):"";
   const confStyle=r.apt_confidence==="high"?"color:#4ade80":r.apt_confidence==="medium"?"color:#fb923c":"color:var(--text-muted)";
   const apt=r.apt?`<span class="ioc-apt">${esc(r.apt)}</span>${r.apt_confidence?`<br><span style="font-size:9px;${confStyle}">${r.apt_confidence.toUpperCase()}</span>`:""}`:`<span class="ioc-dim">—</span>`;
   const corrBadge=(r.source_count||1)>1?`<span class="ioc-tag" style="margin-top:3px;background:rgba(34,197,94,.12);color:#4ade80">✓ ${r.source_count} sources</span>`:``;
