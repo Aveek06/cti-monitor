@@ -37,4 +37,14 @@ for r2 in rows:
 else:
     print("\nNo row has any vulnerabilities data at all.")
 
+with conn.cursor() as cur3:
+    cur3.execute("SELECT ransomware_ttps, tools, leak_sites FROM threat_actor_profiles WHERE actor_name='Akira'")
+    ttps_raw, tools_raw, leak_raw = cur3.fetchone()
+    print("\nAkira ransomware_ttps sample:")
+    print(json.dumps(ttps_raw, indent=2)[:1200])
+    print("\nAkira tools sample:")
+    print(json.dumps(tools_raw, indent=2)[:600])
+    print("\nAkira leak_sites sample:")
+    print(json.dumps(leak_raw, indent=2)[:600])
+
 conn.close()
