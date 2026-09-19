@@ -891,6 +891,245 @@
     .act-name{font-size:22px;font-weight:700;color:var(--text-hi);font-family:var(--font-mono);margin-bottom:14px;letter-spacing:.02em;}
     @media(max-width:700px){.pv-charts-row{grid-template-columns:1fr;}.pv-body{padding:16px 16px 40px;}.pv-kpi-chip{min-width:100px;}.act-name{font-size:17px;}}
 
+    /* ── Actor Page v2 Design System ── */
+    #page-actor .pv-body{padding:0;max-width:100%;}
+
+    /* Hero */
+    .ap-hero{padding:24px 32px 20px;background:linear-gradient(160deg,rgba(0,255,65,.025) 0%,transparent 60%);border-bottom:1px solid var(--border);}
+    .ap-badge-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+    .ap-badge{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:4px;border:1px solid;font-family:var(--font-ui);}
+    .ap-badge.mitre{color:var(--cyan);border-color:rgba(0,212,255,.3);background:rgba(0,212,255,.06);}
+    .ap-badge.ransomware{color:var(--amber);border-color:rgba(255,149,0,.3);background:rgba(255,149,0,.06);}
+    .ap-hero-inner{display:flex;align-items:flex-end;gap:20px;margin-bottom:20px;flex-wrap:wrap;}
+    .ap-hero-left{flex:1;min-width:0;}
+    .ap-actor-name{font-size:38px;font-weight:800;color:var(--text-hi);font-family:var(--font-ui);letter-spacing:-.03em;line-height:1;margin-bottom:10px;}
+    .ap-status-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    .ap-status-item{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-dim);font-family:var(--font-ui);}
+    .ap-status-sep{color:var(--border-hi);font-size:12px;}
+    .ap-status-range{font-family:var(--font-mono);font-size:9px;color:var(--text-muted);}
+    .ap-status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s ease-in-out infinite;flex-shrink:0;}
+    .ap-status-dot.amber{background:var(--amber);box-shadow:0 0 6px var(--amber);animation:none;}
+    .ap-status-dot.dim{background:var(--border-hi);box-shadow:none;animation:none;}
+
+    /* KPI strip */
+    .ap-kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;}
+    .ap-kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 14px 12px;display:flex;flex-direction:column;gap:5px;cursor:default;transition:border-color 150ms var(--ease),transform 150ms var(--ease),background 150ms var(--ease);}
+    .ap-kpi-card:hover{border-color:var(--border-hi);background:var(--surface2);transform:translateY(-2px);}
+    .ap-kpi-card:active{transform:scale(.97);transition:transform 80ms ease-out;}
+    .ap-kpi-num{font-size:30px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;font-family:var(--font-ui);letter-spacing:-.025em;}
+    .ap-kpi-num.green{color:var(--green);text-shadow:0 0 18px rgba(0,255,65,.25);}
+    .ap-kpi-num.amber{color:var(--amber);}
+    .ap-kpi-num.cyan{color:var(--cyan);}
+    .ap-kpi-num.purple{color:var(--purple);}
+    .ap-kpi-num.red{color:var(--red);}
+    .ap-kpi-lbl{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);font-family:var(--font-ui);}
+    /* KPI stagger animation */
+    .ap-kpi-card{opacity:0;animation:apKpiIn 280ms var(--ease-drawer) both;}
+    .ap-kpi-card:nth-child(1){animation-delay:30ms;}
+    .ap-kpi-card:nth-child(2){animation-delay:70ms;}
+    .ap-kpi-card:nth-child(3){animation-delay:110ms;}
+    .ap-kpi-card:nth-child(4){animation-delay:150ms;}
+    .ap-kpi-card:nth-child(5){animation-delay:190ms;}
+    @keyframes apKpiIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+    /* Two-column body */
+    .ap-body{display:grid;grid-template-columns:320px 1fr;border-bottom:1px solid var(--border);}
+    .ap-sidebar{padding:20px;display:flex;flex-direction:column;gap:12px;border-right:1px solid var(--border);}
+    .ap-main{padding:20px;display:flex;flex-direction:column;gap:10px;min-width:0;}
+
+    /* Cards */
+    .ap-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+    .ap-card-hd{font-size:8px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:10px 14px;border-bottom:1px solid var(--border);font-family:var(--font-ui);display:flex;align-items:center;gap:7px;}
+    .ap-card-hd::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+    .ap-card-hd--green{color:var(--text-dim);}
+    .ap-card-hd--green::before{background:var(--green);box-shadow:0 0 5px var(--green);}
+    .ap-card-hd--cyan{color:var(--text-dim);}
+    .ap-card-hd--cyan::before{background:var(--cyan);box-shadow:0 0 5px var(--cyan);}
+    .ap-card-hd--amber{color:var(--text-dim);}
+    .ap-card-hd--amber::before{background:var(--amber);box-shadow:0 0 5px var(--amber);}
+    .ap-card-hd--red{color:var(--text-dim);}
+    .ap-card-hd--red::before{background:var(--red);box-shadow:0 0 5px var(--red);}
+    .ap-card-hd--dim{color:var(--text-dim);}
+    .ap-card-hd--dim::before{background:var(--border-hi);box-shadow:none;}
+    .ap-card-body{padding:14px;}
+    .ap-card-body--meta{padding:0 14px;}
+
+    /* Profile text */
+    .ap-profile-text{font-size:11px;color:var(--text-dim);line-height:1.7;font-family:var(--font-ui);}
+
+    /* Meta rows */
+    .ap-meta-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);}
+    .ap-meta-row:last-child{border-bottom:none;}
+    .ap-meta-lbl{font-size:8px;letter-spacing:.07em;text-transform:uppercase;color:var(--text-muted);font-family:var(--font-ui);flex-shrink:0;}
+    .ap-meta-val{font-size:10px;color:var(--text);text-align:right;font-family:var(--font-mono);word-break:break-all;}
+    .ap-meta-val a{color:var(--cyan);}
+    .ap-meta-val a:hover{text-decoration:underline;}
+    .ap-meta-val--red{color:var(--red)!important;}
+    .ap-meta-val--amber{color:var(--amber)!important;}
+
+    /* Tag cloud */
+    .ap-tags{display:flex;flex-wrap:wrap;gap:5px;}
+    .ap-tag{font-size:9px;font-weight:500;letter-spacing:.03em;padding:3px 9px;border-radius:20px;border:1px solid var(--border);color:var(--text-dim);background:var(--surface2);font-family:var(--font-ui);transition:border-color 120ms,color 120ms,background 120ms;}
+    .ap-tag:hover{border-color:var(--border-hi);color:var(--text);background:var(--surface3);}
+
+    /* Leak sites */
+    .ap-leak{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+    .ap-leak:last-child{border-bottom:none;}
+    .ap-leak-title{font-size:9px;color:var(--text);font-family:var(--font-ui);min-width:60px;font-weight:600;}
+    .ap-leak-fqdn{font-size:8px;color:var(--text-muted);font-family:var(--font-mono);flex:1;word-break:break-all;}
+    .ap-leak-status{font-size:7px;padding:2px 7px;border-radius:3px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;flex-shrink:0;}
+    .ap-leak-status.up{color:var(--green);background:var(--green-dim);border:1px solid rgba(0,255,65,.2);}
+    .ap-leak-status.down{color:var(--red);background:var(--red-dim);border:1px solid rgba(255,59,48,.2);}
+
+    /* Accordion */
+    .ap-acc{border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface);}
+    .ap-acc-summary{display:flex;align-items:center;gap:8px;padding:12px 14px;cursor:pointer;list-style:none;user-select:none;transition:background 120ms var(--ease);background:var(--surface);}
+    .ap-acc-summary:hover{background:var(--surface2);}
+    .ap-acc-summary::-webkit-details-marker{display:none;}
+    .ap-acc-title{font-size:10px;font-weight:600;color:var(--text);font-family:var(--font-ui);letter-spacing:.01em;flex:1;}
+    .ap-acc-count{font-size:9px;font-weight:700;font-family:var(--font-mono);color:var(--text-muted);padding:1px 8px;border-radius:3px;background:var(--surface2);border:1px solid var(--border);}
+    .ap-acc-chevron{width:13px;height:13px;color:var(--text-muted);transition:transform 200ms var(--ease);flex-shrink:0;}
+    details.ap-acc[open] .ap-acc-chevron{transform:rotate(90deg);}
+    .ap-acc-body{padding:14px;border-top:1px solid var(--border);}
+
+    /* Technique list */
+    .ap-tech-list{display:flex;flex-direction:column;gap:2px;}
+    .ap-tech-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;cursor:pointer;border:1px solid transparent;transition:background 120ms var(--ease),border-color 120ms var(--ease);}
+    .ap-tech-item:hover{background:var(--surface2);border-color:var(--border);}
+    .ap-tech-item:active{transform:scale(.99);transition:transform 80ms ease-out;}
+    .ap-tech-id{font-size:10px;font-weight:700;color:var(--cyan);min-width:60px;font-family:var(--font-mono);flex-shrink:0;}
+    .ap-tech-name{font-size:10px;color:var(--text);flex:1;font-family:var(--font-ui);}
+    .ap-tech-tactic{font-size:7px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:2px 7px;background:var(--surface3);border:1px solid var(--border-hi);color:var(--text-muted);border-radius:3px;flex-shrink:0;font-family:var(--font-ui);}
+    .ap-tech-count{font-size:10px;font-weight:700;color:var(--green);font-variant-numeric:tabular-nums;min-width:18px;text-align:right;font-family:var(--font-mono);opacity:.7;}
+    /* Technique stagger */
+    .ap-tech-item{opacity:0;animation:apTechIn 200ms var(--ease-drawer) calc(var(--tech-i,0)*22ms) both;}
+    @keyframes apTechIn{from{opacity:0;transform:translateX(5px);}to{opacity:1;transform:none;}}
+
+    /* Chips */
+    .ap-chip-row{display:flex;flex-wrap:wrap;gap:5px;}
+    .ap-chip{font-size:8px;padding:3px 8px;border-radius:4px;border:1px solid;white-space:nowrap;font-family:var(--font-mono);transition:background 100ms;}
+    .ap-chip.cyan{color:var(--cyan);border-color:rgba(0,212,255,.25);background:transparent;}
+    .ap-chip.cyan:hover{background:rgba(0,212,255,.07);}
+    .ap-chip.amber{color:#ff9f0a;border-color:rgba(255,159,10,.25);background:transparent;}
+    .ap-chip.amber:hover{background:rgba(255,159,10,.07);}
+    .ap-chip.red{color:var(--red);border-color:rgba(255,59,48,.3);background:transparent;}
+    .ap-chip.red:hover{background:rgba(255,59,48,.06);}
+    .ap-chip.dim{color:var(--text-dim);border-color:var(--border);background:transparent;}
+    .ap-chip.dim:hover{background:var(--surface2);}
+
+    /* Campaign */
+    .ap-campaign{padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);margin-bottom:8px;transition:border-color 150ms;}
+    .ap-campaign:last-child{margin-bottom:0;}
+    .ap-campaign:hover{border-color:var(--border-hi);}
+    .ap-campaign-name{font-size:11px;font-weight:700;color:var(--text-hi);font-family:var(--font-ui);margin-bottom:3px;}
+    .ap-campaign-range{font-size:8px;color:var(--text-muted);font-family:var(--font-mono);margin-bottom:4px;}
+    .ap-campaign-desc{font-size:10px;color:var(--text-dim);line-height:1.55;font-family:var(--font-ui);}
+
+    /* Victim */
+    .ap-victim{display:flex;align-items:baseline;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+    .ap-victim:last-child{border-bottom:none;}
+    .ap-victim-name{font-size:10px;font-weight:700;color:var(--text);font-family:var(--font-ui);}
+    .ap-victim-meta{font-size:9px;color:var(--text-muted);flex:1;font-family:var(--font-ui);}
+    .ap-victim-date{font-size:8px;color:var(--text-muted);font-family:var(--font-mono);flex-shrink:0;}
+
+    /* Tool category label */
+    .ap-tool-cat{font-size:8px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text-muted);font-family:var(--font-ui);margin:8px 0 4px;}
+    .ap-tool-cat:first-child{margin-top:0;}
+
+    /* Code blocks */
+    .ap-code-block{white-space:pre-wrap;word-break:break-word;font-size:9px;color:var(--text-dim);background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:5px;padding:10px;margin-top:4px;max-height:240px;overflow-y:auto;font-family:var(--font-mono);scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent;}
+    .ap-code-summary{cursor:pointer;font-size:10px;font-family:var(--font-mono);color:var(--text);padding:7px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+    .ap-code-summary:last-child{border-bottom:none;}
+
+    /* Full-width sections at bottom */
+    .ap-full{padding:20px 32px 32px;display:flex;flex-direction:column;gap:20px;}
+    .ap-full-section{}
+    .ap-full-hd{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+    .ap-full-title{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);font-family:var(--font-ui);display:flex;align-items:center;gap:6px;}
+    .ap-full-title::before{content:'';display:block;width:10px;height:1px;background:var(--green);box-shadow:0 0 4px var(--green);}
+    .ap-full-count{font-size:9px;font-weight:700;color:var(--text-muted);font-family:var(--font-mono);padding:1px 8px;border-radius:3px;background:var(--surface);border:1px solid var(--border);}
+    .ap-full-body{}
+
+    /* Source links */
+    .ap-source-link{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;text-decoration:none;transition:background 120ms;margin:0 -10px;}
+    .ap-source-link:hover{background:var(--surface2);}
+    .ap-source-link+.ap-source-link{border-top:1px solid var(--border);}
+    .ap-source-host{font-size:9px;font-weight:700;color:var(--text-dim);font-family:var(--font-mono);flex-shrink:0;min-width:90px;}
+    .ap-source-path{font-size:9px;color:var(--cyan);font-family:var(--font-mono);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .ap-source-link:hover .ap-source-path{text-decoration:underline;}
+
+    /* Responsive */
+    @media(max-width:960px){
+      .ap-body{grid-template-columns:1fr;}
+      .ap-sidebar{border-right:none;border-bottom:1px solid var(--border);}
+      .ap-actor-name{font-size:28px;}
+      .ap-kpi-strip{grid-template-columns:repeat(3,1fr);}
+    }
+    @media(max-width:600px){
+      .ap-hero{padding:16px 16px 14px;}
+      .ap-actor-name{font-size:22px;}
+      .ap-kpi-strip{grid-template-columns:repeat(2,1fr);}
+      .ap-full{padding:16px 16px 24px;}
+    }
+    @media(prefers-reduced-motion:reduce){
+      .ap-kpi-card,.ap-tech-item{animation:none!important;opacity:1!important;}
+    }
+
+    /* ── Actor Grid Cards ── */
+    .ac-tab-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+    .ac-tab-left{display:flex;align-items:center;gap:10px;}
+    .ac-tab-title{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text);font-family:var(--font-ui);}
+    .ac-count{font-size:9px;color:var(--text-muted);font-family:var(--font-mono);padding:2px 8px;border-radius:3px;background:var(--surface);border:1px solid var(--border);}
+    .ac-search{height:32px;padding:0 12px 0 32px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font:400 11px/1 var(--font-ui);width:220px;outline:none;transition:border-color 150ms,box-shadow 150ms;background-image:url("data:image/svg+xml,%3Csvg width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%23484848' stroke-width='2' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:10px center;}
+    .ac-search::placeholder{color:var(--text-muted);}
+    .ac-search:focus{border-color:var(--border-hi);box-shadow:0 0 0 2px rgba(0,255,65,.07);}
+    .ac-sort{display:flex;gap:2px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px;}
+    .ac-sort-btn{padding:3px 10px;border-radius:4px;border:none;background:transparent;color:var(--text-muted);font:600 9px/1 var(--font-ui);letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:background 120ms,color 120ms;}
+    .ac-sort-btn:hover{color:var(--text);}
+    .ac-sort-btn.active{background:var(--surface2);color:var(--text-hi);box-shadow:0 1px 3px rgba(0,0,0,.4);}
+    .ac-sort-btn:active{transform:scale(.95);transition:transform 80ms ease-out;}
+
+    .ac-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:border-color 150ms var(--ease),transform 150ms var(--ease),background 150ms var(--ease),box-shadow 150ms var(--ease);position:relative;overflow:hidden;display:flex;flex-direction:column;gap:12px;}
+    .ac-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:transparent;transition:background 150ms var(--ease);}
+    .ac-card:hover{border-color:var(--border-hi);background:var(--surface2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.5);}
+    .ac-card:hover::before{background:linear-gradient(90deg,var(--green),transparent);}
+    .ac-card:active{transform:scale(.97);transition:transform 80ms ease-out;box-shadow:none;}
+    .ac-card.ac-fade{opacity:0;pointer-events:none;}
+
+    .ac-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+    .ac-name{font-size:14px;font-weight:700;color:var(--text-hi);font-family:var(--font-ui);letter-spacing:-.01em;line-height:1.2;}
+    .ac-fresh{display:flex;align-items:center;gap:5px;flex-shrink:0;}
+    .ac-fresh-dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);animation:pulse 2s ease-in-out infinite;flex-shrink:0;}
+    .ac-fresh-dot.amber{background:var(--amber);box-shadow:0 0 5px var(--amber);animation:none;}
+    .ac-fresh-dot.dim{background:var(--border-hi);box-shadow:none;animation:none;}
+    .ac-fresh-txt{font-size:8px;color:var(--text-muted);font-family:var(--font-mono);white-space:nowrap;}
+
+    .ac-badges{display:flex;flex-wrap:wrap;gap:5px;min-height:0;}
+    .ac-badge{font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:3px;border:1px solid;font-family:var(--font-ui);white-space:nowrap;}
+    .ac-badge.mitre{color:var(--cyan);border-color:rgba(0,212,255,.3);background:rgba(0,212,255,.05);}
+    .ac-badge.rw{color:var(--amber);border-color:rgba(255,149,0,.3);background:rgba(255,149,0,.05);}
+
+    .ac-stats{display:flex;gap:0;border:1px solid var(--border);border-radius:7px;overflow:hidden;}
+    .ac-stat{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 6px;gap:3px;border-right:1px solid var(--border);}
+    .ac-stat:last-child{border-right:none;}
+    .ac-stat-num{font-size:20px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;font-family:var(--font-ui);letter-spacing:-.025em;}
+    .ac-stat-num.green{color:var(--green);}
+    .ac-stat-num.cyan{color:var(--cyan);}
+    .ac-stat-num.purple{color:var(--purple);}
+    .ac-stat-lbl{font-size:7px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text-muted);font-family:var(--font-ui);}
+
+    .ac-techs{display:flex;flex-wrap:wrap;gap:4px;align-items:center;}
+    .ac-tech{font-size:8px;padding:2px 7px;border-radius:3px;border:1px solid rgba(0,255,65,.22);color:var(--green);white-space:nowrap;font-family:var(--font-mono);transition:background 100ms,border-color 100ms;}
+    .ac-tech:hover{background:rgba(0,255,65,.08);border-color:rgba(0,255,65,.4);}
+    .ac-more{font-size:8px;color:var(--text-muted);font-family:var(--font-ui);padding:2px 4px;}
+
+    .ac-sectors{display:flex;flex-wrap:wrap;gap:4px;}
+    .ac-sector{font-size:8px;padding:2px 7px;border-radius:10px;border:1px solid var(--border);color:var(--text-muted);background:var(--surface2);font-family:var(--font-ui);}
+
+    /* Stagger animation for cards */
+    .ac-card{opacity:0;animation:tabIn 220ms var(--ease-drawer) both;}
+    @media(prefers-reduced-motion:reduce){.ac-card{animation:none!important;opacity:1!important;}}
+
     /* ── Drill-down stagger animations ── */
     @keyframes pvChipIn{from{opacity:0;transform:translateY(7px);}to{opacity:1;transform:none;}}
     @keyframes pvRowIn{from{opacity:0;transform:translateX(5px);}to{opacity:1;transform:none;}}
@@ -1466,12 +1705,23 @@
 
     <!-- ACTORS TAB -->
     <div id="tab-actors" class="tab-pane">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
-        <span style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text)">Threat Actors</span>
-        <span id="actors-count" style="font-size:9px;color:var(--text-muted)"></span>
+      <div class="ac-tab-hd">
+        <div class="ac-tab-left">
+          <span class="ac-tab-title">Threat Actors</span>
+          <span id="actors-count" class="ac-count"></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div class="ac-sort">
+            <button class="ac-sort-btn active" data-sort="recent" onclick="setActorSort('recent',this)">Recent</button>
+            <button class="ac-sort-btn" data-sort="articles" onclick="setActorSort('articles',this)">Articles</button>
+            <button class="ac-sort-btn" data-sort="iocs" onclick="setActorSort('iocs',this)">IOCs</button>
+            <button class="ac-sort-btn" data-sort="victims" onclick="setActorSort('victims',this)">Victims</button>
+          </div>
+          <input class="ac-search" id="actors-search" placeholder="Search actors…" oninput="filterActors(this.value)" autocomplete="off" spellcheck="false">
+        </div>
       </div>
       <div id="actors-none" style="display:none;font-size:11px;color:var(--text-muted);padding:24px 0">No threat actor attributions found yet. Run the pipeline with AI extraction enabled to populate this view.</div>
-      <div id="actors-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px"></div>
+      <div id="actors-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px"></div>
     </div>
 
     <!-- GRAPH TAB -->
@@ -2726,213 +2976,188 @@ function renderActorPage(name){
   if(!a){container.innerHTML=`<div class="pa-empty">// Actor "${esc(name)}" not found</div>`;return;}
 
   const daysAgo=a.last_seen?Math.floor((Date.now()-new Date(a.last_seen+"T00:00:00Z"))/86400000):null;
-  const freshTxt=a.article_count===0?"no coverage in monitored sources yet":daysAgo===0?"today":daysAgo===1?"1d ago":daysAgo!=null?`${daysAgo}d ago`:"—";
+  const freshTxt=daysAgo===0?"today":daysAgo===1?"1d ago":daysAgo!=null?`${daysAgo}d ago`:"—";
+  const freshClass=daysAgo!=null&&daysAgo<=1?"":daysAgo!=null&&daysAgo<=14?"amber":"dim";
   const iocs=_allIocs.filter(r=>r.apt===a.actor).map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((x,y)=>y._live-x._live);
   const techs=(a.techniques||[]).map(tid=>_allTtps.find(t=>t.technique_id===tid)||{technique_id:tid}).sort((x,y)=>(y.total_observations||y.article_count||0)-(x.total_observations||x.article_count||0));
   const sources=(a.sources||[]).filter(Boolean);
-
+  const campaigns=a.campaigns||[];
   const activeRange=a.first_seen_rw||a.last_seen_rw?`${esc(a.first_seen_rw||"?")} — ${esc(a.last_seen_rw||"present")}`:"";
+  const chevronSvg=`<svg class="ap-acc-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>`;
 
-  const mitreBadge=a.mitre_group_id?`<span class="act-badge mitre">MITRE ${esc(a.mitre_group_id)}</span>`:"";
-  const rwBadge=(a.ransomware_live_id||a.victim_count)?`<span class="act-badge ransomware">💰 ${a.victim_count||0} victims</span>`:"";
+  // New-style accordion
+  const apAcc=(title,count,bodyHtml,open=false)=>
+    `<details class="ap-acc"${open?" open":""}><summary class="ap-acc-summary"><span class="ap-acc-title">${title}</span>${count!=null?`<span class="ap-acc-count">${count}</span>`:""}${chevronSvg}</summary><div class="ap-acc-body">${bodyHtml}</div></details>`;
 
-  let html=`${(mitreBadge||rwBadge)?`<div class="act-badge-row">${mitreBadge}${rwBadge}</div>`:""}
-    <div class="act-name">${esc(a.actor)}</div>
-    <div class="pv-kpi-strip">
-      <div class="pv-kpi-chip"><span class="pv-kpi-num green" id="act-kpi-articles">${a.article_count}</span><span class="pv-kpi-lbl">Articles</span></div>
-      <div class="pv-kpi-chip"><span class="pv-kpi-num amber">${iocs.length}</span><span class="pv-kpi-lbl">IOCs Attributed</span></div>
-      <div class="pv-kpi-chip"><span class="pv-kpi-num cyan">${a.technique_count}</span><span class="pv-kpi-lbl">Techniques Used</span></div>
-      ${(a.campaigns||[]).length?`<div class="pv-kpi-chip"><span class="pv-kpi-num">${a.campaigns.length}</span><span class="pv-kpi-lbl">Campaigns</span></div>`:""}
+  // ── HERO ──────────────────────────────────────────────────────
+  let html=`<div class="ap-hero">`;
+  const mitreBadge=a.mitre_group_id?`<span class="ap-badge mitre">MITRE ${esc(a.mitre_group_id)}</span>`:"";
+  const rwBadge=(a.ransomware_live_id||a.victim_count)?`<span class="ap-badge ransomware">🔥 ${(a.victim_count||0).toLocaleString()} victims</span>`:"";
+  if(mitreBadge||rwBadge)html+=`<div class="ap-badge-row">${mitreBadge}${rwBadge}</div>`;
+
+  html+=`<div class="ap-hero-inner">
+    <div class="ap-hero-left">
+      <h1 class="ap-actor-name">${esc(a.actor)}</h1>
+      <div class="ap-status-row">
+        <div class="ap-status-item"><div class="ap-status-dot${freshClass?" "+freshClass:""}"></div><span>${esc(freshTxt)}</span></div>
+        ${activeRange?`<span class="ap-status-sep">·</span><div class="ap-status-item ap-status-range">${activeRange}</div>`:""}
+      </div>
     </div>
-    <div class="ttp-d-meta">
-    <div class="ttp-d-row"><span class="ttp-d-lbl">Last observed</span><span class="ttp-d-val">${esc(freshTxt)}</span></div>
-    <div class="ttp-d-row"><span class="ttp-d-lbl">Source articles</span><span class="ttp-d-val">${sources.length}</span></div>
-    ${a.mitre_group_id?`<div class="ttp-d-row"><span class="ttp-d-lbl">MITRE Group ID</span><span class="ttp-d-val"><a href="${esc(a.mitre_url||'#')}" target="_blank" rel="noopener">${esc(a.mitre_group_id)}</a></span></div>`:""}
-    ${activeRange?`<div class="ttp-d-row"><span class="ttp-d-lbl">Active</span><span class="ttp-d-val">${activeRange}</span></div>`:""}
-  </div>`;
+  </div>
+  <div class="ap-kpi-strip">
+    <div class="ap-kpi-card"><span class="ap-kpi-num green">${a.article_count}</span><span class="ap-kpi-lbl">Articles</span></div>
+    <div class="ap-kpi-card"><span class="ap-kpi-num amber">${iocs.length}</span><span class="ap-kpi-lbl">IOCs Attributed</span></div>
+    <div class="ap-kpi-card"><span class="ap-kpi-num cyan">${a.technique_count||techs.length}</span><span class="ap-kpi-lbl">Techniques</span></div>
+    ${campaigns.length?`<div class="ap-kpi-card"><span class="ap-kpi-num purple">${campaigns.length}</span><span class="ap-kpi-lbl">Campaign${campaigns.length!==1?"s":""}</span></div>`:""}
+    ${a.victim_count?`<div class="ap-kpi-card"><span class="ap-kpi-num red">${a.victim_count.toLocaleString()}</span><span class="ap-kpi-lbl">Victims</span></div>`:""}
+  </div></div>`;
+
+  // ── TWO-COLUMN BODY ───────────────────────────────────────────
+  html+=`<div class="ap-body">`;
+
+  // ── LEFT SIDEBAR ──
+  html+=`<div class="ap-sidebar">`;
 
   const profileDesc=a.description||a.ransomware_description;
   if(profileDesc){
-    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Profile</div>
-      <div style="font-size:11px;color:var(--text-dim);line-height:1.5">${esc(profileDesc)}</div></div>`;
+    html+=`<div class="ap-card"><div class="ap-card-hd ap-card-hd--green">Profile</div><div class="ap-card-body"><p class="ap-profile-text">${esc(profileDesc)}</p></div></div>`;
   }
 
-  if(techs.length){
-    const body=techs.map(t=>{
-      const tacticLabel=(t.tactic||"").split("-").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" ");
-      return`<a class="ttp-d-link" style="display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer" onclick="location.hash='';switchTab('ttps');setTimeout(()=>openTtpDrawer('${esc(t.technique_id)}'),200)">
-        <span><span class="ttp-d-src-host">${esc(t.technique_id)}</span><span class="ttp-d-src-path">${esc(t.technique_name||"")}</span></span>
-        ${tacticLabel?`<span style="font-size:8px;color:var(--text-muted);white-space:nowrap;flex-shrink:0">${esc(tacticLabel)}</span>`:""}
-      </a>`;
+  html+=`<div class="ap-card"><div class="ap-card-hd ap-card-hd--cyan">Intelligence</div><div class="ap-card-body--meta">
+    <div class="ap-meta-row"><span class="ap-meta-lbl">Last observed</span><span class="ap-meta-val">${esc(freshTxt)}</span></div>
+    <div class="ap-meta-row"><span class="ap-meta-lbl">Source articles</span><span class="ap-meta-val">${sources.length}</span></div>
+    ${a.mitre_group_id?`<div class="ap-meta-row"><span class="ap-meta-lbl">MITRE Group</span><span class="ap-meta-val"><a href="${esc(a.mitre_url||"#")}" target="_blank" rel="noopener">${esc(a.mitre_group_id)}</a></span></div>`:""}
+    ${activeRange?`<div class="ap-meta-row"><span class="ap-meta-lbl">Active period</span><span class="ap-meta-val">${activeRange}</span></div>`:""}
+  </div></div>`;
+
+  const sectors=a.sectors_targeted||[];
+  if(sectors.length){
+    html+=`<div class="ap-card"><div class="ap-card-hd ap-card-hd--amber">Sectors Targeted</div><div class="ap-card-body"><div class="ap-tags">${sectors.map(s=>`<span class="ap-tag">${esc(s)}</span>`).join("")}</div></div></div>`;
+  }
+
+  const neg=a.negotiation_stats;
+  if(neg&&neg.chat_count){
+    html+=`<div class="ap-card"><div class="ap-card-hd ap-card-hd--red">Negotiation</div><div class="ap-card-body--meta">
+      <div class="ap-meta-row"><span class="ap-meta-lbl">Chats seen</span><span class="ap-meta-val">${neg.chat_count}</span></div>
+      ${neg.avg_initial_usd?`<div class="ap-meta-row"><span class="ap-meta-lbl">Avg initial demand</span><span class="ap-meta-val ap-meta-val--red">$${neg.avg_initial_usd.toLocaleString()}</span></div>`:""}
+      ${neg.avg_negotiated_usd?`<div class="ap-meta-row"><span class="ap-meta-lbl">Avg negotiated</span><span class="ap-meta-val ap-meta-val--amber">$${neg.avg_negotiated_usd.toLocaleString()}</span></div>`:""}
+      <div class="ap-meta-row"><span class="ap-meta-lbl">Payment rate</span><span class="ap-meta-val">${Math.round((neg.payment_rate||0)*100)}%</span></div>
+    </div></div>`;
+  }
+
+  const leakSites=a.leak_sites||[];
+  if(leakSites.length){
+    let leakBody=leakSites.map(ls=>{
+      const status=ls.available===false?"down":ls.available===true?"up":"";
+      return`<div class="ap-leak"><span class="ap-leak-title">${esc(ls.title||ls.type||"Site")}</span><span class="ap-leak-fqdn">${esc(ls.fqdn||ls.slug||"")}</span>${status?`<span class="ap-leak-status ${status}">${status}</span>`:""}</div>`;
     }).join("");
-    html+=_accordion(`${techs.length} Technique${techs.length!==1?"s":""} Observed by Us`,body,true);
+    html+=`<div class="ap-card"><div class="ap-card-hd ap-card-hd--dim">Leak Sites (${leakSites.length})</div><div class="ap-card-body--meta">${leakBody}</div></div>`;
+  }
+
+  html+=`</div>`; // end .ap-sidebar
+
+  // ── MAIN COLUMN ──
+  html+=`<div class="ap-main">`;
+
+  if(techs.length){
+    const techItems=techs.map((t,i)=>{
+      const tac=(t.tactic||"").split("-").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" ");
+      const obs=t.total_observations||t.article_count||"";
+      return`<div class="ap-tech-item" style="--tech-i:${i}" onclick="location.hash='';switchTab('ttps');setTimeout(()=>openTtpDrawer('${esc(t.technique_id)}'),200)">
+        <span class="ap-tech-id">${esc(t.technique_id)}</span>
+        <span class="ap-tech-name">${esc(t.technique_name||"")}</span>
+        ${tac?`<span class="ap-tech-tactic">${esc(tac)}</span>`:""}
+        ${obs?`<span class="ap-tech-count">${obs}</span>`:""}
+      </div>`;
+    }).join("");
+    html+=apAcc("Techniques Observed by Us",techs.length,`<div class="ap-tech-list">${techItems}</div>`,true);
   }
 
   const mitreOnly=(a.mitre_techniques||[]).filter(tid=>!(a.techniques||[]).includes(tid)).sort();
   if(mitreOnly.length){
-    const body=`<div style="display:flex;flex-wrap:wrap;gap:4px">${mitreOnly.map(tid=>
-        `<span onclick="location.hash='';switchTab('ttps');setTimeout(()=>openTtpDrawer('${esc(tid)}'),200)" style="cursor:pointer;font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid rgba(0,229,255,.25);color:var(--cyan);white-space:nowrap">${esc(tid)}</span>`
-      ).join("")}</div>`;
-    html+=_accordion(`${mitreOnly.length} MITRE-Attributed (Not Yet Observed)`,body,false);
+    const chips=mitreOnly.map(tid=>`<span class="ap-chip cyan" style="cursor:pointer" onclick="location.hash='';switchTab('ttps');setTimeout(()=>openTtpDrawer('${esc(tid)}'),200)">${esc(tid)}</span>`).join("");
+    html+=apAcc("MITRE-Attributed (Not Yet Observed)",mitreOnly.length,`<div class="ap-chip-row">${chips}</div>`,false);
   }
 
   const rwTtps=a.ransomware_ttps||[];
   if(rwTtps.length){
     const rwChips=[];
-    rwTtps.forEach(group=>{
-      (group.techniques||[]).forEach(t=>{
-        const tid=t.id||t.technique_id||"";
-        const tname=t.name||t.technique_name||"";
-        if(tid)rwChips.push(`<span title="${esc(tname)}" style="font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid rgba(255,159,10,.25);color:#ff9f0a;white-space:nowrap">${esc(tid)}</span>`);
-      });
-    });
-    if(rwChips.length){
-      html+=_accordion(`${rwChips.length} Technique${rwChips.length!==1?"s":""} (ransomware.live-mapped)`,
-        `<div style="display:flex;flex-wrap:wrap;gap:4px">${rwChips.join("")}</div>`,false);
-    }
+    rwTtps.forEach(g=>(g.techniques||[]).forEach(t=>{const tid=t.id||t.technique_id||"";const tname=t.name||t.technique_name||"";if(tid)rwChips.push(`<span class="ap-chip amber" title="${esc(tname)}">${esc(tid)}</span>`);}));
+    if(rwChips.length)html+=apAcc("Techniques (ransomware.live)",rwChips.length,`<div class="ap-chip-row">${rwChips.join("")}</div>`,false);
+  }
+
+  if(campaigns.length){
+    const campBody=campaigns.map(c=>{
+      const range=c.first_seen||c.last_seen?`${esc((c.first_seen||"").slice(0,10)||"?")} — ${esc((c.last_seen||"").slice(0,10)||"ongoing")}`:"";
+      return`<div class="ap-campaign"><div class="ap-campaign-name">${esc(c.name||"")}</div>${range?`<div class="ap-campaign-range">${range}</div>`:""}${c.description?`<div class="ap-campaign-desc">${esc(c.description)}</div>`:""}</div>`;
+    }).join("");
+    html+=apAcc("Campaigns",campaigns.length,campBody,true);
+  }
+
+  const vulns=a.vulnerabilities||[];
+  if(vulns.length){
+    // ransomware.live uses uppercase keys (CVE/CVSS/Vendor/Product) — check both defensively
+    const chips=vulns.map(v=>{
+      if(typeof v==="string")return v?`<a href="https://nvd.nist.gov/vuln/detail/${esc(v)}" target="_blank" rel="noopener" class="ap-chip red">${esc(v)}</a>`:"";
+      const cve=v.CVE||v.cve||v.id||v.name||"";if(!cve)return"";
+      const cvss=v.CVSS!=null?v.CVSS:v.cvss;
+      const title=[v.Vendor||v.vendor||"",v.Product||v.product||"",cvss!=null?`CVSS ${cvss}`:""].filter(Boolean).join(" · ");
+      return`<a href="https://nvd.nist.gov/vuln/detail/${esc(cve)}" target="_blank" rel="noopener" class="ap-chip red" title="${esc(title)}">${esc(cve)}</a>`;
+    }).filter(Boolean).join("");
+    html+=apAcc(`Vulnerabilities Exploited`,vulns.length,`<div class="ap-chip-row">${chips}</div>`,false);
   }
 
   const mitreSoftware=a.software||[];
   const rwTools=a.tools||{};
   if(mitreSoftware.length||Object.keys(rwTools).length){
-    let body="";
-    if(mitreSoftware.length){
-      body+=`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">${mitreSoftware.map(s=>
-        `<span style="font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid var(--border);color:var(--text-dim);white-space:nowrap">${esc(s)}</span>`
-      ).join("")}</div>`;
-    }
-    Object.entries(rwTools).forEach(([category,names])=>{
-      if(!names||!names.length)return;
-      body+=`<div style="font-size:9px;color:var(--text-muted);margin:6px 0 3px">${esc(category)}</div>
-        <div style="display:flex;flex-wrap:wrap;gap:4px">${names.map(n=>
-          `<span style="font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid var(--border);color:var(--text-dim);white-space:nowrap">${esc(n)}</span>`
-        ).join("")}</div>`;
-    });
-    html+=_accordion("Software &amp; Tooling",body,false);
-  }
-
-  const campaigns=a.campaigns||[];
-  if(campaigns.length){
-    let body="";
-    campaigns.forEach(c=>{
-      const range=c.first_seen||c.last_seen?`${esc((c.first_seen||"").slice(0,10)||"?")} — ${esc((c.last_seen||"").slice(0,10)||"ongoing")}`:"";
-      body+=`<div style="margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:var(--text)">${esc(c.name||"")}</div>
-        ${range?`<div style="font-size:8px;color:var(--text-muted);margin-bottom:2px">${range}</div>`:""}
-        ${c.description?`<div style="font-size:10px;color:var(--text-dim);line-height:1.4">${esc(c.description)}</div>`:""}
-      </div>`;
-    });
-    html+=_accordion(`${campaigns.length} Campaign${campaigns.length!==1?"s":""}`,body,true);
-  }
-
-  const vulns=a.vulnerabilities||[];
-  if(vulns.length){
-    // ransomware.live's vulnerability objects use uppercase keys (CVE/CVSS/Vendor/Product),
-    // unlike everything else in this API — check both cases defensively.
-    const body=`<div style="display:flex;flex-wrap:wrap;gap:4px">${vulns.map(v=>{
-        if(typeof v==="string")return v?`<a href="https://nvd.nist.gov/vuln/detail/${esc(v)}" target="_blank" rel="noopener" style="font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid rgba(255,69,58,.3);color:#ff453a;white-space:nowrap">${esc(v)}</a>`:"";
-        const cve=v.CVE||v.cve||v.id||v.name||"";
-        if(!cve)return"";
-        const cvss=v.CVSS!=null?v.CVSS:v.cvss;
-        const vendor=v.Vendor||v.vendor||"";
-        const product=v.Product||v.product||"";
-        const title=[vendor,product,cvss!=null?`CVSS ${cvss}`:""].filter(Boolean).join(" · ");
-        return`<a href="https://nvd.nist.gov/vuln/detail/${esc(cve)}" target="_blank" rel="noopener" title="${esc(title)}" style="font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid rgba(255,69,58,.3);color:#ff453a;white-space:nowrap">${esc(cve)}</a>`;
-      }).join("")}</div>`;
-    html+=_accordion(`${vulns.length} Vulnerabilit${vulns.length!==1?"ies":"y"} Exploited`,body,false);
-  }
-
-  const neg=a.negotiation_stats;
-  if(neg&&neg.chat_count){
-    const body=`<div class="ttp-d-meta" style="margin-bottom:0">
-      <div class="ttp-d-row"><span class="ttp-d-lbl">Negotiation chats seen</span><span class="ttp-d-val">${neg.chat_count}</span></div>
-      ${neg.avg_initial_usd?`<div class="ttp-d-row"><span class="ttp-d-lbl">Avg. initial demand</span><span class="ttp-d-val">$${neg.avg_initial_usd.toLocaleString()}</span></div>`:""}
-      ${neg.avg_negotiated_usd?`<div class="ttp-d-row"><span class="ttp-d-lbl">Avg. negotiated amount</span><span class="ttp-d-val">$${neg.avg_negotiated_usd.toLocaleString()}</span></div>`:""}
-      <div class="ttp-d-row"><span class="ttp-d-lbl">Payment rate</span><span class="ttp-d-val">${Math.round((neg.payment_rate||0)*100)}%</span></div>
-    </div>`;
-    html+=_accordion("Negotiation Behavior",body,true);
-  }
-
-  const noteNames=a.ransom_note_names||[];
-  if(noteNames.length){
-    const body=`<div style="display:flex;flex-wrap:wrap;gap:4px">${noteNames.map(n=>
-        `<span style="font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid var(--border);color:var(--text-dim);white-space:nowrap;font-family:monospace">${esc(n)}</span>`
-      ).join("")}</div>`;
-    html+=_accordion("Known Ransom Note Filenames",body,false);
-  }
-
-  const ransomNotes=a.ransom_notes||[];
-  if(ransomNotes.length){
-    let body="";
-    ransomNotes.forEach(n=>{
-      body+=`<details style="margin-bottom:6px">
-        <summary style="cursor:pointer;font-size:10px;font-family:monospace;color:var(--text)">${esc(n.name||"")}${n.extension?esc(n.extension):""}</summary>
-        <pre style="white-space:pre-wrap;word-break:break-word;font-size:9px;color:var(--text-dim);background:var(--surface-2,rgba(255,255,255,.03));border:1px solid var(--border);border-radius:4px;padding:8px;margin-top:4px;max-height:240px;overflow-y:auto">${esc(n.content||"")}</pre>
-      </details>`;
-    });
-    html+=_accordion("Ransom Note Content",body,false);
-  }
-
-  const yaraRules=a.yara_rules||[];
-  if(yaraRules.length){
-    let body="";
-    yaraRules.forEach(r=>{
-      body+=`<details style="margin-bottom:6px">
-        <summary style="cursor:pointer;font-size:10px;font-family:monospace;color:var(--text)">${esc(r.filename||"rule")}</summary>
-        <pre style="white-space:pre-wrap;word-break:break-word;font-size:9px;color:var(--text-dim);background:var(--surface-2,rgba(255,255,255,.03));border:1px solid var(--border);border-radius:4px;padding:8px;margin-top:4px;max-height:280px;overflow-y:auto">${esc(r.content||"")}</pre>
-      </details>`;
-    });
-    html+=_accordion(`${yaraRules.length} YARA Rule${yaraRules.length!==1?"s":""}`,body,false);
-  }
-
-  const leakSites=a.leak_sites||[];
-  if(leakSites.length){
-    let body="";
-    leakSites.forEach(ls=>{
-      const status=ls.available===false?"down":ls.available===true?"up":"";
-      body+=`<div class="ttp-d-row"><span class="ttp-d-lbl">${esc(ls.title||ls.type||"Site")}</span><span class="ttp-d-val" style="font-family:monospace;font-size:9px;word-break:break-all">${esc(ls.fqdn||ls.slug||"")}${status?` (${status})`:""}</span></div>`;
-    });
-    html+=_accordion(`${leakSites.length} Leak Site${leakSites.length!==1?"s":""}`,`<div class="ttp-d-meta" style="margin-bottom:0">${body}</div>`,false);
+    let toolBody=mitreSoftware.length?`<div class="ap-chip-row" style="margin-bottom:10px">${mitreSoftware.map(s=>`<span class="ap-chip dim">${esc(s)}</span>`).join("")}</div>`:"";
+    Object.entries(rwTools).forEach(([cat,names])=>{if(!names||!names.length)return;toolBody+=`<div class="ap-tool-cat">${esc(cat)}</div><div class="ap-chip-row" style="margin-bottom:8px">${names.map(n=>`<span class="ap-chip dim">${esc(n)}</span>`).join("")}</div>`;});
+    html+=apAcc("Software & Tooling",null,toolBody,false);
   }
 
   const recentVictims=a.recent_victims||[];
   if(recentVictims.length){
-    let body="";
-    recentVictims.forEach(v=>{
-      body+=`<div style="margin-bottom:6px;font-size:10px">
-        <span style="font-weight:700;color:var(--text)">${esc(v.victim||"")}</span>
-        <span style="color:var(--text-muted)"> — ${esc(v.activity||"")}${v.country?", "+esc(v.country):""}${v.attackdate?" — "+esc(v.attackdate):""}</span>
-      </div>`;
-    });
-    html+=_accordion(`${recentVictims.length} Recent Victim${recentVictims.length!==1?"s":""}`,body,false);
-  }
-  const sectorsTargeted=a.sectors_targeted||[];
-  if(sectorsTargeted.length){
-    html+=`<div class="ttp-d-section"><div class="ttp-d-section-hd">Sectors Targeted</div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px">${sectorsTargeted.map(s=>
-        `<span style="font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid var(--border);color:var(--text-dim);white-space:nowrap">${esc(s)}</span>`
-      ).join("")}</div></div>`;
+    const vicBody=recentVictims.map(v=>`<div class="ap-victim"><span class="ap-victim-name">${esc(v.victim||"")}</span><span class="ap-victim-meta">${[v.activity,v.country].filter(Boolean).map(esc).join(", ")}</span>${v.attackdate?`<span class="ap-victim-date">${esc(v.attackdate)}</span>`:""}</div>`).join("");
+    html+=apAcc("Recent Victims",recentVictims.length,vicBody,false);
   }
 
-  if(sources.length){
-    let body="";
-    for(const url of sources){
-      const meta=resolveArticleMeta(url);
-      const site=(meta&&(meta.site||meta.source_blog))||_allIocs.find(r=>r.source_article===url)?.source_blog||"";
-      body+=`<a class="ttp-d-link" href="${esc(url)}" target="_blank" rel="noopener" style="display:block;margin-bottom:4px">
-        <span class="ttp-d-src-host">${esc(site||urlHost(url))}</span><span class="ttp-d-src-path">${esc(urlPath(url))}</span>
-      </a>`;
-    }
-    html+=_accordion(`${sources.length} Source Article${sources.length!==1?"s":""}`,body,true);
+  const noteNames=a.ransom_note_names||[];
+  if(noteNames.length){
+    html+=apAcc("Ransom Note Filenames",noteNames.length,`<div class="ap-chip-row">${noteNames.map(n=>`<span class="ap-chip dim" style="font-family:var(--font-mono)">${esc(n)}</span>`).join("")}</div>`,false);
   }
+
+  const ransomNotes=a.ransom_notes||[];
+  if(ransomNotes.length){
+    const notesBody=ransomNotes.map(n=>`<details style="margin-bottom:4px"><summary class="ap-code-summary">${esc(n.name||"")}${n.extension?esc(n.extension):""}</summary><pre class="ap-code-block">${esc(n.content||"")}</pre></details>`).join("");
+    html+=apAcc("Ransom Note Content",ransomNotes.length,notesBody,false);
+  }
+
+  const yaraRules=a.yara_rules||[];
+  if(yaraRules.length){
+    const yaraBody=yaraRules.map(r=>`<details style="margin-bottom:4px"><summary class="ap-code-summary">${esc(r.filename||"rule")}</summary><pre class="ap-code-block">${esc(r.content||"")}</pre></details>`).join("");
+    html+=apAcc("YARA Rules",yaraRules.length,yaraBody,false);
+  }
+
+  html+=`</div></div>`; // end .ap-main, .ap-body
+
+  // ── FULL-WIDTH BOTTOM ──────────────────────────────────────────
+  html+=`<div class="ap-full">`;
 
   const iocsBody=iocs.length
-    ?`<div style="overflow-x:auto"><table class="pv-links-table" style="margin-top:4px">
-      <thead><tr><th>Value</th><th>Type</th><th>Score</th><th>APT</th><th>VT</th><th>Enrichment</th></tr></thead>
-      <tbody>${_iocRowsHtml(iocs,"No IOCs attributed to this actor")}</tbody>
-    </table></div>`
-    :`<div class="no-links">No IOCs attributed to this actor yet.</div>`;
-  html+=_accordion(`${iocs.length} Indicator${iocs.length!==1?"s":""}`,iocsBody,true);
+    ?`<div style="overflow-x:auto"><table class="pv-links-table"><thead><tr><th>Value</th><th>Type</th><th>Score</th><th>APT</th><th>VT</th><th>Enrichment</th></tr></thead><tbody>${_iocRowsHtml(iocs,"No IOCs attributed to this actor")}</tbody></table></div>`
+    :`<div class="pv-empty">No IOCs attributed to this actor yet.</div>`;
+  html+=`<div class="ap-full-section"><div class="ap-full-hd"><span class="ap-full-title">Indicators of Compromise</span><span class="ap-full-count">${iocs.length}</span></div><div class="ap-full-body">${iocsBody}</div></div>`;
 
+  if(sources.length){
+    const srcBody=sources.map(url=>{
+      const meta=resolveArticleMeta(url);
+      const site=(meta&&(meta.site||meta.source_blog))||_allIocs.find(r=>r.source_article===url)?.source_blog||"";
+      return`<a class="ap-source-link" href="${esc(url)}" target="_blank" rel="noopener"><span class="ap-source-host">${esc(site||urlHost(url))}</span><span class="ap-source-path">${esc(urlPath(url))}</span><svg width="9" height="9" viewBox="0 0 10 10" fill="none" style="flex-shrink:0;opacity:.35"><path d="M3.5 2H2C1.45 2 1 2.45 1 3V8C1 8.55 1.45 9 2 9H7C7.55 9 8 8.55 8 8V6.5M6 1H9M9 1V4M9 1L4.5 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>`;
+    }).join("");
+    html+=`<div class="ap-full-section"><div class="ap-full-hd"><span class="ap-full-title">Source Articles</span><span class="ap-full-count">${sources.length}</span></div><div class="ap-full-body">${srcBody}</div></div>`;
+  }
+
+  html+=`</div>`; // end .ap-full
   container.innerHTML=html;
 }
 
@@ -3633,40 +3858,80 @@ function renderHome({activeSites,quietSites,failingSites,weekTotal,iocExport,ttp
 }
 
 /* ── Actors Tab ── */
-let _actorByName={};
+let _actorByName={},_actorExportAll=[],_actorSort="recent";
+
+function _actorCardHtml(a,i){
+  const daysAgo=a.last_seen?Math.floor((Date.now()-new Date(a.last_seen+"T00:00:00Z"))/86400000):null;
+  const freshTxt=daysAgo===0?"today":daysAgo===1?"1d ago":daysAgo!=null?`${daysAgo}d ago`:"—";
+  const dotClass=daysAgo!=null&&daysAgo<=1?"":daysAgo!=null&&daysAgo<=14?" amber":" dim";
+  const iocCount=_allIocs.filter(r=>r.apt===a.actor).length;
+  const techs=(a.techniques||[]).slice(0,7);
+  const moreCount=(a.techniques||[]).length-techs.length;
+  const sectors=(a.sectors_targeted||[]).slice(0,4);
+  const moreSectors=(a.sectors_targeted||[]).length-sectors.length;
+  const campaigns=(a.campaigns||[]).length;
+
+  const techHtml=techs.map(tid=>`<span class="ac-tech" onclick="event.stopPropagation();location.hash='';switchTab('ttps');setTimeout(()=>openTtpDrawer('${esc(tid)}'),200)">${esc(tid)}</span>`).join("");
+  const moreLabel=moreCount>0?`<span class="ac-more">+${moreCount} more</span>`:"";
+  const mitreBadge=a.mitre_group_id?`<span class="ac-badge mitre">MITRE ${esc(a.mitre_group_id)}</span>`:"";
+  const rwBadge=(a.ransomware_live_id||a.victim_count)?`<span class="ac-badge rw">🔥 ${(a.victim_count||0).toLocaleString()} victims</span>`:"";
+  const sectorHtml=sectors.length?`<div class="ac-sectors">${sectors.map(s=>`<span class="ac-sector">${esc(s)}</span>`).join("")}${moreSectors>0?`<span class="ac-sector">+${moreSectors}</span>`:""}</div>`:"";
+
+  return`<div class="ac-card" style="animation-delay:${Math.min(i,12)*35}ms" onclick="location.hash='#actor/'+encodeURIComponent('${esc(a.actor).replace(/'/g,"\\'")}')">
+    <div class="ac-hd">
+      <div class="ac-name">${esc(a.actor)}</div>
+      <div class="ac-fresh"><div class="ac-fresh-dot${dotClass}"></div><span class="ac-fresh-txt">${esc(freshTxt)}</span></div>
+    </div>
+    ${(mitreBadge||rwBadge)?`<div class="ac-badges">${mitreBadge}${rwBadge}</div>`:""}
+    <div class="ac-stats">
+      <div class="ac-stat"><span class="ac-stat-num green">${a.article_count}</span><span class="ac-stat-lbl">Articles</span></div>
+      <div class="ac-stat"><span class="ac-stat-num cyan">${a.technique_count||0}</span><span class="ac-stat-lbl">Techniques</span></div>
+      ${iocCount?`<div class="ac-stat"><span class="ac-stat-num" style="color:var(--amber)">${iocCount}</span><span class="ac-stat-lbl">IOCs</span></div>`:""}
+      ${campaigns?`<div class="ac-stat"><span class="ac-stat-num purple">${campaigns}</span><span class="ac-stat-lbl">Campaign${campaigns!==1?"s":""}</span></div>`:""}
+    </div>
+    ${techs.length?`<div class="ac-techs">${techHtml}${moreLabel}</div>`:""}
+    ${sectorHtml}
+  </div>`;
+}
+
+function _sortActors(actors){
+  const s=_actorSort;
+  if(s==="articles")return [...actors].sort((a,b)=>(b.article_count||0)-(a.article_count||0));
+  if(s==="iocs")return [...actors].sort((a,b)=>_allIocs.filter(r=>r.apt===b.actor).length-_allIocs.filter(r=>r.apt===a.actor).length);
+  if(s==="victims")return [...actors].sort((a,b)=>(b.victim_count||0)-(a.victim_count||0));
+  // recent: sort by last_seen descending
+  return [...actors].sort((a,b)=>{
+    const da=a.last_seen?new Date(a.last_seen).getTime():0;
+    const db=b.last_seen?new Date(b.last_seen).getTime():0;
+    return db-da;
+  });
+}
+
+function filterActors(query){
+  const q=(query||"").trim().toLowerCase();
+  const base=_sortActors(_actorExportAll);
+  const filtered=q?base.filter(a=>a.actor.toLowerCase().includes(q)||(a.mitre_group_id||"").toLowerCase().includes(q)||(a.sectors_targeted||[]).some(s=>s.toLowerCase().includes(q))):base;
+  const grid=document.getElementById("actors-grid");
+  if(grid)grid.innerHTML=filtered.map((a,i)=>_actorCardHtml(a,i)).join("");
+}
+
+function setActorSort(sort,btn){
+  _actorSort=sort;
+  document.querySelectorAll(".ac-sort-btn").forEach(b=>b.classList.toggle("active",b===btn));
+  filterActors(document.getElementById("actors-search")?.value||"");
+}
+
 function renderActors(actorExport){
   const grid=document.getElementById("actors-grid");
   const none=document.getElementById("actors-none");
   const cnt=document.getElementById("actors-count");
   if(!grid)return;
-  const actors=(actorExport||[]).filter(a=>a.actor);
-  _actorByName=Object.fromEntries(actors.map(a=>[a.actor,a]));
-  if(cnt)cnt.textContent=actors.length?`${actors.length} actor${actors.length!==1?"s":""}`:""
-  if(!actors.length){if(none)none.style.display="";grid.innerHTML="";return;}
+  _actorExportAll=(actorExport||[]).filter(a=>a.actor);
+  _actorByName=Object.fromEntries(_actorExportAll.map(a=>[a.actor,a]));
+  if(cnt)cnt.textContent=_actorExportAll.length?`${_actorExportAll.length} actor${_actorExportAll.length!==1?"s":""}`:""
+  if(!_actorExportAll.length){if(none)none.style.display="";grid.innerHTML="";return;}
   if(none)none.style.display="none";
-  grid.innerHTML=actors.map((a,i)=>{
-    const daysAgo=a.last_seen?Math.floor((Date.now()-new Date(a.last_seen+"T00:00:00Z"))/86400000):null;
-    const freshTxt=a.article_count===0?"no coverage in monitored sources yet":daysAgo===0?"today":daysAgo===1?"yesterday":daysAgo!=null?`${daysAgo}d ago`:"";
-    const techs=(a.techniques||[]).slice(0,8);
-    const techHtml=techs.map(tid=>`<span onclick="event.stopPropagation();switchTab('ttps');setTimeout(()=>openTtpDrawer('${esc(tid)}'),200)" style="cursor:pointer;font-size:8px;padding:2px 6px;border-radius:3px;border:1px solid rgba(0,255,65,.25);color:var(--green);white-space:nowrap">${esc(tid)}</span>`).join("");
-    const moreLabel=(a.techniques||[]).length>8?`<span style="font-size:8px;color:var(--text-muted)">+${(a.techniques||[]).length-8} more</span>`:"";
-    const mitreBadge=a.mitre_group_id?`<span style="font-size:8px;padding:1px 5px;border-radius:3px;border:1px solid rgba(0,229,255,.3);color:var(--cyan);white-space:nowrap">MITRE ${esc(a.mitre_group_id)}</span>`:"";
-    const rwBadge=(a.ransomware_live_id||a.victim_count)?`<span style="font-size:8px;padding:1px 5px;border-radius:3px;border:1px solid rgba(255,159,10,.3);color:#ff9f0a;white-space:nowrap">💰 ${a.victim_count||0} victims</span>`:"";
-    const campaignStat=(a.campaigns||[]).length?`<div><span style="font-size:18px;font-weight:700;color:var(--text)">${a.campaigns.length}</span><br><span style="font-size:8px;color:var(--text-muted)">campaigns</span></div>`:"";
-    return`<div class="actor-card" onclick="location.hash='#actor/'+encodeURIComponent('${esc(a.actor).replace(/'/g,"\\'")}')" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;cursor:pointer;animation:tabIn 160ms var(--ease) both;animation-delay:${i*30}ms">
-      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;gap:8px">
-        <span style="font-size:12px;font-weight:700;color:var(--text)">${esc(a.actor)}</span>
-        <span style="font-size:8px;color:var(--text-muted);text-align:right">${esc(freshTxt)}</span>
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">${mitreBadge}${rwBadge}</div>
-      <div style="display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap">
-        <div><span style="font-size:18px;font-weight:700;color:var(--green)">${a.article_count}</span><br><span style="font-size:8px;color:var(--text-muted)">articles</span></div>
-        <div><span style="font-size:18px;font-weight:700;color:var(--cyan)">${a.technique_count}</span><br><span style="font-size:8px;color:var(--text-muted)">techniques</span></div>
-        ${campaignStat}
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px">${techHtml}${moreLabel}</div>
-    </div>`;
-  }).join("");
+  filterActors(document.getElementById("actors-search")?.value||"");
 }
 
 function updateDashboard({sites,activeSites,quietSites,failingSites,weekTotal,sparkData,state,sevenDay,prevRunLinks,iocExport,ttpExport,sigmaExport,actorExport,updatedAt}){
