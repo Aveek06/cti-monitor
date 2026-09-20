@@ -2628,7 +2628,7 @@ function _iocVtColHtml(r){
 }
 function _iocRowsHtml(iocs,emptyMsg){
   if(!iocs.length)return`<tr><td colspan="6" class="pa-empty">// ${emptyMsg}</td></tr>`;
-  const scored=iocs.map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((a,b)=>b._live-a._live);
+  const scored=iocs.map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv,r.verdict)})).sort((a,b)=>b._live-a._live);
   return scored.map(r=>{
     const s=r._live,col=scoreColor(s),bar=Math.round(s);
     const enrich=_iocEnrichTagsHtml(r);
@@ -2806,7 +2806,7 @@ function _doExport(rows,fmt,prefix){
   if(fmt==="csv"){
     const hdr="value,type,score,apt,source_blog,source_article,first_seen,last_seen,vt_malicious";
     const ec=v=>`"${String(v==null?"":v).replace(/"/g,'""')}"`;
-    const body=rows.map(r=>[r.value,r.type,(liveScore(r.last_seen,r.tau,r.ltv)).toFixed(1),r.apt||"",r.source_blog||"",r.source_article||"",r.first_seen||"",r.last_seen||"",r.vt_malicious!=null?r.vt_malicious:""].map(ec).join(",")).join("\n");
+    const body=rows.map(r=>[r.value,r.type,(liveScore(r.last_seen,r.tau,r.ltv,r.verdict)).toFixed(1),r.apt||"",r.source_blog||"",r.source_article||"",r.first_seen||"",r.last_seen||"",r.vt_malicious!=null?r.vt_malicious:""].map(ec).join(",")).join("\n");
     content=hdr+"\n"+body;mime="text/csv";filename=`${prefix}_${ts}.csv`;
   }else if(fmt==="txt"){
     content=rows.map(r=>r.value).join("\n");mime="text/plain";filename=`${prefix}_${ts}.txt`;
@@ -2978,7 +2978,7 @@ function renderActorPage(name){
   const daysAgo=a.last_seen?Math.floor((Date.now()-new Date(a.last_seen+"T00:00:00Z"))/86400000):null;
   const freshTxt=daysAgo===0?"today":daysAgo===1?"1d ago":daysAgo!=null?`${daysAgo}d ago`:"—";
   const freshClass=daysAgo!=null&&daysAgo<=1?"":daysAgo!=null&&daysAgo<=14?"amber":"dim";
-  const iocs=_allIocs.filter(r=>r.apt===a.actor).map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((x,y)=>y._live-x._live);
+  const iocs=_allIocs.filter(r=>r.apt===a.actor).map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv,r.verdict)})).sort((x,y)=>y._live-x._live);
   const techs=(a.techniques||[]).map(tid=>_allTtps.find(t=>t.technique_id===tid)||{technique_id:tid}).sort((x,y)=>(y.total_observations||y.article_count||0)-(x.total_observations||x.article_count||0));
   const sources=(a.sources||[]).filter(Boolean);
   const campaigns=a.campaigns||[];
@@ -3163,7 +3163,18 @@ function renderActorPage(name){
 
 /* ── IOC rendering ── */
 let _allIocs=[];
-function liveScore(lastSeen,tau,ltv){if(!lastSeen)return 0;const t=(Date.now()-new Date(lastSeen+"T00:00:00Z"))/86400000;if(isNaN(t)||t<0)return 0;return Math.max(0,Math.min(100,100*(1-(t/((tau||30)*(ltv||1.0)))**2)));}
+// Mirrors ioc_scorer.VERDICT_PARAMS / compute_score() in the Python backend —
+// keep these two in sync if the decay curve ever changes server-side.
+const VERDICT_PARAMS={malicious:{base:100,tauMult:1.5,delta:0.25},suspicious:{base:75,tauMult:1.0,delta:0.50},unknown:{base:55,tauMult:0.75,delta:0.55},clean:{base:40,tauMult:0.40,delta:0.70}};
+function liveScore(lastSeen,tau,ltv,verdict){
+  if(!lastSeen)return 0;
+  const t=(Date.now()-new Date(lastSeen+"T00:00:00Z"))/86400000;
+  if(isNaN(t)||t<0)return 0;
+  const p=VERDICT_PARAMS[verdict]||VERDICT_PARAMS.unknown;
+  const tauEff=(tau||30)*(ltv||1.0)*p.tauMult;
+  if(tauEff<=0||t>=tauEff)return 0;
+  return Math.max(0,Math.min(100,p.base*(1-(t/tauEff)**(1/p.delta))));
+}
 function scoreColor(s){return s>=70?"var(--green)":s>=30?"var(--amber)":"var(--red)";}
 function closeIocDrawer(){
   document.getElementById("ioc-drawer").classList.remove("open");
@@ -3172,7 +3183,7 @@ function closeIocDrawer(){
 }
 function openIocDrawer(idx){
   const r=_iocDrawerRows[idx];if(!r)return;
-  const s=r._live!=null?r._live:liveScore(r.last_seen,r.tau,r.ltv);
+  const s=r._live!=null?r._live:liveScore(r.last_seen,r.tau,r.ltv,r.verdict);
   const col=scoreColor(s);
   const isHash=r.type==="sha256"||r.type==="sha1"||r.type==="md5";
   const isDomain=r.type==="domain"||r.type==="fqdn";
@@ -3265,7 +3276,7 @@ function renderIocs(data){
     return;
   }
   none.style.display="none";tbl.style.display="";
-  const scored=_allIocs.map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)}));
+  const scored=_allIocs.map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv,r.verdict)}));
   const high=scored.filter(r=>r._live>=70).length;
   const med=scored.filter(r=>r._live>=30&&r._live<70).length;
   const vtOk=scored.filter(r=>r.vt_malicious!=null&&r.vt_malicious>0).length;
@@ -3300,7 +3311,7 @@ function filterIocs(q){
   if(_multiSourceOnly&&(r.source_count||1)<2)return false;
   // Fix 4: RDAP age filter — hide domains/URLs registered >5 years ago with no VT signal
   if(_multiSourceOnly&&r.domain_registered&&(r.type==="domain"||r.type==="url")){const age=(_now-new Date(r.domain_registered))/86400000;if(age>1825&&!(r.vt_malicious>0)&&!(r.vt_domain_malicious>0))return false;}
-  return!lq||r.value.toLowerCase().includes(lq)||(r.type||"").includes(lq)||(r.source_blog||"").toLowerCase().includes(lq)||(r.apt||"").toLowerCase().includes(lq)||(r.url_threat||"").toLowerCase().includes(lq)||((r.url_tags||[]).join(" ").toLowerCase().includes(lq));}).map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((a,b)=>b._live-a._live));
+  return!lq||r.value.toLowerCase().includes(lq)||(r.type||"").includes(lq)||(r.source_blog||"").toLowerCase().includes(lq)||(r.apt||"").toLowerCase().includes(lq)||(r.url_threat||"").toLowerCase().includes(lq)||((r.url_tags||[]).join(" ").toLowerCase().includes(lq));}).map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv,r.verdict)})).sort((a,b)=>b._live-a._live));
   document.getElementById("ioc-count").textContent=`${rows.length} IOC${rows.length!==1?"s":""}`;
   const empty=document.getElementById("ioc-empty"),tbody=document.getElementById("ioc-tbody");
   if(!rows.length){empty.style.display="block";tbody.innerHTML="";return;}
@@ -3354,7 +3365,7 @@ function _getFilteredIocRows(){
     if(_activeTypeFilter&&!(_activeTypeFilter==="ip"?(r.type==="ipv4"||r.type==="ipv6"):_activeTypeFilter==="sha"?(r.type==="sha256"||r.type==="sha1"):r.type===_activeTypeFilter))return false;
     if(_minReliability>0){const _s=_relScoreCache[r.source_blog];if(_s==null||_s<_minReliability)return false;}
     return !q||r.value.toLowerCase().includes(q)||(r.type||"").includes(q)||(r.source_blog||"").toLowerCase().includes(q)||(r.apt||"").toLowerCase().includes(q)||(r.url_threat||"").toLowerCase().includes(q)||((r.url_tags||[]).join(" ").toLowerCase().includes(q));
-  }).map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv)})).sort((a,b)=>b._live-a._live);
+  }).map(r=>({...r,_live:liveScore(r.last_seen,r.tau,r.ltv,r.verdict)})).sort((a,b)=>b._live-a._live);
 }
 function toggleExportMenu(){
   const m=document.getElementById("ioc-export-menu");
@@ -4578,7 +4589,7 @@ function renderExecView() {
   const ttps = window._ttpData || [];
   const msDay = 86400000;
 
-  const liveScores = iocs.map(r => typeof liveScore === 'function' ? liveScore(r.last_seen, r.tau, r.ltv) : (r.score || 0));
+  const liveScores = iocs.map(r => typeof liveScore === 'function' ? liveScore(r.last_seen, r.tau, r.ltv, r.verdict) : (r.score || 0));
   const avgTopScore = liveScores.length ? liveScores.slice(0, 10).reduce((a,b)=>a+b,0) / Math.min(10, liveScores.length) : 0;
   const heroScore = Math.round(avgTopScore);
 
@@ -4742,7 +4753,7 @@ function renderExecCves(cves, cvssMap) {
 
 function renderExecRecs(iocs, ttps, aptSet) {
   const recs = [];
-  const liveScores = iocs.map(r => typeof liveScore === 'function' ? liveScore(r) : (r.score || 0));
+  const liveScores = iocs.map(r => typeof liveScore === 'function' ? liveScore(r.last_seen, r.tau, r.ltv, r.verdict) : (r.score || 0));
   const criticalCount = liveScores.filter(s => s >= 70).length;
 
   if (criticalCount > 0)
