@@ -1409,6 +1409,129 @@
       "type": "feed",
       "url": "https://opensourcemalware.com/rss.xml",
       "link_path_prefix": "/blog/"
+    },
+    {
+      "name": "Schneier on Security",
+      "type": "feed",
+      "url": "https://www.schneier.com/feed/"
+    },
+    {
+      "name": "Malware Traffic Analysis",
+      "type": "feed",
+      "url": "https://www.malware-traffic-analysis.net/blog-entries.rss"
+    },
+    {
+      "name": "VX-Underground",
+      "type": "scrapling_stealthy",
+      "url": "https://vx-underground.org/",
+      "notes": "Cloudflare Turnstile challenge on every path; no RSS."
+    },
+    {
+      "name": "SANS Internet Storm Center",
+      "type": "feed",
+      "url": "https://isc.sans.edu/rssfeed.xml"
+    },
+    {
+      "name": "CERT-EU",
+      "type": "feed",
+      "url": "https://cert.europa.eu/publications/threat-intelligence-rss"
+    },
+    {
+      "name": "Check Point Research (research.checkpoint.com)",
+      "type": "feed",
+      "url": "https://research.checkpoint.com/feed/"
+    },
+    {
+      "name": "Snyk",
+      "type": "feed",
+      "url": "https://snyk.io/blog/feed/"
+    },
+    {
+      "name": "GitHub Security Blog",
+      "type": "feed",
+      "url": "https://github.blog/security/feed/"
+    },
+    {
+      "name": "JFrog",
+      "type": "scrapling_stealthy",
+      "url": "https://jfrog.com/blog/",
+      "notes": "AWS WAF JS challenge on every path incl. /feed/."
+    },
+    {
+      "name": "Wordfence",
+      "type": "feed",
+      "url": "https://www.wordfence.com/blog/feed/"
+    },
+    {
+      "name": "Orca Security",
+      "type": "feed",
+      "url": "https://orca.security/resources/blog/feed/"
+    },
+    {
+      "name": "Team Cymru",
+      "type": "feed",
+      "url": "https://www.team-cymru.com/post/rss.xml"
+    },
+    {
+      "name": "Shadowserver",
+      "type": "html",
+      "url": "https://www.shadowserver.org/news-insights/",
+      "post_container": "div.c--article-list div.article",
+      "link_selector": "h4 a",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "Use /news-insights/, not /news/ (404s). No RSS exposed."
+    },
+    {
+      "name": "Cyble",
+      "type": "feed",
+      "url": "https://cyble.com/blog/feed/"
+    },
+    {
+      "name": "Anomali",
+      "type": "html",
+      "url": "https://www.anomali.com/blog",
+      "post_container": "a[aria-label='Read More'][href^='/blog/']",
+      "link_selector": "self",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "notes": "No RSS; 'Read More' link is itself the container (link_selector: self)."
+    },
+    {
+      "name": "NVISO",
+      "type": "feed",
+      "url": "https://blog.nviso.eu/feed/"
+    },
+    {
+      "name": "Bishop Fox",
+      "type": "feed",
+      "url": "https://bishopfox.com/feeds/blog.rss"
+    },
+    {
+      "name": "Dragos",
+      "type": "scrapling_fetcher",
+      "url": "https://www.dragos.com/blog",
+      "link_path_prefix": "/blog/",
+      "notes": "Cloudflare Bot Management present; RSS returns empty 202; static HTML, no JS needed."
+    },
+    {
+      "name": "SentinelOne Labs",
+      "type": "feed",
+      "url": "https://www.sentinelone.com/labs/feed/",
+      "notes": "Distinct from existing 'SentinelOne' general blog feed -- SentinelLabs research-specific."
+    },
+    {
+      "name": "CrowdSec",
+      "type": "feed",
+      "url": "https://www.crowdsec.net/blog/rss"
+    },
+    {
+      "name": "VMRay",
+      "type": "scrapling_fetcher",
+      "url": "https://www.vmray.com/blog/",
+      "notes": "CloudFront WAF blocks every path incl. plain HTML. Escalate to scrapling_stealthy if this still 403s."
     }
   ]
 }
