@@ -29,6 +29,8 @@ import ipinfo_enricher
 import vt_domain_enricher
 import domain_enricher
 import hash_enricher
+import hashlookup_enricher
+import ha_enricher
 import typosquat_checker
 import ttp_extractor
 import urlhaus_fetcher
@@ -292,6 +294,22 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
     except Exception as e:
         print(f"Hash meta enrichment error: {e}")
 
+    print("Running CIRCL HASHLOOKUP enrichment (up to 200 hashes, no key required)...")
+    try:
+        hashlookup_enricher.enrich_pending_hashes(conn)
+    except Exception as e:
+        print(f"CIRCL HASHLOOKUP enrichment error: {e}")
+
+    ha_api_key = os.environ.get("HA_API_KEY", "")
+    if ha_api_key:
+        print("Running Hybrid Analysis enrichment (up to 20 hashes)...")
+        try:
+            ha_enricher.enrich_pending_hashes(conn, ha_api_key)
+        except Exception as e:
+            print(f"Hybrid Analysis enrichment error: {e}")
+    else:
+        print("HA_API_KEY not set — skipping Hybrid Analysis enrichment.")
+
     print("Running typosquat / brand-abuse check (up to 200 domains)...")
     try:
         typosquat_checker.enrich_pending_domains(conn)
@@ -374,6 +392,11 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
                 "verdict":        r.get("verdict", "unknown"),
                 "is_typosquat":  r.get("is_typosquat"),
                 "typosquat_of":  r.get("typosquat_of"),
+                "hashlookup_known":    r.get("hashlookup_known"),
+                "hashlookup_trust":    r.get("hashlookup_trust"),
+                "ha_verdict":          r.get("ha_verdict"),
+                "ha_threat_score":     r.get("ha_threat_score"),
+                "ha_malware_family":   r.get("ha_malware_family"),
             }
             for r in all_active
         ], key=lambda x: x["score"], reverse=True)

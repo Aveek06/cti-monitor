@@ -104,6 +104,22 @@ def get_verdict(row: dict) -> str:
     if row.get("urlhaus_domain_status") == "online":
         votes += 1
 
+    # Hybrid Analysis sandbox verdict (hash IOCs only)
+    if row.get("ha_checked"):
+        ha_v = row.get("ha_verdict")
+        if ha_v == "malicious":
+            votes += 2
+        elif ha_v == "suspicious":
+            votes += 1
+        elif ha_v == "whitelisted":
+            votes -= 1  # known-good by sandbox; counteracts other signals
+
+    # CIRCL HASHLOOKUP: trust >= 70 means known-good (NSRL / software corpus)
+    if row.get("hashlookup_checked") and row.get("hashlookup_known"):
+        trust = row.get("hashlookup_trust")
+        if trust is not None and trust >= 70:
+            votes -= 1  # strong known-good signal reduces maliciousness confidence
+
     # Domain age: newly registered domains are a strong threat indicator.
     # < 90 days old → very high risk (+2); 90–299 days → elevated risk (+1).
     if group == "domain" and row.get("domain_registered"):

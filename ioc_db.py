@@ -78,6 +78,15 @@ def init_schema(conn):
         cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS typosquat_checked   BOOLEAN DEFAULT FALSE")
         cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS is_typosquat        BOOLEAN")
         cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS typosquat_of        TEXT")
+        # CIRCL HASHLOOKUP (hash IOCs only)
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS hashlookup_checked  BOOLEAN DEFAULT FALSE")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS hashlookup_known    BOOLEAN")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS hashlookup_trust    INT")
+        # Hybrid Analysis (hash IOCs only)
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS ha_checked          BOOLEAN DEFAULT FALSE")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS ha_verdict          TEXT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS ha_threat_score     INT")
+        cur.execute("ALTER TABLE ioc_indicators ADD COLUMN IF NOT EXISTS ha_malware_family   TEXT")
     conn.commit()
 
 
