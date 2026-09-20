@@ -123,7 +123,7 @@ def main():
         with conn.cursor() as cur:
             cur.execute(
                 "SELECT COUNT(*) FROM ioc_indicators "
-                "WHERE type IN ('sha256','sha1','md5') AND mb_checked = FALSE"
+                "WHERE type IN ('sha256','sha1','md5') AND hash_meta_checked = FALSE"
             )
             mb_pending = cur.fetchone()[0]
         print(f"Hash meta enrichment (MalwareBazaar/ThreatFox): {mb_pending} pending.")
