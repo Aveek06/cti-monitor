@@ -9,7 +9,7 @@ import requests
 import psycopg2.extras
 
 HA_URL = "https://www.hybrid-analysis.com/api/v2/search/hash"
-SLEEP_BETWEEN = 6  # conservative: ~10 req/min on free tier
+SLEEP_BETWEEN = 0.4  # 200 req/min limit → 0.4s gives ~150 req/min with headroom
 
 _VERDICT_RANK = {"malicious": 3, "suspicious": 2, "no verdict": 1, "whitelisted": 0}
 
@@ -42,7 +42,7 @@ def _lookup(value: str, api_key: str) -> dict:
         return {"verdict": None, "threat_score": None, "malware_family": None}
 
 
-def enrich_pending_hashes(conn, api_key: str, limit: int = 20) -> None:
+def enrich_pending_hashes(conn, api_key: str, limit: int = 100) -> None:
     """Enrich hashes not yet checked against Hybrid Analysis."""
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute(

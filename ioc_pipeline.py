@@ -302,7 +302,7 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
 
     ha_api_key = os.environ.get("HA_API_KEY", "")
     if ha_api_key:
-        print("Running Hybrid Analysis enrichment (up to 20 hashes)...")
+        print("Running Hybrid Analysis enrichment (up to 100 hashes)...")
         try:
             ha_enricher.enrich_pending_hashes(conn, ha_api_key)
         except Exception as e:
