@@ -2846,5 +2846,25 @@
     "https://www.dragos.com/blog/water-utility-attacks-decade-of-gaps",
     "https://www.dragos.com/blog/whos-allowed-on-the-bridge-mtsas-network-segmentation-requirement",
     "https://www.dragos.com/blog/xot-environment-security-program"
+  ],
+  "JFrog": [
+    "https://jfrog.com/blog/agent-guard-control-ai-assets-before-they-become-shadow-ai/",
+    "https://jfrog.com/blog/agent-immunization-a-new-model-for-building-trusted-ai-agents/",
+    "https://jfrog.com/blog/agentic-development-security-is-a-discipline-that-starts-before-the-first-line-of-code/",
+    "https://jfrog.com/blog/agentic-software-supply-chain-security-ai-assisted-curation-remediation/",
+    "https://jfrog.com/blog/devgovops-to-prove-compliance/",
+    "https://jfrog.com/blog/how-to-validate-policy-as-code/",
+    "https://jfrog.com/blog/introducing-agent-plugins-repositories/",
+    "https://jfrog.com/blog/introducing-jfrog-preview/",
+    "https://jfrog.com/blog/jfrog-ai-catalog-evolves-to-detect-shadow-ai-govern-mcps/",
+    "https://jfrog.com/blog/jfrog-apptrust-enforces-compliance/",
+    "https://jfrog.com/blog/jfrog-artifactory-luarocks-support-nginx-openresty-kong/",
+    "https://jfrog.com/blog/jfrog-swampup-2026-live-updates/",
+    "https://jfrog.com/blog/managing-ai-agent-primitives-with-apm-and-jfrog/",
+    "https://jfrog.com/blog/parallels-desktop-turns-appliance-install-into-root-shell/",
+    "https://jfrog.com/blog/prompt-to-release-traceability/",
+    "https://jfrog.com/blog/self-healing-software-supply-chain/",
+    "https://jfrog.com/blog/swampup-2026-recap-single-source-of-truth-agentic-software-supply-chain/",
+    "https://jfrog.com/blog/the-evolution-of-jfrog-ai-catalog/"
   ]
 }
