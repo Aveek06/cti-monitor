@@ -1,4 +1,9 @@
-"""URLhaus host check + RDAP registration data + DNS live resolution, run as one pass."""
+"""URLhaus host check + RDAP registration data + DNS live resolution, run as one pass.
+
+Registration date lookup order:
+  1. RDAP via rdap.org (good gTLD coverage)
+  2. python-whois fallback (covers ccTLDs and TLDs without RDAP servers)
+"""
 import json
 import socket
 import requests
@@ -56,6 +61,23 @@ def _rdap_check(value: str) -> dict:
         return {"registered": None, "registrar": None}
 
 
+def _whois_fallback(value: str) -> str | None:
+    """Return registration date via python-whois when RDAP returns nothing."""
+    try:
+        import whois
+        w = whois.query(value)
+        if w is None:
+            return None
+        cd = w.creation_date
+        if isinstance(cd, list):
+            cd = cd[0]
+        if cd is None:
+            return None
+        return cd.strftime("%Y-%m-%d")
+    except Exception:
+        return None
+
+
 def _dns_check(value: str) -> dict:
     try:
         infos = socket.getaddrinfo(value, None, socket.AF_INET)
@@ -80,6 +102,8 @@ def enrich_pending_domains(conn, limit: int = 50) -> None:
         try:
             uh   = _urlhaus_check(row["value"])
             rdap = _rdap_check(row["value"])
+            if rdap["registered"] is None:
+                rdap["registered"] = _whois_fallback(row["value"])
             dns  = _dns_check(row["value"])
             with conn.cursor() as cur:
                 cur.execute(

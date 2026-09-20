@@ -12,3 +12,4 @@ anthropic
 psycopg2-binary
 htmldate
 curl-cffi
+python-whois

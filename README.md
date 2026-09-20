@@ -179,18 +179,61 @@ Shodan stores open ports and tags (e.g. `vpn`, `scanner`, `honeypot`) in JSONB c
 
 Each IOC becomes a STIX 2.1 `Indicator` with a deterministic UUID (`uuid5(dns_namespace, value:type)`) — safe to re-ingest without duplication. Stored in Supabase `ioc_indicators` with full STIX JSON in a `JSONB` column alongside enrichment data.
 
-### Decay Scoring (Jakusz 2025)
+### Decay Scoring (Jakusz 2025 Extended)
+
+Scores are computed live from stored `tau` and `ltv` values — the dashboard always reflects current-moment decay. No score is persisted; changing the formula re-prices all IOCs instantly.
+
+#### Formula
 
 ```
-score = 100 × max(0, 1 − (t / (τ × LTV))²)
+score = base × max(0, 1 − (t / τ_eff)^(1/δ))
 
-t   = days since last_seen
-τ   = VT-observed TTL (if enriched) or default (domain 30d, hash 60d, url/ip 7d)
-LTV = APT-specific coefficient (APT10: hash 1.85 / APT29: hash 0.84 / default 1.0)
-      × site reliability multiplier (≥70: 1.3× / 40–69: 1.0× / <40: 0.7×)
+t       = days since last_seen
+τ_eff   = τ × LTV × tau_mult(verdict)
+τ       = VT-observed TTL if enriched, else default by type:
+          domain 30d | hash 60d | url 30d | ip 30d
+LTV     = APT coefficient × site reliability multiplier × corroboration multiplier
+          APT coefficients: APT10 hash 1.85, APT29 hash 0.84, APT38 domain 0.83 (others 1.0)
+          site reliability: ≥70 → 1.3× | 40–69 → 1.0× | <40 → 0.7×
+          corroboration: each additional confirming source adds 0.15× (capped at +3 sources)
 ```
 
-Scores are recomputed live from stored `tau` and `ltv` values — the dashboard always shows current-moment decay. Active threshold: score ≥ 30. Expiring: 1–29. Hard prune: `last_seen` older than 90 days.
+#### Verdict classification
+
+Before scoring, each IOC is classified by aggregating weighted votes across all enrichment sources:
+
+| Signal | Votes |
+|---|---|
+| VirusTotal engines ≥ threshold (hash: 5, others: 3) | +2 |
+| VirusTotal engines ≥ 1 but below threshold | +1 |
+| AbuseIPDB score ≥ 75 / ≥ 25 (IPs only) | +2 / +1 |
+| ThreatFox confidence ≥ 75 / ≥ 25 | +2 / +1 |
+| GreyNoise classification = malicious | +1 |
+| URLhaus domain status = online | +1 |
+| Domain registered < 90 days ago | +2 |
+| Domain registered 90–299 days ago | +1 |
+
+3+ votes → `malicious`; 1–2 → `suspicious`; 0 + VT-verified clean → `clean`; else `unknown`.
+
+#### Verdict-differentiated decay parameters
+
+| Verdict | base | τ multiplier | δ (curve shape) | Behaviour |
+|---|---|---|---|---|
+| `malicious` | 100 | 1.5× | 0.25 | 1.5× effective lifetime; slow-start curve — stays above 90 for ~94% of life |
+| `suspicious` | 100 | 1.25× | 0.40 | 1.25× effective lifetime; moderately slow decay |
+| `unknown` | 100 | 1.0× | 0.50 | Original quadratic — identical to pre-verdict behaviour |
+| `clean` | 100 | 1.0× | 0.50 | Original quadratic — no penalty for VT-verified clean IOCs |
+
+**δ (delta) controls the curve shape.** δ < 1 produces a slow-start curve — the score stays high for most of the lifetime then drops sharply near expiry, ideal for confirmed threats you want to keep tracking. δ > 1 produces a fast-start drop. All curves guarantee a finite zero-crossing at `t = τ_eff` (unlike pure exponential decay).
+
+#### Score thresholds
+
+| Range | Status |
+|---|---|
+| ≥ 30 | Active — shown in dashboard and exports |
+| 1–29 | Expiring — still exported, flagged as fading |
+| < 1 | Excluded from weekly report IOC stats |
+| `last_seen` > 90 days | Hard-deleted from database regardless of score |
 
 ---
 

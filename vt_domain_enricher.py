@@ -1,5 +1,6 @@
 import json
 import time
+from datetime import datetime, timezone
 import requests
 import psycopg2.extras
 
@@ -17,14 +18,22 @@ def enrich_domain(value: str, api_key: str) -> dict | None:
         if resp.status_code == 429:
             raise RuntimeError("VT domain rate limit")
         if resp.status_code == 404:
-            return {"malicious": 0, "categories": {}}
+            return {"malicious": 0, "categories": {}, "creation_date": None}
         if resp.status_code != 200:
             return None
         attrs = resp.json().get("data", {}).get("attributes", {})
         stats = attrs.get("last_analysis_stats", {})
+        creation_date = None
+        raw_ts = attrs.get("creation_date")
+        if raw_ts:
+            try:
+                creation_date = datetime.fromtimestamp(int(raw_ts), tz=timezone.utc).strftime("%Y-%m-%d")
+            except Exception:
+                pass
         return {
-            "malicious":  stats.get("malicious", 0),
-            "categories": attrs.get("categories", {}),
+            "malicious":     stats.get("malicious", 0),
+            "categories":    attrs.get("categories", {}),
+            "creation_date": creation_date,
         }
     except RuntimeError:
         raise
@@ -35,7 +44,7 @@ def enrich_domain(value: str, api_key: str) -> dict | None:
 def enrich_pending_domains(conn, api_key: str, limit: int = 30) -> None:
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute(
-            "SELECT id, value FROM ioc_indicators "
+            "SELECT id, value, domain_registered FROM ioc_indicators "
             "WHERE vt_domain_checked = FALSE AND type = 'domain'"
             "ORDER BY created_at DESC LIMIT %s",
             (limit,)
@@ -46,14 +55,20 @@ def enrich_pending_domains(conn, api_key: str, limit: int = 30) -> None:
             time.sleep(SLEEP_BETWEEN)
         try:
             result = enrich_domain(row["value"], api_key)
+            # Only write creation_date when RDAP hasn't already filled it in.
+            new_reg = result["creation_date"] if result else None
+            if row.get("domain_registered"):
+                new_reg = row["domain_registered"]
             with conn.cursor() as cur:
                 cur.execute(
                     "UPDATE ioc_indicators SET vt_domain_checked=TRUE, "
-                    "vt_domain_malicious=%s, vt_domain_categories=%s, updated_at=NOW() "
-                    "WHERE id=%s",
+                    "vt_domain_malicious=%s, vt_domain_categories=%s, "
+                    "domain_registered=COALESCE(domain_registered, %s), "
+                    "updated_at=NOW() WHERE id=%s",
                     (
-                        result["malicious"]             if result else None,
+                        result["malicious"]              if result else None,
                         json.dumps(result["categories"]) if result else None,
+                        new_reg,
                         row["id"],
                     ),
                 )

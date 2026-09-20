@@ -40,13 +40,19 @@ def load_json(path, default):
         return default
 
 
-def _live_score(last_seen_str, tau, ltv):
-    """Recompute Jakusz decay score as of now."""
+def _live_score(last_seen_str, tau, ltv, verdict="unknown"):
+    """Recompute polynomial decay score as of now (mirrors ioc_scorer.compute_score)."""
+    from ioc_scorer import VERDICT_PARAMS
     try:
         last_seen = datetime.strptime(last_seen_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
         t = (datetime.now(timezone.utc) - last_seen).days
-        denom = float(tau or 30) * float(ltv or 1.0)
-        return max(0.0, round(100.0 * (1.0 - (t / denom) ** 2), 1))
+        params = VERDICT_PARAMS.get(verdict, VERDICT_PARAMS["unknown"])
+        base = params["base"]
+        tau_eff = float(tau or 30) * float(ltv or 1.0) * params["tau_mult"]
+        delta = params["delta"]
+        if tau_eff <= 0 or t < 0 or t >= tau_eff:
+            return 0.0
+        return max(0.0, round(base * (1.0 - (t / tau_eff) ** (1.0 / delta)), 1))
     except Exception:
         return 0.0
 
@@ -64,7 +70,7 @@ def _compute_ioc_stats(ioc_export, cutoff_str):
     for row in ioc_export:
         ioc_type = row.get("type", "unknown")
         apt      = row.get("apt") or "Unknown"
-        score    = _live_score(row.get("last_seen", ""), row.get("tau"), row.get("ltv"))
+        score    = _live_score(row.get("last_seen", ""), row.get("tau"), row.get("ltv"), row.get("verdict", "unknown"))
 
         if score < 1:
             continue

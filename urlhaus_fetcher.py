@@ -37,17 +37,19 @@ def fetch_url_iocs(api_key: str) -> list[dict]:
         if isinstance(tags, str):
             tags = [tags]
 
-        # Compute score: online URL, last_seen = today, tau=7, ltv=1.0 → near 100
-        from ioc_scorer import compute_score
-        score = compute_score(today, 7.0, 1.0)
+        # URLhaus only surfaces online malware-hosting URLs → verdict is always malicious.
+        from ioc_scorer import compute_score, TAU_DEFAULT
+        tau = TAU_DEFAULT["url"]
+        score = compute_score(today, tau, 1.0, "malicious")
 
         result.append({
             "value":          entry.get("url", ""),
             "type":           "url",
             "apt":            None,
             "score":          score,
-            "tau":            7.0,
+            "tau":            float(tau),
             "ltv":            1.0,
+            "verdict":        "malicious",
             "source_blog":    "URLhaus",
             "source_article": entry.get("url", ""),
             "first_seen":     date_added,

@@ -155,7 +155,7 @@ def get_new_iocs_since(conn, date_str: str) -> list[dict]:
 
 
 def get_active_iocs(conn, min_score=30.0) -> list[dict]:
-    from ioc_scorer import tau_for, compute_score
+    from ioc_scorer import tau_for, compute_score, get_verdict
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute("SELECT * FROM ioc_indicators ORDER BY last_seen DESC")
         rows = [dict(r) for r in cur.fetchall()]
@@ -164,9 +164,11 @@ def get_active_iocs(conn, min_score=30.0) -> list[dict]:
         count = row.get("source_count") or 1
         corr = 1.0 + min(count - 1, 3) * 0.15  # ×1.0 / ×1.15 / ×1.30 / ×1.45
         effective_ltv = float(row.get("ltv") or 1.0) * corr
-        score = compute_score(str(row["last_seen"]), tau_for(row), effective_ltv)
+        verdict = get_verdict(row)
+        score = compute_score(str(row["last_seen"]), tau_for(row), effective_ltv, verdict)
         if score >= min_score:
             row["score"] = score
+            row["verdict"] = verdict
             result.append(row)
     return result
 
