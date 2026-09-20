@@ -106,7 +106,7 @@ def main():
             if pending:
                 est = pending * 15
                 print(f"Starting (15s/call — ~{est//60}m {est%60}s)...")
-                vt_enricher.enrich_pending_hashes(conn, vt_hash_key, limit=pending + 1)
+                conn = vt_enricher.enrich_pending_hashes(conn, vt_hash_key, limit=pending + 1)
                 print("VT hash enrichment complete.")
 
     # --- Domain meta (URLhaus / RDAP / DNS) ---

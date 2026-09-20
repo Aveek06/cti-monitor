@@ -1,5 +1,6 @@
 import time
 import requests
+import psycopg2
 
 VT_URL        = "https://www.virustotal.com/api/v3/files/{hash}"
 VT_IP_URL     = "https://www.virustotal.com/api/v3/ip_addresses/{ip}"
@@ -92,7 +93,21 @@ def enrich_pending_ips(conn, api_key: str) -> None:
             conn.rollback()
 
 
-def enrich_pending_hashes(conn, api_key: str, limit: int = 30) -> None:
+def _reconnect(conn):
+    """Long catchup runs (hundreds of rows, 15s apart) can outlast Supabase's
+    pooler connection lifetime. Re-open using the same DSN so the caller's
+    reference stays live instead of the whole run crashing on the next query."""
+    dsn = conn.dsn
+    try:
+        conn.close()
+    except Exception:
+        pass
+    return psycopg2.connect(dsn)
+
+
+def enrich_pending_hashes(conn, api_key: str, limit: int = 30):
+    """Returns the live connection (reconnected if the original dropped
+    mid-run) so callers running a long catchup loop keep a working conn."""
     import psycopg2.extras
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute(
@@ -123,6 +138,10 @@ def enrich_pending_hashes(conn, api_key: str, limit: int = 30) -> None:
             print("VT rate limit reached — stopping enrichment early.")
             conn.rollback()
             break
+        except (psycopg2.OperationalError, psycopg2.InterfaceError) as e:
+            print(f"VT enrichment: connection dropped ({e}); reconnecting...")
+            conn = _reconnect(conn)
         except Exception as e:
             print(f"VT enrichment error for {row['value']}: {e}")
             conn.rollback()
+    return conn

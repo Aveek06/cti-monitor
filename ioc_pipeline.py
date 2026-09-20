@@ -224,7 +224,7 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
     if vt_api_key:
         print("Running VirusTotal enrichment (up to 20 hashes, 15s between calls)...")
         try:
-            vt_enricher.enrich_pending_hashes(conn, vt_api_key)
+            conn = vt_enricher.enrich_pending_hashes(conn, vt_api_key)
         except Exception as e:
             print(f"VT enrichment error: {e}")
     else:
@@ -371,6 +371,7 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
                 "tf_threat_type": r.get("tf_threat_type"),
                 "tf_malware":     r.get("tf_malware"),
                 "tf_confidence":  r.get("tf_confidence"),
+                "verdict":        r.get("verdict", "unknown"),
                 "is_typosquat":  r.get("is_typosquat"),
                 "typosquat_of":  r.get("typosquat_of"),
             }
