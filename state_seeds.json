@@ -2866,5 +2866,53 @@
     "https://jfrog.com/blog/self-healing-software-supply-chain/",
     "https://jfrog.com/blog/swampup-2026-recap-single-source-of-truth-agentic-software-supply-chain/",
     "https://jfrog.com/blog/the-evolution-of-jfrog-ai-catalog/"
+  ],
+  "HarfangLab Coverage (via The Hacker News)": [
+    "https://thehackernews.com/2024/05/brazilian-banks-targeted-by-new.html",
+    "https://thehackernews.com/2024/07/iranian-hackers-deploy-new-bugsleep.html",
+    "https://thehackernews.com/2024/07/israeli-entities-targeted-by.html",
+    "https://thehackernews.com/2024/08/iranian-cyber-group-ta453-targets.html",
+    "https://thehackernews.com/2024/08/openai-blocks-iranian-influence.html",
+    "https://thehackernews.com/2024/10/fake-job-applications-deliver-dangerous.html",
+    "https://thehackernews.com/2024/10/researchers-uncover-hijack-loader.html",
+    "https://thehackernews.com/2025/04/apt29-deploys-grapeloader-malware.html",
+    "https://thehackernews.com/2025/04/new-malware-loaders-use-call-stack.html",
+    "https://thehackernews.com/2025/06/xdigo-malware-exploits-windows-lnk-flaw.html",
+    "https://thehackernews.com/2025/09/noisy-bear-targets-kazakhstan-energy.html",
+    "https://thehackernews.com/2025/10/china-linked-hackers-exploit-windows.html",
+    "https://thehackernews.com/2026/01/iran-linked-redkitten-cyber-campaign.html"
+  ],
+  "Lab52 Coverage (via The Hacker News)": [
+    "https://thehackernews.com/2022/04/researchers-uncover-new-android-spyware.html",
+    "https://thehackernews.com/2023/08/russian-hackers-use-zulip-chat-app-for.html",
+    "https://thehackernews.com/2024/01/china-linked-hackers-target-myanmars.html",
+    "https://thehackernews.com/2024/02/mustang-panda-targets-asia-with.html",
+    "https://thehackernews.com/2024/03/redcurl-cybercrime-group-abuses-windows.html",
+    "https://thehackernews.com/2025/09/russian-apt28-deploys-notdoor-outlook.html",
+    "https://thehackernews.com/2025/09/weekly-recap-drift-breach-chaos-zero.html",
+    "https://thehackernews.com/2025/10/north-korean-hackers-lure-defense.html",
+    "https://thehackernews.com/2026/02/apt28-targeted-european-entities-using.html",
+    "https://thehackernews.com/2026/02/apt28-uses-microsoft-office-cve-2026.html",
+    "https://thehackernews.com/2026/03/drillapp-backdoor-targets-ukraine.html",
+    "https://thehackernews.com/2026/03/weekly-recap-sd-wan-0-day-critical-cves.html",
+    "https://thehackernews.com/2026/06/north-korean-hackers-are-turning.html"
+  ],
+  "ACSC Coverage (via The Hacker News)": [
+    "https://thehackernews.com/2021/07/critical-rce-flaw-in-forgerock-access.html",
+    "https://thehackernews.com/2021/07/top-30-critical-security.html",
+    "https://thehackernews.com/2021/08/new-apt-hacking-group-targets-microsoft.html",
+    "https://thehackernews.com/2021/11/us-uk-and-australia-warn-of-iranian.html",
+    "https://thehackernews.com/2022/06/what-is-essential-eight-and-why-non.html",
+    "https://thehackernews.com/2022/08/chinese-hackers-used-scanbox-framework.html",
+    "https://thehackernews.com/2023/07/cybersecurity-agencies-warn-against.html",
+    "https://thehackernews.com/2023/11/lockbit-ransomware-exploiting-critical.html",
+    "https://thehackernews.com/2024/06/snowflake-warns-targeted-credential.html",
+    "https://thehackernews.com/2024/10/us-and-allies-warn-of-iranian.html",
+    "https://thehackernews.com/2025/09/sonicwall-ssl-vpn-flaw-and.html",
+    "https://thehackernews.com/2025/09/urgent-cisco-asa-zero-day-duo-under.html",
+    "https://thehackernews.com/2026/02/cisco-sd-wan-zero-day-cve-2026-20127.html",
+    "https://thehackernews.com/2026/03/weekly-recap-sd-wan-0-day-critical-cves.html",
+    "https://thehackernews.com/2026/05/weekly-recap-linux-rootkit-macos-crypto.html",
+    "https://thehackernews.com/2026/07/icagenda-and-balbooa-forms-joomla-flaws.html"
   ]
 }

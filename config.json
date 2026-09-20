@@ -1532,6 +1532,30 @@
       "type": "scrapling_fetcher",
       "url": "https://www.vmray.com/blog/",
       "notes": "CloudFront WAF blocks every path incl. plain HTML. Escalate to scrapling_stealthy if this still 403s."
+    },
+    {
+      "name": "HarfangLab Coverage (via The Hacker News)",
+      "type": "html_auto",
+      "url": "https://thehackernews.com/search?q=HarfangLab",
+      "require_hyphenated_slug": true,
+      "min_link_depth": 3,
+      "notes": "HarfangLab's own domain is Cloudflare IP-blocked from GH Actions runners. TheHackerNews's tag/label feeds don't actually filter by topic (verified -- they silently return the general firehose), so this scrapes their live search results page instead, which is genuinely server-rendered and query-filtered."
+    },
+    {
+      "name": "Lab52 Coverage (via The Hacker News)",
+      "type": "html_auto",
+      "url": "https://thehackernews.com/search?q=Lab52",
+      "require_hyphenated_slug": true,
+      "min_link_depth": 3,
+      "notes": "Lab52's own domain is bot-walled/dead for automated scraping. Same search-page mechanism as the HarfangLab entry -- see its notes."
+    },
+    {
+      "name": "ACSC Coverage (via The Hacker News)",
+      "type": "html_auto",
+      "url": "https://thehackernews.com/search?q=ACSC",
+      "require_hyphenated_slug": true,
+      "min_link_depth": 3,
+      "notes": "Australian Cyber Security Centre's own site is geo-restricted (times out from non-AU IPs). Use the 'ACSC' acronym query, not the full phrase -- the full phrase 'Australian Cyber Security Centre' returns noisy loose-word matches (e.g. unrelated 2012 Windows 8 articles); 'ACSC' alone is precise. Same search-page mechanism as the HarfangLab entry -- see its notes."
     }
   ]
 }
