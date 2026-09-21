@@ -1628,16 +1628,6 @@
       "type": "feed",
       "url": "https://opensourcemalware.com/rss.xml",
       "link_path_prefix": "/blog/"
-    },
-    {
-      "name": "Artic Wolf",
-      "type": "feed",
-      "url": "https://arcticwolf.com/feed"
-    },
-    {
-      "name": "PolySworm",
-      "type": "feed",
-      "url": "https://blog.polyswarm.io/rss.xml"
     }
   ]
 }
