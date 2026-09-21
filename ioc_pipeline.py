@@ -27,6 +27,7 @@ import abuseipdb_enricher
 import greynoise_enricher
 import ipinfo_enricher
 import vt_domain_enricher
+import vt_ip_enricher
 import domain_enricher
 import hash_enricher
 import hashlookup_enricher
@@ -272,6 +273,16 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
             print(f"IPinfo enrichment error: {e}")
     else:
         print("IPINFO_TOKEN not set — skipping IPinfo enrichment.")
+
+    vt_ip_key = os.environ.get("VT_API_KEY_IP", "")
+    if vt_ip_key:
+        print("Running VirusTotal IP enrichment (up to 20 IPs, 15s between calls)...")
+        try:
+            vt_ip_enricher.enrich_pending_ips(conn, vt_ip_key)
+        except Exception as e:
+            print(f"VT IP enrichment error: {e}")
+    else:
+        print("VT_API_KEY_IP not set — skipping VT IP enrichment.")
 
     vt_domain_key = os.environ.get("VT_API_KEY_DOMAIN", "")
     if vt_domain_key:

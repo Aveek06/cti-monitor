@@ -3,10 +3,22 @@ from datetime import datetime, timezone
 LTV = {
     ("APT10", "domain"): 0.97,
     ("APT10", "hash"):   1.85,
+    ("APT10", "ip"):     1.40,  # dedicated VPS C2 infrastructure, persistent
     ("APT29", "domain"): 0.61,
     ("APT29", "hash"):   0.84,
+    ("APT29", "ip"):     0.55,  # cloud-hosted (Azure/AWS), rotates rapidly
     ("APT38", "domain"): 0.83,
     ("APT38", "hash"):   0.77,
+    ("APT38", "ip"):     1.20,  # dedicated servers, moderately persistent
+}
+
+# Hosting/cloud provider keywords matched against ipinfo_org (lowercased).
+# These IPs get reassigned to new tenants quickly → shorter effective lifetime.
+_CLOUD_ORGS = {
+    "amazon", "amazonaws", "aws", "azure", "microsoft",
+    "google", "digitalocean", "linode", "akamai", "vultr",
+    "hetzner", "ovh", "cloudflare", "fastly", "leaseweb",
+    "m247", "choopa", "datacamp", "frantech", "serverius",
 }
 TAU_DEFAULT = {"domain": 30, "hash": 60, "url": 30, "ip": 30}
 
@@ -50,7 +62,13 @@ def get_ltv(apt: str | None, ioc_type: str) -> float:
 def tau_for(row: dict) -> float:
     if row.get("vt_ttl_days"):
         return float(row["vt_ttl_days"])
-    return TAU_DEFAULT[ioc_group(row["type"])]
+    base = TAU_DEFAULT[ioc_group(row["type"])]
+    # Cloud/hosting IPs get reassigned to new tenants quickly — halve their lifetime.
+    if ioc_group(row.get("type", "")) == "ip":
+        org = (row.get("ipinfo_org") or "").lower()
+        if any(p in org for p in _CLOUD_ORGS):
+            return base * 0.5
+    return base
 
 
 def get_verdict(row: dict) -> str:
@@ -96,9 +114,16 @@ def get_verdict(row: dict) -> str:
         elif tf >= 25:
             votes += 1
 
-    # GreyNoise
-    if row.get("greynoise_classification") == "malicious":
+    # GreyNoise RIOT = True means the IP belongs to a known benign internet service
+    # (Google DNS, CDN, cloud scanner etc.) — strong clean signal.
+    if row.get("greynoise_riot"):
+        votes -= 2
+    elif row.get("greynoise_classification") == "malicious":
         votes += 1
+
+    # Shodan: honeypot tag indicates a research decoy, not a real threat actor host.
+    if "honeypot" in (row.get("shodan_tags") or []):
+        votes -= 1
 
     # URLhaus (domain/URL actively hosting malware)
     if row.get("urlhaus_domain_status") == "online":
