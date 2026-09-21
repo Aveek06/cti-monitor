@@ -62,6 +62,10 @@ def main():
     parser.add_argument("--domain-vt-only", action="store_true", help="Only VT domain enrichment")
     parser.add_argument("--hash-vt-only",   action="store_true", help="Only VT hash enrichment (sha256/sha1/md5)")
     parser.add_argument("--meta-only",      action="store_true", help="Only URLhaus/RDAP/DNS domain meta enrichment")
+    parser.add_argument("--skip-reset",     action="store_true",
+                         help="Don't reset previously-checked-but-null rows back to pending; "
+                              "only process rows never checked. Use once the reset backlog "
+                              "(mostly confirmed 404s) is large enough to risk the 90min CI timeout.")
     args = parser.parse_args()
 
     any_filter = args.domain_vt_only or args.hash_vt_only or args.meta_only
@@ -85,8 +89,9 @@ def main():
         if not vt_domain_key:
             print("WARNING: VT_API_KEY_DOMAIN not set — skipping VT domain enrichment.")
         else:
-            reset_count = reset_failed(conn, "vt_domain_checked", "vt_domain_malicious", ["domain", "fqdn"])
-            print(f"Reset {reset_count} previously-failed VT domain checks back to pending.")
+            if not args.skip_reset:
+                reset_count = reset_failed(conn, "vt_domain_checked", "vt_domain_malicious", ["domain", "fqdn"])
+                print(f"Reset {reset_count} previously-failed VT domain checks back to pending.")
             pending = count_pending_flag(conn, "vt_domain_checked", ["domain", "fqdn"])
             print(f"VT domain enrichment: {pending} pending.")
             if pending:
@@ -100,8 +105,9 @@ def main():
         if not vt_hash_key:
             print("WARNING: VT_API_KEY not set — skipping VT hash enrichment.")
         else:
-            reset_count = reset_failed(conn, "vt_verified", "vt_malicious", ["sha256", "sha1", "md5"])
-            print(f"Reset {reset_count} previously-failed VT hash checks back to pending.")
+            if not args.skip_reset:
+                reset_count = reset_failed(conn, "vt_verified", "vt_malicious", ["sha256", "sha1", "md5"])
+                print(f"Reset {reset_count} previously-failed VT hash checks back to pending.")
             pending = count_pending_verified(conn, ["sha256", "sha1", "md5"])
             print(f"VT hash enrichment: {pending} pending.")
             if pending:

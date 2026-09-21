@@ -13,6 +13,11 @@ on:
           - domain-vt-only
           - hash-vt-only
           - meta-only
+      skip_reset:
+        description: "Skip resetting previously-checked-null rows (avoids re-burning quota on confirmed 404s)"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -42,12 +47,16 @@ jobs:
           VT_API_KEY_BACKUP: ${{ secrets.VT_API_KEY_BACKUP }}
         run: |
           MODE="${{ github.event.inputs.mode }}"
+          FLAGS=""
+          if [ "${{ github.event.inputs.skip_reset }}" = "true" ]; then
+            FLAGS="--skip-reset"
+          fi
           if [ "$MODE" = "domain-vt-only" ]; then
-            python catchup_domain_enrichment.py --domain-vt-only
+            python catchup_domain_enrichment.py --domain-vt-only $FLAGS
           elif [ "$MODE" = "hash-vt-only" ]; then
-            python catchup_domain_enrichment.py --hash-vt-only
+            python catchup_domain_enrichment.py --hash-vt-only $FLAGS
           elif [ "$MODE" = "meta-only" ]; then
-            python catchup_domain_enrichment.py --meta-only
+            python catchup_domain_enrichment.py --meta-only $FLAGS
           else
-            python catchup_domain_enrichment.py
+            python catchup_domain_enrichment.py $FLAGS
           fi
