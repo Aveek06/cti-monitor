@@ -477,6 +477,7 @@ Set these in **Settings → Secrets and variables → Actions**:
 | `SMTP_USERNAME` / `SMTP_PASSWORD` | Gmail SMTP credentials |
 | `DATABASE_URL` | Same Supabase URL as Vercel |
 | `VT_API_KEY` | VirusTotal (free tier) |
+| `VT_API_KEY_BACKUP` | Optional second VirusTotal key — used automatically once for the rest of a run if `VT_API_KEY` or `VT_API_KEY_DOMAIN` hits its rate limit |
 | `SHODAN_API_KEY` | Shodan API |
 | `URLHAUS_API_KEY` | URLhaus abuse.ch |
 | `GITHUB_TOKEN` | Auto-provided by Actions (no setup needed) |

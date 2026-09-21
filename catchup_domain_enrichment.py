@@ -72,6 +72,7 @@ def main():
     db_url        = os.environ.get("DATABASE_URL")
     vt_hash_key   = os.environ.get("VT_API_KEY", "")
     vt_domain_key = os.environ.get("VT_API_KEY_DOMAIN", "")
+    vt_backup_key = os.environ.get("VT_API_KEY_BACKUP", "")
 
     if not db_url:
         print("ERROR: DATABASE_URL is not set.")
@@ -91,7 +92,7 @@ def main():
             if pending:
                 est = pending * 15
                 print(f"Starting (15s/call — ~{est//60}m {est%60}s)...")
-                vt_domain_enricher.enrich_pending_domains(conn, vt_domain_key, limit=pending + 1)
+                vt_domain_enricher.enrich_pending_domains(conn, vt_domain_key, limit=pending + 1, backup_api_key=vt_backup_key)
                 print("VT domain enrichment complete.")
 
     # --- Hash VT (sha256 / sha1 / md5) ---
@@ -106,7 +107,7 @@ def main():
             if pending:
                 est = pending * 15
                 print(f"Starting (15s/call — ~{est//60}m {est%60}s)...")
-                conn = vt_enricher.enrich_pending_hashes(conn, vt_hash_key, limit=pending + 1)
+                conn = vt_enricher.enrich_pending_hashes(conn, vt_hash_key, limit=pending + 1, backup_api_key=vt_backup_key)
                 print("VT hash enrichment complete.")
 
     # --- Domain meta (URLhaus / RDAP / DNS) ---

@@ -58,7 +58,7 @@ def enrich_ip(value: str, api_key: str) -> dict | None:
         return None
 
 
-def enrich_pending_ips(conn, api_key: str) -> None:
+def enrich_pending_ips(conn, api_key: str, backup_api_key: str = "") -> None:
     import psycopg2.extras
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute(
@@ -67,27 +67,48 @@ def enrich_pending_ips(conn, api_key: str) -> None:
             "ORDER BY created_at DESC LIMIT 20"
         )
         rows = cur.fetchall()
+
+    def _write(row_id, result):
+        with conn.cursor() as cur:
+            if result is None:
+                cur.execute(
+                    "UPDATE ioc_indicators SET vt_verified=TRUE, updated_at=NOW() WHERE id=%s",
+                    (row_id,),
+                )
+            else:
+                cur.execute(
+                    "UPDATE ioc_indicators SET vt_verified=TRUE, vt_malicious=%s, "
+                    "vt_ttl_days=%s, updated_at=NOW() WHERE id=%s",
+                    (result["malicious_count"], result["vt_ttl_days"], row_id),
+                )
+        conn.commit()
+
+    active_key = api_key
+    used_backup = False
     for row in rows:
         try:
-            result = enrich_ip(row["value"], api_key)
-            with conn.cursor() as cur:
-                if result is None:
-                    cur.execute(
-                        "UPDATE ioc_indicators SET vt_verified=TRUE, updated_at=NOW() WHERE id=%s",
-                        (row["id"],),
-                    )
-                else:
-                    cur.execute(
-                        "UPDATE ioc_indicators SET vt_verified=TRUE, vt_malicious=%s, "
-                        "vt_ttl_days=%s, updated_at=NOW() WHERE id=%s",
-                        (result["malicious_count"], result["vt_ttl_days"], row["id"]),
-                    )
-            conn.commit()
+            result = enrich_ip(row["value"], active_key)
+            _write(row["id"], result)
             time.sleep(RATE_SLEEP)
         except RuntimeError:
-            print("VT rate limit reached — stopping IP enrichment early.")
             conn.rollback()
-            break
+            if backup_api_key and not used_backup:
+                print("VT rate limit reached on primary key — switching to backup key.")
+                active_key, used_backup = backup_api_key, True
+                try:
+                    result = enrich_ip(row["value"], active_key)
+                    _write(row["id"], result)
+                    time.sleep(RATE_SLEEP)
+                except RuntimeError:
+                    print("VT rate limit reached on backup key too — stopping IP enrichment early.")
+                    conn.rollback()
+                    break
+                except Exception as e:
+                    print(f"VT IP enrichment error for {row['value']}: {e}")
+                    conn.rollback()
+            else:
+                print("VT rate limit reached — stopping IP enrichment early.")
+                break
         except Exception as e:
             print(f"VT IP enrichment error for {row['value']}: {e}")
             conn.rollback()
@@ -105,9 +126,13 @@ def _reconnect(conn):
     return psycopg2.connect(dsn)
 
 
-def enrich_pending_hashes(conn, api_key: str, limit: int = 30):
+def enrich_pending_hashes(conn, api_key: str, limit: int = 30, backup_api_key: str = ""):
     """Returns the live connection (reconnected if the original dropped
-    mid-run) so callers running a long catchup loop keep a working conn."""
+    mid-run) so callers running a long catchup loop keep a working conn.
+
+    If backup_api_key is set, a 429 on the primary key switches to it once
+    for the rest of the run (retrying the row that just failed) instead of
+    stopping the batch early."""
     import psycopg2.extras
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute(
@@ -117,27 +142,51 @@ def enrich_pending_hashes(conn, api_key: str, limit: int = 30):
             (limit,)
         )
         rows = cur.fetchall()
+
+    def _write(row_id, result):
+        with conn.cursor() as cur:
+            if result is None:
+                cur.execute(
+                    "UPDATE ioc_indicators SET vt_verified=TRUE, updated_at=NOW() WHERE id=%s",
+                    (row_id,),
+                )
+            else:
+                cur.execute(
+                    "UPDATE ioc_indicators SET vt_verified=TRUE, vt_malicious=%s, "
+                    "vt_ttl_days=%s, updated_at=NOW() WHERE id=%s",
+                    (result["malicious_count"], result["vt_ttl_days"], row_id),
+                )
+        conn.commit()
+
+    active_key = api_key
+    used_backup = False
     for row in rows:
         try:
-            result = enrich_hash(row["value"], api_key)
-            with conn.cursor() as cur:
-                if result is None:
-                    cur.execute(
-                        "UPDATE ioc_indicators SET vt_verified=TRUE, updated_at=NOW() WHERE id=%s",
-                        (row["id"],),
-                    )
-                else:
-                    cur.execute(
-                        "UPDATE ioc_indicators SET vt_verified=TRUE, vt_malicious=%s, "
-                        "vt_ttl_days=%s, updated_at=NOW() WHERE id=%s",
-                        (result["malicious_count"], result["vt_ttl_days"], row["id"]),
-                    )
-            conn.commit()
+            result = enrich_hash(row["value"], active_key)
+            _write(row["id"], result)
             time.sleep(RATE_SLEEP)
         except RuntimeError:
-            print("VT rate limit reached — stopping enrichment early.")
             conn.rollback()
-            break
+            if backup_api_key and not used_backup:
+                print("VT rate limit reached on primary key — switching to backup key.")
+                active_key, used_backup = backup_api_key, True
+                try:
+                    result = enrich_hash(row["value"], active_key)
+                    _write(row["id"], result)
+                    time.sleep(RATE_SLEEP)
+                except RuntimeError:
+                    print("VT rate limit reached on backup key too — stopping enrichment early.")
+                    conn.rollback()
+                    break
+                except (psycopg2.OperationalError, psycopg2.InterfaceError) as e:
+                    print(f"VT enrichment: connection dropped ({e}); reconnecting...")
+                    conn = _reconnect(conn)
+                except Exception as e:
+                    print(f"VT enrichment error for {row['value']}: {e}")
+                    conn.rollback()
+            else:
+                print("VT rate limit reached — stopping enrichment early.")
+                break
         except (psycopg2.OperationalError, psycopg2.InterfaceError) as e:
             print(f"VT enrichment: connection dropped ({e}); reconnecting...")
             conn = _reconnect(conn)

@@ -223,10 +223,11 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
     print(f"IOC pipeline: {total_ttps} TTP(s) upserted.")
 
     vt_api_key = os.environ.get("VT_API_KEY", "")
+    vt_backup_key = os.environ.get("VT_API_KEY_BACKUP", "")
     if vt_api_key:
         print("Running VirusTotal enrichment (up to 20 hashes, 15s between calls)...")
         try:
-            conn = vt_enricher.enrich_pending_hashes(conn, vt_api_key)
+            conn = vt_enricher.enrich_pending_hashes(conn, vt_api_key, backup_api_key=vt_backup_key)
         except Exception as e:
             print(f"VT enrichment error: {e}")
     else:
@@ -276,7 +277,7 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
     if vt_domain_key:
         print("Running VirusTotal domain enrichment (up to 10 domains, 15s between calls)...")
         try:
-            vt_domain_enricher.enrich_pending_domains(conn, vt_domain_key)
+            vt_domain_enricher.enrich_pending_domains(conn, vt_domain_key, backup_api_key=vt_backup_key)
         except Exception as e:
             print(f"VT domain enrichment error: {e}")
     else:

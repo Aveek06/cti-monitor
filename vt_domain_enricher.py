@@ -41,7 +41,10 @@ def enrich_domain(value: str, api_key: str) -> dict | None:
         return None
 
 
-def enrich_pending_domains(conn, api_key: str, limit: int = 30) -> None:
+def enrich_pending_domains(conn, api_key: str, limit: int = 30, backup_api_key: str = "") -> None:
+    """If backup_api_key is set, a 429 on the primary key switches to it once
+    for the rest of the run (retrying the domain that just failed) instead
+    of stopping the batch early."""
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute(
             "SELECT id, value, domain_registered FROM ioc_indicators "
@@ -50,33 +53,52 @@ def enrich_pending_domains(conn, api_key: str, limit: int = 30) -> None:
             (limit,)
         )
         rows = cur.fetchall()
+
+    def _write(row):
+        result = enrich_domain(row["value"], active_key)
+        # Only write creation_date when RDAP hasn't already filled it in.
+        new_reg = result["creation_date"] if result else None
+        if row.get("domain_registered"):
+            new_reg = row["domain_registered"]
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE ioc_indicators SET vt_domain_checked=TRUE, "
+                "vt_domain_malicious=%s, vt_domain_categories=%s, "
+                "domain_registered=COALESCE(domain_registered, %s), "
+                "updated_at=NOW() WHERE id=%s",
+                (
+                    result["malicious"]              if result else None,
+                    json.dumps(result["categories"]) if result else None,
+                    new_reg,
+                    row["id"],
+                ),
+            )
+        conn.commit()
+
+    active_key = api_key
+    used_backup = False
     for i, row in enumerate(rows):
         if i > 0:
             time.sleep(SLEEP_BETWEEN)
         try:
-            result = enrich_domain(row["value"], api_key)
-            # Only write creation_date when RDAP hasn't already filled it in.
-            new_reg = result["creation_date"] if result else None
-            if row.get("domain_registered"):
-                new_reg = row["domain_registered"]
-            with conn.cursor() as cur:
-                cur.execute(
-                    "UPDATE ioc_indicators SET vt_domain_checked=TRUE, "
-                    "vt_domain_malicious=%s, vt_domain_categories=%s, "
-                    "domain_registered=COALESCE(domain_registered, %s), "
-                    "updated_at=NOW() WHERE id=%s",
-                    (
-                        result["malicious"]              if result else None,
-                        json.dumps(result["categories"]) if result else None,
-                        new_reg,
-                        row["id"],
-                    ),
-                )
-            conn.commit()
+            _write(row)
         except RuntimeError:
-            print("VT domain rate limit reached — stopping enrichment early.")
             conn.rollback()
-            break
+            if backup_api_key and not used_backup:
+                print("VT domain rate limit reached on primary key — switching to backup key.")
+                active_key, used_backup = backup_api_key, True
+                try:
+                    _write(row)
+                except RuntimeError:
+                    print("VT domain rate limit reached on backup key too — stopping enrichment early.")
+                    conn.rollback()
+                    break
+                except Exception as e:
+                    print(f"VT domain enrichment error for {row['value']}: {e}")
+                    conn.rollback()
+            else:
+                print("VT domain rate limit reached — stopping enrichment early.")
+                break
         except Exception as e:
             print(f"VT domain enrichment error for {row['value']}: {e}")
             conn.rollback()
