@@ -1485,11 +1485,6 @@
       "notes": "Australian Cyber Security Centre's own site is geo-restricted (times out from non-AU IPs). Use the 'ACSC' acronym query, not the full phrase -- the full phrase 'Australian Cyber Security Centre' returns noisy loose-word matches (e.g. unrelated 2012 Windows 8 articles); 'ACSC' alone is precise. Same search-page mechanism as the HarfangLab entry -- see its notes."
     },
     {
-      "name": "Artic Wolf",
-      "type": "feed",
-      "url": "https://arcticwolf.com/feed"
-    },
-    {
       "name": "Blackberry",
       "type": "html",
       "url": "https://blogs.blackberry.com/en/home",
@@ -1535,11 +1530,6 @@
       "notes": "auto-detection failed — manual selector inspection needed"
     },
     {
-      "name": "PolySworm",
-      "type": "feed",
-      "url": "https://blog.polyswarm.io/rss.xml"
-    },
-    {
       "name": "Secureworks",
       "type": "html_TODO",
       "url": "https://www.secureworks.com/blog/",
@@ -1565,6 +1555,79 @@
       "name": "g0njxa Medium Blog",
       "type": "feed",
       "url": "https://g0njxa.medium.com/feed"
+    },
+    {
+      "name": "Arctic Wolf",
+      "type": "html",
+      "url": "https://arcticwolf.com/resources/blog/",
+      "post_container": "article.elementor-grid-item",
+      "link_selector": ".elementor-post__title a",
+      "date_selector": ".elementor-post__meta-data",
+      "link_path_prefix": "/resources/blog/"
+    },
+    {
+      "name": "Check Point Research",
+      "type": "feed",
+      "url": "https://blog.checkpoint.com/feed/"
+    },
+    {
+      "name": "Check Point Exposure Management",
+      "type": "skip",
+      "url": "https://blog.checkpoint.com/exposure-management/feed/",
+      "notes": "Formerly Veriti AI (acquired by Check Point 2024); exposure management + brand phishing research"
+    },
+    {
+      "name": "Censys",
+      "type": "feed",
+      "url": "https://censys.com/feed/"
+    },
+    {
+      "name": "PolySwarm",
+      "type": "feed",
+      "url": "https://blog.polyswarm.io/rss.xml"
+    },
+    {
+      "name": "Veracode",
+      "type": "scrapling_fetcher",
+      "url": "https://www.veracode.com/blog/",
+      "link_path_prefix": "/blog/",
+      "notes": "Phylum acquired by Veracode; blog moved to veracode.com/blog. No RSS feed. scrapling_fetcher works (no bot-wall)."
+    },
+    {
+      "name": "Zerobec",
+      "type": "feed",
+      "url": "https://zerobec.com/feed.xml"
+    },
+    {
+      "name": "AISI",
+      "type": "scrapling_fetcher",
+      "url": "https://www.aisi.gov.uk/blog/",
+      "link_path_prefix": "/blog/",
+      "path_exclude": [
+        "/tag/",
+        "/author/",
+        "/category/",
+        "/page/"
+      ],
+      "min_slug_length": 8,
+      "notes": "UK AI Safety Institute. No RSS. scrapling_fetcher 200, 97 links. Articles at /blog/slug. min_slug_length=8 filters base /blog/ URL."
+    },
+    {
+      "name": "Manifold Security",
+      "type": "scrapling_fetcher",
+      "url": "https://www.manifold.security/blog/",
+      "link_path_prefix": "/blog/blog/",
+      "path_exclude": [
+        "/author/",
+        "/tag/"
+      ],
+      "notes": "No RSS. scrapling_fetcher 200. Articles at /blog/blog/slug (double path). 9 current articles."
+    },
+    {
+      "name": "Open Source Malware",
+      "type": "feed",
+      "url": "https://opensourcemalware.com/rss.xml",
+      "link_path_prefix": "/blog/"
     }
   ]
 }
