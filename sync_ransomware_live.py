@@ -270,12 +270,13 @@ def sync(conn, api_key: str, rel_lookup: dict | None = None) -> dict:
 def _upsert_rw_ioc(conn, value: str, ioc_type: str, apt: str, last_seen: str,
                     group_permalink: str, site_reliability: int):
     try:
+        today = datetime.date.today().isoformat()
         stix_obj = stix_converter.ioc_to_indicator(
             value, ioc_type, last_seen, group_permalink, "ransomware.live", last_seen,
         )
         ioc_db.upsert_ioc(
             conn, stix_obj, value, ioc_type,
-            first_seen=last_seen, last_seen=last_seen,
+            first_seen=last_seen, last_seen=today,
             apt=apt,
             ltv=ioc_scorer.get_ltv(apt, ioc_type),
             tau=ioc_scorer.TAU_DEFAULT.get(ioc_scorer.ioc_group(ioc_type), 30),
