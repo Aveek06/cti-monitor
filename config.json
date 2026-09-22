@@ -600,7 +600,7 @@
     {
       "name": "SentinelOne",
       "type": "feed",
-      "url": "https://www.sentinelone.com/feed/"
+      "url": "https://www.sentinelone.com/blog/feed/"
     },
     {
       "name": "Seqrite",
@@ -1512,30 +1512,6 @@
       "notes": "auto-detected by sync_sources.py"
     },
     {
-      "name": "F6 Russia",
-      "type": "html_TODO",
-      "url": "https://www.f6.ru/blog",
-      "notes": "auto-detection failed — manual selector inspection needed"
-    },
-    {
-      "name": "Packetstorm",
-      "type": "html_TODO",
-      "url": "https://packetstorm.news/",
-      "notes": "auto-detection failed — manual selector inspection needed"
-    },
-    {
-      "name": "Phylum",
-      "type": "html_TODO",
-      "url": "https://blog.phylum.io/",
-      "notes": "auto-detection failed — manual selector inspection needed"
-    },
-    {
-      "name": "Secureworks",
-      "type": "html_TODO",
-      "url": "https://www.secureworks.com/blog/",
-      "notes": "auto-detection failed — manual selector inspection needed"
-    },
-    {
       "name": "US Department of Justice",
       "type": "feed",
       "url": "https://www.justice.gov/rss.xml"
@@ -1544,12 +1520,6 @@
       "name": "US Treasury",
       "type": "feed",
       "url": "https://home.treasury.gov/rss.xml"
-    },
-    {
-      "name": "Veriti AI",
-      "type": "html_TODO",
-      "url": "https://veriti.ai/blog/veriti-research/",
-      "notes": "auto-detection failed — manual selector inspection needed"
     },
     {
       "name": "g0njxa Medium Blog",
