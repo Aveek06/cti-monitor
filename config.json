@@ -1598,6 +1598,11 @@
       "type": "feed",
       "url": "https://opensourcemalware.com/rss.xml",
       "link_path_prefix": "/blog/"
+    },
+    {
+      "name": "TechCrunch Security",
+      "type": "feed",
+      "url": "https://techcrunch.com/category/security/feed/"
     }
   ]
 }
