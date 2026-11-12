@@ -1521,11 +1521,6 @@
       "notes": "auto-detected by sync_sources.py"
     },
     {
-      "name": "CN-SEC",
-      "type": "feed",
-      "url": "https://cn-sec.com/feed"
-    },
-    {
       "name": "F.A.C.C.T.",
       "type": "html",
       "url": "https://www.facct.ru/blog/",
