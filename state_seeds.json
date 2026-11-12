@@ -126,15 +126,15 @@
     "https://blog.qualys.com/product-tech/2026/07/27/aws-lambda-vulnerability-scanning-serverless-security"
   ],
   "Sygnia": [
-    "https://www.sygnia.co/blog/ai-generated-code-security-risks/",
-    "https://www.sygnia.co/press-release/sygnia-penetration-test-claude-vibe-coded-vulnerabilities/",
-    "https://www.sygnia.co/blog/why-most-ot-cyber-incidents-never-reach-the-ot-environment/",
-    "https://www.sygnia.co/webinars/when-ransomware-hides-in-onedrive-inside-safepay-exfiltration-play/",
-    "https://www.sygnia.co/blog/when-technical-controls-work-attackers-change-the-rules/",
-    "https://www.sygnia.co/blog/ransomware-incident-response/",
-    "https://www.sygnia.co/press-release/sygnia-investigation-into-ai-accelerated-attack/",
-    "https://www.sygnia.co/webinars/inside-an-ai-assisted-cloud-attack-familiar-techniques-at-unfamiliar-speed/",
-    "https://www.sygnia.co/blog/inside-an-ai-assisted-cloud-attack/"
+    "https://www.sygnia.co/blog/investigating-data-extortion-involving-trusted-vendor-access/",
+    "https://www.sygnia.co/webinars/cyber-insurance-in-practice-what-to-know-before-an-incident/",
+    "https://www.sygnia.co/blog/best-practices-incident-response/",
+    "https://www.sygnia.co/threat-reports-and-advisories/php2shell-two-critical-php-vulnerabilities-expose-web-servers-to-remote-code-execution/",
+    "https://www.sygnia.co/webinars/ai-webinar-series-recordings/",
+    "https://www.sygnia.co/press-release/sygnia-expands-global-mdr-operations-austin-singapore-soc-hubs/",
+    "https://www.sygnia.co/threat-reports-and-advisories/actively-exploited-netscaler-vulnerabilities/",
+    "https://www.sygnia.co/webinars/ai-threat-realities-prompt-proactive-security-readiness/",
+    "https://www.sygnia.co/blog/when-it-support-is-the-attack-how-law-firms-can-defend-against-silent-ransom-group/"
   ],
   "Datadog Security Labs": [
     "https://securitylabs.datadoghq.com/articles/coding-agent-project-trust-code-execution-before-first-prompt/",
@@ -507,7 +507,12 @@
     "https://www.fortinet.com/blog/threat-research/the-ttf-trap-a-global-campaign-of-a-low-detection-lua-loader",
     "https://www.fortinet.com/blog/threat-research/inside-a-trickbot-variant-using-dns-tunneling-for-c2"
   ],
-  "_force_replace": [],
+  "_force_replace": [
+    "Infoblox",
+    "Varonis",
+    "Fox-IT International",
+    "Sygnia"
+  ],
   "Speartip": [
     "https://www.zurichresilience.com/knowledge-and-insights-hub/articles/2026/05/balancing-progress-and-peril-navigating-ais-role-in-modern-cyber-risks",
     "https://www.zurichresilience.com/knowledge-and-insights-hub/articles/2026/06/deepfakes-and-identity-deception-in-the-age-of-ai",
@@ -2936,5 +2941,44 @@
     "https://techcrunch.com/2026/09/08/chrome-is-now-shipping-updates-every-2-weeks-as-ai-changes-the-security-landscape/",
     "https://techcrunch.com/2026/09/08/a-hacker-stole-340m-in-a-crypto-heist-then-returned-most-of-it/",
     "https://techcrunch.com/2026/09/05/openai-confirms-wiki-incident-says-its-working-on-a-framework-for-more-disclosure/"
+  ],
+  "Infoblox": [
+    "https://www.infoblox.com/blog/security/2026/09/infoblox-on-infoblox-how-dns-forward-proxy-dfp-gives-us-unified-security-and-visibility-across-hybrid-networks",
+    "https://www.infoblox.com/blog/security/2026/10/deliver-preemptive-security-at-scale-protective-dns-for-mssps",
+    "https://www.infoblox.com/blog/security/2026/10/php2shell-is-already-here-how-the-infoblox-platform-helps-uncover-and-mitigate-the-risk",
+    "https://www.infoblox.com/blog/security/2026/10/something-old-something-new-dns-and-the-autonomous-ai-agent",
+    "https://www.infoblox.com/blog/threat-intelligence/2026/10/borrowed-reputation-domain-shadowing-and-gambling-seo",
+    "https://www.infoblox.com/blog/threat-intelligence/2026/10/inside-help-tds-hotejka-cloudflare-pages-and-predictive-detection",
+    "https://www.infoblox.com/blog/threat-intelligence/2026/10/the-ultra-trail-from-viewer-to-mailer",
+    "https://www.infoblox.com/blog/threat-intelligence/2026/10/when-a-wallet-drainer-asks-dns-where-to-go"
+  ],
+  "Varonis": [
+    "https://www.varonis.com/blog/agent-intent-based-access-control",
+    "https://www.varonis.com/blog/ai-browser-security",
+    "https://www.varonis.com/blog/ai-gateway-security",
+    "https://www.varonis.com/blog/complete-ai-security",
+    "https://www.varonis.com/blog/forrester-email-security-solutions-landscape-report-2026",
+    "https://www.varonis.com/blog/notc2-ai-powered-c2-channel",
+    "https://www.varonis.com/blog/php2shell",
+    "https://www.varonis.com/blog/proofpoint",
+    "https://www.varonis.com/blog/remote-code-execution-in-snowflake-managed-postgresql",
+    "https://www.varonis.com/blog/shadow-dependency-in-gcp-dataflow-cross-tenant",
+    "https://www.varonis.com/blog/stealc-returns",
+    "https://www.varonis.com/blog/varonis-and-collibra-integration",
+    "https://www.varonis.com/blog/varonis-atlas-aidr-expansion"
+  ],
+  "Fox-IT International": [
+    "https://www.fox-it.com/nl/research/a-string-theorists-guide-to-implementing-mike/",
+    "https://www.fox-it.com/nl/research/assurance-is-not-compliance/",
+    "https://www.fox-it.com/nl/research/finding-two-authorization-bypasses-in-etcd-through-a-vulnerability-research-llm-assisted-pipeline/",
+    "https://www.fox-it.com/nl/research/how-hard-is-it-really-to-break-an-ai-agent-out-of-its-sandbox/",
+    "https://www.fox-it.com/nl/research/mining-data-from-cobalt-strike-beacons-part-2-releasing-the-full-corpus/",
+    "https://www.fox-it.com/nl/research/releasing-the-cobalt-strike-beacon-corpus/",
+    "https://www.fox-it.com/nl/research/technical-advisory-microsoft-windows-midi-service-module-escalation-of-privileges-cve-2026-62688/",
+    "https://www.fox-it.com/nl/research/technical-advisory-microsoft-windows-uaspstorsys-device-controlled-kernel-pool-oob-write-via-report-luns-cve-2026-68839/",
+    "https://www.fox-it.com/nl/research/technical-advisory-microsoft-windows-usbmidi2sys-midi-10-wmaxpacketsize-pool-overflow/",
+    "https://www.fox-it.com/nl/research/technical-advisory-microsoft-windows-windows-midi-services-usbmidi2sys-cve-2026-69508/",
+    "https://www.fox-it.com/nl/research/the-quantum-countdown-chapter-1-the-letters-in-the-warehouse/",
+    "https://www.fox-it.com/nl/research/when-picos-attack-usb-exploit-engineering/"
   ]
 }

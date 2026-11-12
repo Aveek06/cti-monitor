@@ -347,11 +347,18 @@
     },
     {
       "name": "Infoblox",
-      "type": "feed",
-      "url": "https://blogs.infoblox.com/feed/",
+      "type": "html",
+      "url": "https://www.infoblox.com/blog/",
+      "post_container": "li.content-listing-card",
+      "link_selector": "a",
+      "date_selector": ".content-listing-card-date",
+      "date_format": "auto",
+      "needs_js": true,
       "path_exclude": [
-        "/blog/company/"
-      ]
+        "/blog/company/",
+        "/blog/community/"
+      ],
+      "notes": "blogs.infoblox.com retired (301s to www.infoblox.com/blog); new blog is a JS-rendered AEM SPA with no RSS, so switched feed -> html with live-verified card selectors."
     },
     {
       "name": "ic3 gov - FBI",
@@ -726,8 +733,15 @@
     },
     {
       "name": "Varonis",
-      "type": "feed",
-      "url": "https://www.varonis.com/blog/feed/"
+      "type": "html",
+      "url": "https://www.varonis.com/blog",
+      "post_container": "div.blog-card",
+      "link_selector": "a.blog-card-link",
+      "date_selector": "div.blog-card-date",
+      "date_format": "auto",
+      "needs_js": true,
+      "link_path_prefix": "/blog/",
+      "notes": "Blog migrated to Webflow; old /blog/feed/ 404s, no RSS replacement. Switched to html with live-verified card selectors."
     },
     {
       "name": "Wiz",
@@ -757,10 +771,11 @@
     {
       "name": "Sygnia",
       "type": "feed",
-      "url": "https://www.sygnia.co/feed/",
+      "url": "https://www.sygnia.co/feed",
       "path_exclude": [
         "/webinars/"
-      ]
+      ],
+      "notes": "Trailing-slash URL (/feed/) returns a 403; bare /feed works."
     },
     {
       "name": "Zimperium",
@@ -1321,8 +1336,18 @@
     },
     {
       "name": "Fox-IT International",
-      "type": "feed",
-      "url": "https://blog.fox-it.com/feed"
+      "type": "html",
+      "url": "https://www.fox-it.com/nl/research/",
+      "post_container": "div.c-in__slide",
+      "link_selector": "a.c-in__slide--btn",
+      "date_selector": null,
+      "date_format": "auto",
+      "needs_js": true,
+      "link_path_prefix": "/nl/research/",
+      "path_exclude": [
+        "/research-articles/"
+      ],
+      "notes": "blog.fox-it.com retired (301s to fox-it.com/nl/research/, now part of NCC Group). No RSS; slugs are English despite /nl/ locale prefix. path_exclude drops the paginated index page."
     },
     {
       "name": "Trellix",
