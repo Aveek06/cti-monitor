@@ -79,7 +79,7 @@ ${productLine}
 async function callHaiku(client, prompt) {
   const msg = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: 600,
+    max_tokens: 1500,
     messages: [{ role: "user", content: prompt }],
   });
   let text = msg.content[0].text.trim();
@@ -164,7 +164,7 @@ module.exports = async function handler(req, res) {
       yaml.load(sigmaYaml);
     } catch {
       const correctionNote =
-        "\n\nNote: your previous output failed YAML parsing. Output strictly valid YAML only — no extra text.";
+        "\n\nNote: your previous output failed YAML parsing (possibly truncated). Output strictly valid YAML only — no extra text. Keep it compact: list at most 8 IOC values in total and keep the whole rule under 45 lines.";
       sigmaYaml = await callHaiku(client, prompt + correctionNote);
       try {
         yaml.load(sigmaYaml);
