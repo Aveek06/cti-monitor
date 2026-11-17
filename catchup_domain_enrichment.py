@@ -9,6 +9,7 @@ Usage:
   DATABASE_URL=... VT_API_KEY_DOMAIN=... python catchup_domain_enrichment.py --domain-vt-only
   DATABASE_URL=... VT_API_KEY=...        python catchup_domain_enrichment.py --hash-vt-only
   DATABASE_URL=...                       python catchup_domain_enrichment.py --meta-only
+  DATABASE_URL=... HA_API_KEY=...        python catchup_domain_enrichment.py --ha-only
 """
 
 import os
@@ -19,6 +20,7 @@ import domain_enricher
 import vt_domain_enricher
 import vt_enricher
 import hash_enricher
+import ha_enricher
 
 
 def reset_failed(conn, flag_col, result_col, types):
@@ -62,18 +64,21 @@ def main():
     parser.add_argument("--domain-vt-only", action="store_true", help="Only VT domain enrichment")
     parser.add_argument("--hash-vt-only",   action="store_true", help="Only VT hash enrichment (sha256/sha1/md5)")
     parser.add_argument("--meta-only",      action="store_true", help="Only URLhaus/RDAP/DNS domain meta enrichment")
+    parser.add_argument("--ha-only",        action="store_true", help="Only Hybrid Analysis hash enrichment (needs HA_API_KEY)")
     parser.add_argument("--skip-reset",     action="store_true",
                          help="Don't reset previously-checked-but-null rows back to pending; "
                               "only process rows never checked. Use once the reset backlog "
                               "(mostly confirmed 404s) is large enough to risk the 90min CI timeout.")
     args = parser.parse_args()
 
-    any_filter = args.domain_vt_only or args.hash_vt_only or args.meta_only
+    any_filter = args.domain_vt_only or args.hash_vt_only or args.meta_only or args.ha_only
     run_domain_vt = args.domain_vt_only or not any_filter
     run_hash_vt   = args.hash_vt_only   or not any_filter
     run_meta      = args.meta_only       or not any_filter
+    run_ha        = args.ha_only         or not any_filter
 
     db_url        = os.environ.get("DATABASE_URL")
+    ha_key        = os.environ.get("HA_API_KEY", "")
     vt_hash_key   = os.environ.get("VT_API_KEY", "")
     vt_domain_key = os.environ.get("VT_API_KEY_DOMAIN", "")
     vt_backup_key = os.environ.get("VT_API_KEY_BACKUP", "")
@@ -138,6 +143,22 @@ def main():
             print("Starting hash meta enrichment...")
             hash_enricher.enrich_pending_hashes(conn, limit=mb_pending + 1)
             print("Hash meta enrichment complete.")
+
+    # --- Hybrid Analysis (sha256 / sha1 / md5) ---
+    if run_ha:
+        if not ha_key:
+            print("WARNING: HA_API_KEY not set — skipping Hybrid Analysis enrichment.")
+        else:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT COUNT(*) FROM ioc_indicators "
+                    "WHERE type IN ('sha256','sha1','md5') AND ha_checked = FALSE"
+                )
+                ha_pending = cur.fetchone()[0]
+            print(f"Hybrid Analysis enrichment: {ha_pending} pending.")
+            if ha_pending:
+                ha_enricher.enrich_pending_hashes(conn, ha_key, limit=ha_pending + 1)
+                print("Hybrid Analysis enrichment complete (or stopped early on rate limit; re-run to resume).")
 
     conn.close()
     print("Done.")

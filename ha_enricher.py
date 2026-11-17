@@ -22,8 +22,8 @@ def _lookup(value: str, api_key: str) -> dict:
             data={"hash": value},
             timeout=20,
         )
-        if resp.status_code == 429:
-            raise RuntimeError("HA rate limit")
+        if resp.status_code in (401, 403, 429):
+            raise RuntimeError(f"HA rate limit or auth failure ({resp.status_code})")
         if resp.status_code != 200:
             return {"verdict": None, "threat_score": None, "malware_family": None}
         results = resp.json()
