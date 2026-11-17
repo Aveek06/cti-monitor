@@ -32,10 +32,10 @@ def _lookup(value: str, api_key: str):
     """Returns a result dict, or None when the response was not a definitive answer."""
     global _logged_shape
     try:
-        resp = requests.post(
+        resp = requests.get(
             HA_URL,
             headers={"api-key": api_key, "User-Agent": "Falcon Sandbox"},
-            data={"hash": value},
+            params={"hash": value},
             timeout=20,
         )
     except requests.RequestException as e:
