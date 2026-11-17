@@ -1058,6 +1058,20 @@
     .ap-source-path{font-size:9px;color:var(--cyan);font-family:var(--font-mono);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .ap-source-link:hover .ap-source-path{text-decoration:underline;}
 
+    /* Actor page tabs */
+    .ap-tabs{display:flex;gap:2px;padding:0 32px;border-bottom:1px solid var(--border);background:var(--bg);overflow-x:auto;position:sticky;top:0;z-index:5;}
+    .ap-tab{display:flex;align-items:center;gap:7px;padding:13px 14px;font:600 10px/1 var(--font-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;white-space:nowrap;transition:color 120ms var(--ease),border-color 120ms var(--ease);}
+    .ap-tab:hover{color:var(--text);}
+    .ap-tab.active{color:var(--green);border-bottom-color:var(--green);}
+    .ap-tab:focus-visible{outline:1px solid var(--green);outline-offset:-3px;}
+    .ap-tab-count{font:700 9px/1 var(--font-mono);padding:2px 6px;border-radius:3px;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);}
+    .ap-tab.active .ap-tab-count{color:var(--green);border-color:rgba(0,255,65,.3);}
+    .ap-pane{display:none;padding:20px 32px 32px;}
+    .ap-pane.active{display:block;}
+    .ap-ov-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:12px;align-items:start;}
+    .ap-stack{display:flex;flex-direction:column;gap:10px;}
+    @media(max-width:960px){.ap-tabs{padding:0 16px;}.ap-pane{padding:16px 16px 24px;}}
+
     /* Responsive */
     @media(max-width:960px){
       .ap-body{grid-template-columns:1fr;}
@@ -3012,53 +3026,46 @@ function renderActorPage(name){
     ${a.victim_count?`<div class="ap-kpi-card"><span class="ap-kpi-num red">${a.victim_count.toLocaleString()}</span><span class="ap-kpi-lbl">Victims</span></div>`:""}
   </div></div>`;
 
-  // ── TWO-COLUMN BODY ───────────────────────────────────────────
-  html+=`<div class="ap-body">`;
-
-  // ── LEFT SIDEBAR ──
-  html+=`<div class="ap-sidebar">`;
-
+  // ── SECTION DATA ──────────────────────────────────────────────
   const profileDesc=a.description||a.ransomware_description;
-  if(profileDesc){
-    html+=`<div class="ap-card"><div class="ap-card-hd ap-card-hd--green">Profile</div><div class="ap-card-body"><p class="ap-profile-text">${esc(profileDesc)}</p></div></div>`;
-  }
+  const sectors=a.sectors_targeted||[];
+  const neg=a.negotiation_stats;
+  const leakSites=a.leak_sites||[];
+  const vulns=a.vulnerabilities||[];
+  const mitreSoftware=a.software||[];
+  const rwTools=a.tools||{};
+  const recentVictims=a.recent_victims||[];
+  const noteNames=a.ransom_note_names||[];
+  const ransomNotes=a.ransom_notes||[];
+  const yaraRules=a.yara_rules||[];
+  const mitreOnly=(a.mitre_techniques||[]).filter(tid=>!(a.techniques||[]).includes(tid)).sort();
+  const rwChips=[];
+  (a.ransomware_ttps||[]).forEach(g=>(g.techniques||[]).forEach(t=>{const tid=t.id||t.technique_id||"";const tname=t.name||t.technique_name||"";if(tid)rwChips.push(`<span class="ap-chip amber" title="${esc(tname)}">${esc(tid)}</span>`);}));
+  const toolCount=mitreSoftware.length+Object.values(rwTools).reduce((n,v)=>n+((v&&v.length)||0),0);
+  const card=(cls,title,body)=>`<div class="ap-card"><div class="ap-card-hd ap-card-hd--${cls}">${title}</div>${body}</div>`;
+  const stack=inner=>inner?`<div class="ap-stack">${inner}</div>`:"";
 
-  html+=`<div class="ap-card"><div class="ap-card-hd ap-card-hd--cyan">Intelligence</div><div class="ap-card-body--meta">
+  // ── OVERVIEW ──
+  let ovCards="";
+  if(profileDesc)ovCards+=card("green","Profile",`<div class="ap-card-body"><p class="ap-profile-text">${esc(profileDesc)}</p></div>`);
+  ovCards+=card("cyan","Intelligence",`<div class="ap-card-body--meta">
     <div class="ap-meta-row"><span class="ap-meta-lbl">Last observed</span><span class="ap-meta-val">${esc(freshTxt)}</span></div>
     <div class="ap-meta-row"><span class="ap-meta-lbl">Source articles</span><span class="ap-meta-val">${sources.length}</span></div>
     ${a.mitre_group_id?`<div class="ap-meta-row"><span class="ap-meta-lbl">MITRE Group</span><span class="ap-meta-val"><a href="${esc(a.mitre_url||"#")}" target="_blank" rel="noopener">${esc(a.mitre_group_id)}</a></span></div>`:""}
     ${activeRange?`<div class="ap-meta-row"><span class="ap-meta-lbl">Active period</span><span class="ap-meta-val">${activeRange}</span></div>`:""}
-  </div></div>`;
-
-  const sectors=a.sectors_targeted||[];
-  if(sectors.length){
-    html+=`<div class="ap-card"><div class="ap-card-hd ap-card-hd--amber">Sectors Targeted</div><div class="ap-card-body"><div class="ap-tags">${sectors.map(s=>`<span class="ap-tag">${esc(s)}</span>`).join("")}</div></div></div>`;
-  }
-
-  const neg=a.negotiation_stats;
-  if(neg&&neg.chat_count){
-    html+=`<div class="ap-card"><div class="ap-card-hd ap-card-hd--red">Negotiation</div><div class="ap-card-body--meta">
-      <div class="ap-meta-row"><span class="ap-meta-lbl">Chats seen</span><span class="ap-meta-val">${neg.chat_count}</span></div>
-      ${neg.avg_initial_usd?`<div class="ap-meta-row"><span class="ap-meta-lbl">Avg initial demand</span><span class="ap-meta-val ap-meta-val--red">$${neg.avg_initial_usd.toLocaleString()}</span></div>`:""}
-      ${neg.avg_negotiated_usd?`<div class="ap-meta-row"><span class="ap-meta-lbl">Avg negotiated</span><span class="ap-meta-val ap-meta-val--amber">$${neg.avg_negotiated_usd.toLocaleString()}</span></div>`:""}
-      <div class="ap-meta-row"><span class="ap-meta-lbl">Payment rate</span><span class="ap-meta-val">${Math.round((neg.payment_rate||0)*100)}%</span></div>
-    </div></div>`;
-  }
-
-  const leakSites=a.leak_sites||[];
-  if(leakSites.length){
-    let leakBody=leakSites.map(ls=>{
-      const status=ls.available===false?"down":ls.available===true?"up":"";
-      return`<div class="ap-leak"><span class="ap-leak-title">${esc(ls.title||ls.type||"Site")}</span><span class="ap-leak-fqdn">${esc(ls.fqdn||ls.slug||"")}</span>${status?`<span class="ap-leak-status ${status}">${status}</span>`:""}</div>`;
+  </div>`);
+  if(sectors.length)ovCards+=card("amber","Sectors Targeted",`<div class="ap-card-body"><div class="ap-tags">${sectors.map(s=>`<span class="ap-tag">${esc(s)}</span>`).join("")}</div></div>`);
+  let ovHtml=`<div class="ap-ov-grid">${ovCards}</div>`;
+  if(campaigns.length){
+    const campBody=campaigns.map(c=>{
+      const range=c.first_seen||c.last_seen?`${esc((c.first_seen||"").slice(0,10)||"?")} — ${esc((c.last_seen||"").slice(0,10)||"ongoing")}`:"";
+      return`<div class="ap-campaign"><div class="ap-campaign-name">${esc(c.name||"")}</div>${range?`<div class="ap-campaign-range">${range}</div>`:""}${c.description?`<div class="ap-campaign-desc">${esc(c.description)}</div>`:""}</div>`;
     }).join("");
-    html+=`<div class="ap-card"><div class="ap-card-hd ap-card-hd--dim">Leak Sites (${leakSites.length})</div><div class="ap-card-body--meta">${leakBody}</div></div>`;
+    ovHtml+=stack(apAcc("Campaigns",campaigns.length,campBody,true));
   }
 
-  html+=`</div>`; // end .ap-sidebar
-
-  // ── MAIN COLUMN ──
-  html+=`<div class="ap-main">`;
-
+  // ── TECHNIQUES ──
+  let ttpInner="";
   if(techs.length){
     const techItems=techs.map((t,i)=>{
       const tac=(t.tactic||"").split("-").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" ");
@@ -3070,31 +3077,22 @@ function renderActorPage(name){
         ${obs?`<span class="ap-tech-count">${obs}</span>`:""}
       </div>`;
     }).join("");
-    html+=apAcc("Techniques Observed by Us",techs.length,`<div class="ap-tech-list">${techItems}</div>`,true);
+    ttpInner+=apAcc("Observed in Our Sources",techs.length,`<div class="ap-tech-list">${techItems}</div>`,true);
   }
-
-  const mitreOnly=(a.mitre_techniques||[]).filter(tid=>!(a.techniques||[]).includes(tid)).sort();
   if(mitreOnly.length){
     const chips=mitreOnly.map(tid=>`<span class="ap-chip cyan" style="cursor:pointer" onclick="location.hash='';switchTab('ttps');setTimeout(()=>openTtpDrawer('${esc(tid)}'),200)">${esc(tid)}</span>`).join("");
-    html+=apAcc("MITRE-Attributed (Not Yet Observed)",mitreOnly.length,`<div class="ap-chip-row">${chips}</div>`,false);
+    ttpInner+=apAcc("MITRE-Attributed (Not Yet Observed)",mitreOnly.length,`<div class="ap-chip-row">${chips}</div>`,!techs.length);
   }
+  if(rwChips.length)ttpInner+=apAcc("Techniques (ransomware.live)",rwChips.length,`<div class="ap-chip-row">${rwChips.join("")}</div>`,!techs.length&&!mitreOnly.length);
+  const ttpCount=techs.length+mitreOnly.length+rwChips.length;
 
-  const rwTtps=a.ransomware_ttps||[];
-  if(rwTtps.length){
-    const rwChips=[];
-    rwTtps.forEach(g=>(g.techniques||[]).forEach(t=>{const tid=t.id||t.technique_id||"";const tname=t.name||t.technique_name||"";if(tid)rwChips.push(`<span class="ap-chip amber" title="${esc(tname)}">${esc(tid)}</span>`);}));
-    if(rwChips.length)html+=apAcc("Techniques (ransomware.live)",rwChips.length,`<div class="ap-chip-row">${rwChips.join("")}</div>`,false);
+  // ── TOOLING & EXPLOITS ──
+  let toolInner="";
+  if(toolCount){
+    let toolBody=mitreSoftware.length?`<div class="ap-tool-cat">MITRE software</div><div class="ap-chip-row" style="margin-bottom:10px">${mitreSoftware.map(s=>`<span class="ap-chip dim">${esc(s)}</span>`).join("")}</div>`:"";
+    Object.entries(rwTools).forEach(([cat,names])=>{if(!names||!names.length)return;toolBody+=`<div class="ap-tool-cat">${esc(cat)}</div><div class="ap-chip-row" style="margin-bottom:8px">${names.map(n=>`<span class="ap-chip dim">${esc(n)}</span>`).join("")}</div>`;});
+    toolInner+=apAcc("Software & Tooling",toolCount,toolBody,true);
   }
-
-  if(campaigns.length){
-    const campBody=campaigns.map(c=>{
-      const range=c.first_seen||c.last_seen?`${esc((c.first_seen||"").slice(0,10)||"?")} — ${esc((c.last_seen||"").slice(0,10)||"ongoing")}`:"";
-      return`<div class="ap-campaign"><div class="ap-campaign-name">${esc(c.name||"")}</div>${range?`<div class="ap-campaign-range">${range}</div>`:""}${c.description?`<div class="ap-campaign-desc">${esc(c.description)}</div>`:""}</div>`;
-    }).join("");
-    html+=apAcc("Campaigns",campaigns.length,campBody,true);
-  }
-
-  const vulns=a.vulnerabilities||[];
   if(vulns.length){
     // ransomware.live uses uppercase keys (CVE/CVSS/Vendor/Product) — check both defensively
     const chips=vulns.map(v=>{
@@ -3104,61 +3102,73 @@ function renderActorPage(name){
       const title=[v.Vendor||v.vendor||"",v.Product||v.product||"",cvss!=null?`CVSS ${cvss}`:""].filter(Boolean).join(" · ");
       return`<a href="https://nvd.nist.gov/vuln/detail/${esc(cve)}" target="_blank" rel="noopener" class="ap-chip red" title="${esc(title)}">${esc(cve)}</a>`;
     }).filter(Boolean).join("");
-    html+=apAcc(`Vulnerabilities Exploited`,vulns.length,`<div class="ap-chip-row">${chips}</div>`,false);
+    toolInner+=apAcc("Vulnerabilities Exploited",vulns.length,`<div class="ap-chip-row">${chips}</div>`,!toolCount);
   }
+  const toolTotal=toolCount+vulns.length;
 
-  const mitreSoftware=a.software||[];
-  const rwTools=a.tools||{};
-  if(mitreSoftware.length||Object.keys(rwTools).length){
-    let toolBody=mitreSoftware.length?`<div class="ap-chip-row" style="margin-bottom:10px">${mitreSoftware.map(s=>`<span class="ap-chip dim">${esc(s)}</span>`).join("")}</div>`:"";
-    Object.entries(rwTools).forEach(([cat,names])=>{if(!names||!names.length)return;toolBody+=`<div class="ap-tool-cat">${esc(cat)}</div><div class="ap-chip-row" style="margin-bottom:8px">${names.map(n=>`<span class="ap-chip dim">${esc(n)}</span>`).join("")}</div>`;});
-    html+=apAcc("Software & Tooling",null,toolBody,false);
+  // ── RANSOMWARE OPS ──
+  let rwCards="";
+  if(neg&&neg.chat_count){
+    rwCards+=card("red","Negotiation",`<div class="ap-card-body--meta">
+      <div class="ap-meta-row"><span class="ap-meta-lbl">Chats seen</span><span class="ap-meta-val">${neg.chat_count}</span></div>
+      ${neg.avg_initial_usd?`<div class="ap-meta-row"><span class="ap-meta-lbl">Avg initial demand</span><span class="ap-meta-val ap-meta-val--red">$${neg.avg_initial_usd.toLocaleString()}</span></div>`:""}
+      ${neg.avg_negotiated_usd?`<div class="ap-meta-row"><span class="ap-meta-lbl">Avg negotiated</span><span class="ap-meta-val ap-meta-val--amber">$${neg.avg_negotiated_usd.toLocaleString()}</span></div>`:""}
+      <div class="ap-meta-row"><span class="ap-meta-lbl">Payment rate</span><span class="ap-meta-val">${Math.round((neg.payment_rate||0)*100)}%</span></div>
+    </div>`);
   }
-
-  const recentVictims=a.recent_victims||[];
+  if(leakSites.length){
+    const leakBody=leakSites.map(ls=>{
+      const status=ls.available===false?"down":ls.available===true?"up":"";
+      return`<div class="ap-leak"><span class="ap-leak-title">${esc(ls.title||ls.type||"Site")}</span><span class="ap-leak-fqdn">${esc(ls.fqdn||ls.slug||"")}</span>${status?`<span class="ap-leak-status ${status}">${status}</span>`:""}</div>`;
+    }).join("");
+    rwCards+=card("dim",`Leak Sites (${leakSites.length})`,`<div class="ap-card-body--meta">${leakBody}</div>`);
+  }
+  let rwInner="";
   if(recentVictims.length){
     const vicBody=recentVictims.map(v=>`<div class="ap-victim"><span class="ap-victim-name">${esc(v.victim||"")}</span><span class="ap-victim-meta">${[v.activity,v.country].filter(Boolean).map(esc).join(", ")}</span>${v.attackdate?`<span class="ap-victim-date">${esc(v.attackdate)}</span>`:""}</div>`).join("");
-    html+=apAcc("Recent Victims",recentVictims.length,vicBody,false);
+    rwInner+=apAcc("Recent Victims",recentVictims.length,vicBody,true);
   }
-
-  const noteNames=a.ransom_note_names||[];
-  if(noteNames.length){
-    html+=apAcc("Ransom Note Filenames",noteNames.length,`<div class="ap-chip-row">${noteNames.map(n=>`<span class="ap-chip dim" style="font-family:var(--font-mono)">${esc(n)}</span>`).join("")}</div>`,false);
-  }
-
-  const ransomNotes=a.ransom_notes||[];
+  if(noteNames.length)rwInner+=apAcc("Ransom Note Filenames",noteNames.length,`<div class="ap-chip-row">${noteNames.map(n=>`<span class="ap-chip dim" style="font-family:var(--font-mono)">${esc(n)}</span>`).join("")}</div>`,false);
   if(ransomNotes.length){
     const notesBody=ransomNotes.map(n=>`<details style="margin-bottom:4px"><summary class="ap-code-summary">${esc(n.name||"")}${n.extension?esc(n.extension):""}</summary><pre class="ap-code-block">${esc(n.content||"")}</pre></details>`).join("");
-    html+=apAcc("Ransom Note Content",ransomNotes.length,notesBody,false);
+    rwInner+=apAcc("Ransom Note Content",ransomNotes.length,notesBody,false);
   }
-
-  const yaraRules=a.yara_rules||[];
   if(yaraRules.length){
     const yaraBody=yaraRules.map(r=>`<details style="margin-bottom:4px"><summary class="ap-code-summary">${esc(r.filename||"rule")}</summary><pre class="ap-code-block">${esc(r.content||"")}</pre></details>`).join("");
-    html+=apAcc("YARA Rules",yaraRules.length,yaraBody,false);
+    rwInner+=apAcc("YARA Rules",yaraRules.length,yaraBody,false);
   }
+  const rwHtml=(rwCards?`<div class="ap-ov-grid">${rwCards}</div>`:"")+stack(rwInner);
+  const rwTotal=recentVictims.length+noteNames.length+ransomNotes.length+yaraRules.length+leakSites.length+(neg&&neg.chat_count?1:0);
 
-  html+=`</div></div>`; // end .ap-main, .ap-body
-
-  // ── FULL-WIDTH BOTTOM ──────────────────────────────────────────
-  html+=`<div class="ap-full">`;
-
+  // ── INDICATORS & SOURCES ──
   const iocsBody=iocs.length
     ?`<div style="overflow-x:auto"><table class="pv-links-table"><thead><tr><th>Value</th><th>Type</th><th>Score</th><th>APT</th><th>VT</th><th>Enrichment</th></tr></thead><tbody>${_iocRowsHtml(iocs,"No IOCs attributed to this actor")}</tbody></table></div>`
     :`<div class="pv-empty">No IOCs attributed to this actor yet.</div>`;
-  html+=`<div class="ap-full-section"><div class="ap-full-hd"><span class="ap-full-title">Indicators of Compromise</span><span class="ap-full-count">${iocs.length}</span></div><div class="ap-full-body">${iocsBody}</div></div>`;
+  const srcBody=sources.map(url=>{
+    const meta=resolveArticleMeta(url);
+    const site=(meta&&(meta.site||meta.source_blog))||_allIocs.find(r=>r.source_article===url)?.source_blog||"";
+    return`<a class="ap-source-link" href="${esc(url)}" target="_blank" rel="noopener"><span class="ap-source-host">${esc(site||urlHost(url))}</span><span class="ap-source-path">${esc(urlPath(url))}</span><svg width="9" height="9" viewBox="0 0 10 10" fill="none" style="flex-shrink:0;opacity:.35"><path d="M3.5 2H2C1.45 2 1 2.45 1 3V8C1 8.55 1.45 9 2 9H7C7.55 9 8 8.55 8 8V6.5M6 1H9M9 1V4M9 1L4.5 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>`;
+  }).join("");
 
-  if(sources.length){
-    const srcBody=sources.map(url=>{
-      const meta=resolveArticleMeta(url);
-      const site=(meta&&(meta.site||meta.source_blog))||_allIocs.find(r=>r.source_article===url)?.source_blog||"";
-      return`<a class="ap-source-link" href="${esc(url)}" target="_blank" rel="noopener"><span class="ap-source-host">${esc(site||urlHost(url))}</span><span class="ap-source-path">${esc(urlPath(url))}</span><svg width="9" height="9" viewBox="0 0 10 10" fill="none" style="flex-shrink:0;opacity:.35"><path d="M3.5 2H2C1.45 2 1 2.45 1 3V8C1 8.55 1.45 9 2 9H7C7.55 9 8 8.55 8 8V6.5M6 1H9M9 1V4M9 1L4.5 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>`;
-    }).join("");
-    html+=`<div class="ap-full-section"><div class="ap-full-hd"><span class="ap-full-title">Source Articles</span><span class="ap-full-count">${sources.length}</span></div><div class="ap-full-body">${srcBody}</div></div>`;
-  }
-
-  html+=`</div>`; // end .ap-full
+  // ── TABS ──────────────────────────────────────────────────────
+  const tabs=[
+    {id:"overview",  label:"Overview",         count:null,       html:ovHtml},
+    {id:"techniques",label:"Techniques",       count:ttpCount,   html:stack(ttpInner)},
+    {id:"tooling",   label:"Tooling & Exploits",count:toolTotal, html:stack(toolInner)},
+    {id:"ransomware",label:"Ransomware Ops",   count:rwTotal,    html:rwHtml},
+    {id:"iocs",      label:"Indicators",       count:iocs.length,html:iocsBody},
+    {id:"sources",   label:"Sources",          count:sources.length,html:srcBody}
+  ].filter(t=>t.html);
+  if(_actTabFor!==name||!tabs.some(t=>t.id===_actTab)){_actTab="overview";_actTabFor=name;}
+  html+=`<div class="ap-tabs" role="tablist">${tabs.map(t=>`<button class="ap-tab${t.id===_actTab?" active":""}" role="tab" data-tab="${t.id}" aria-selected="${t.id===_actTab}" onclick="setActorTab('${t.id}')">${t.label}${t.count!=null?`<span class="ap-tab-count">${t.count}</span>`:""}</button>`).join("")}</div>`;
+  html+=tabs.map(t=>`<section class="ap-pane${t.id===_actTab?" active":""}" role="tabpanel" data-tab="${t.id}">${t.html}</section>`).join("");
   container.innerHTML=html;
+}
+let _actTab="overview",_actTabFor="";
+function setActorTab(id){
+  _actTab=id;
+  document.querySelectorAll("#act-body .ap-tab").forEach(b=>{const on=b.dataset.tab===id;b.classList.toggle("active",on);b.setAttribute("aria-selected",on);});
+  document.querySelectorAll("#act-body .ap-pane").forEach(p=>p.classList.toggle("active",p.dataset.tab===id));
 }
 
 /* ── IOC rendering ── */
