@@ -123,6 +123,7 @@ jobs:
           SHODAN_API_KEY:    ${{ secrets.SHODAN_API_KEY }}
           ABUSEIPDB_API_KEY: ${{ secrets.ABUSEIPDB_API_KEY }}
           GREYNOISE_API_KEY: ${{ secrets.GREYNOISE_API_KEY }}
+          HA_API_KEY:        ${{ secrets.HA_API_KEY }}
           IPINFO_TOKEN:      ${{ secrets.IPINFO_TOKEN }}
           URLHAUS_API_KEY:   ${{ secrets.URLHAUS_API_KEY }}
           RANSOMWARE_LIVE_API_KEY: ${{ secrets.RANSOMWARE_LIVE_API_KEY }}
