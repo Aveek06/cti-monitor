@@ -110,3 +110,40 @@ def enrich_pending_domains(conn, limit: int = 200) -> None:
             conn.rollback()
     if rows:
         print(f"Typosquat check: {len(rows)} domains checked, {flagged} flagged.")
+
+
+def enrich_pending_url_hosts(conn, limit: int = 200) -> None:
+    """Typosquat-check the host of stored URL IOCs; IP-literal hosts are skipped."""
+    import url_refiner
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            "SELECT id, value FROM ioc_indicators "
+            "WHERE typosquat_checked = FALSE AND type = 'url' "
+            "ORDER BY created_at DESC LIMIT %s",
+            (limit,)
+        )
+        rows = cur.fetchall()
+    flagged = 0
+    for row in rows:
+        try:
+            host = url_refiner.host_of(row["value"])
+            if not host or url_refiner.is_ip_host(host):
+                result = {"is_typosquat": False, "typosquat_of": None}
+            else:
+                result = check_domain(host)
+                if result is None:
+                    break  # no protected list: stop silently
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE ioc_indicators SET typosquat_checked=TRUE, "
+                    "is_typosquat=%s, typosquat_of=%s, updated_at=NOW() WHERE id=%s",
+                    (result["is_typosquat"], result["typosquat_of"], row["id"]),
+                )
+            conn.commit()
+            if result["is_typosquat"]:
+                flagged += 1
+        except Exception as e:
+            print(f"URL typosquat check error for {row['value'][:60]}: {e}")
+            conn.rollback()
+    if rows:
+        print(f"URL typosquat check: {len(rows)} URLs checked, {flagged} flagged.")

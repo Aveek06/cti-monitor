@@ -21,6 +21,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from urllib.parse import urlparse
 from iocsearcher.searcher import Searcher as _IocSearcher
+from url_refiner import normalize_url
 
 _searcher = _IocSearcher()
 _TYPE_MAP = {"fqdn": "domain", "ip4": "ipv4", "ip6": "ipv6"}
@@ -557,6 +558,9 @@ def extract_iocs(text: str, source_url: str | None = None) -> list[dict]:
         t = _TYPE_MAP.get(ioc.name, ioc.name)
         v = ioc.value
         if t == "url":
+            v = normalize_url(v)
+            if not v:
+                continue
             url_host = _domain_from_url(v)
             if not url_host:
                 continue

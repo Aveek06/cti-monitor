@@ -21,6 +21,7 @@ import vt_domain_enricher
 import vt_enricher
 import hash_enricher
 import ha_enricher
+import typosquat_checker
 
 
 def reset_failed(conn, flag_col, result_col, types):
@@ -129,6 +130,13 @@ def main():
             print("Starting meta enrichment...")
             domain_enricher.enrich_pending_domains(conn, limit=pending + 1)
             print("Domain meta enrichment complete.")
+
+        url_pending = count_pending_flag(conn, "domain_meta_checked", ["url"])
+        print(f"URL host enrichment (URLhaus/RDAP/DNS): {url_pending} pending.")
+        if url_pending:
+            domain_enricher.enrich_pending_url_hosts(conn, limit=url_pending + 1)
+            print("URL host enrichment complete.")
+            typosquat_checker.enrich_pending_url_hosts(conn, limit=url_pending + 1)
 
     # --- Hash meta (MalwareBazaar / ThreatFox) ---
     if run_hash_vt or (not any_filter):

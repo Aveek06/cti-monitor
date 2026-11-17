@@ -5,9 +5,12 @@ Registration date lookup order:
   2. python-whois fallback (covers ccTLDs and TLDs without RDAP servers)
 """
 import json
+import os
 import socket
 import requests
 import psycopg2.extras
+
+import url_refiner
 
 URLHAUS_URL = "https://urlhaus-api.abuse.ch/v1/host/"
 RDAP_URL    = "https://rdap.org/domain/{domain}"
@@ -15,7 +18,9 @@ RDAP_URL    = "https://rdap.org/domain/{domain}"
 
 def _urlhaus_check(value: str) -> dict:
     try:
-        resp = requests.post(URLHAUS_URL, data={"host": value}, timeout=15)
+        key = os.environ.get("URLHAUS_API_KEY", "")
+        resp = requests.post(URLHAUS_URL, data={"host": value},
+                             headers={"Auth-Key": key} if key else {}, timeout=15)
         if resp.status_code != 200:
             return {"status": None, "threat": None}
         d = resp.json()
@@ -89,6 +94,27 @@ def _dns_check(value: str) -> dict:
         return {"resolves": None, "ips": []}
 
 
+def _write_meta(conn, row_id, uh: dict, rdap: dict, dns: dict) -> None:
+    with conn.cursor() as cur:
+        cur.execute(
+            "UPDATE ioc_indicators SET domain_meta_checked=TRUE, "
+            "urlhaus_domain_status=%s, urlhaus_domain_threat=%s, "
+            "domain_registered=%s, domain_registrar=%s, "
+            "domain_resolves=%s, domain_resolved_ips=%s, "
+            "updated_at=NOW() WHERE id=%s",
+            (
+                uh["status"],
+                uh["threat"],
+                rdap["registered"],
+                rdap["registrar"],
+                dns["resolves"],
+                json.dumps(dns["ips"]),
+                row_id,
+            ),
+        )
+    conn.commit()
+
+
 def enrich_pending_domains(conn, limit: int = 50) -> None:
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute(
@@ -105,24 +131,51 @@ def enrich_pending_domains(conn, limit: int = 50) -> None:
             if rdap["registered"] is None:
                 rdap["registered"] = _whois_fallback(row["value"])
             dns  = _dns_check(row["value"])
-            with conn.cursor() as cur:
-                cur.execute(
-                    "UPDATE ioc_indicators SET domain_meta_checked=TRUE, "
-                    "urlhaus_domain_status=%s, urlhaus_domain_threat=%s, "
-                    "domain_registered=%s, domain_registrar=%s, "
-                    "domain_resolves=%s, domain_resolved_ips=%s, "
-                    "updated_at=NOW() WHERE id=%s",
-                    (
-                        uh["status"],
-                        uh["threat"],
-                        rdap["registered"],
-                        rdap["registrar"],
-                        dns["resolves"],
-                        json.dumps(dns["ips"]),
-                        row["id"],
-                    ),
-                )
-            conn.commit()
+            _write_meta(conn, row["id"], uh, rdap, dns)
         except Exception as e:
             print(f"Domain meta enrichment error for {row['value']}: {e}")
             conn.rollback()
+
+
+def _host_meta(host: str, cache: dict):
+    """URLhaus + RDAP + DNS for a URL's host, cached so URLs sharing a host cost one lookup."""
+    if host in cache:
+        return cache[host]
+    uh = _urlhaus_check(host)
+    if url_refiner.is_ip_host(host):
+        rdap = {"registered": None, "registrar": None}
+        dns = {"resolves": None, "ips": [host.strip("[]")]}
+    else:
+        rdap = _rdap_check(host)
+        if rdap["registered"] is None:
+            rdap["registered"] = _whois_fallback(host)
+        dns = _dns_check(host)
+    cache[host] = (uh, rdap, dns)
+    return cache[host]
+
+
+def enrich_pending_url_hosts(conn, limit: int = 50) -> None:
+    """Run the host-level checks for stored URL IOCs, writing results onto the URL row."""
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            "SELECT id, value FROM ioc_indicators "
+            "WHERE domain_meta_checked = FALSE AND type = 'url' "
+            "ORDER BY created_at DESC LIMIT %s",
+            (limit,)
+        )
+        rows = cur.fetchall()
+    cache: dict = {}
+    for row in rows:
+        try:
+            host = url_refiner.host_of(row["value"])
+            if not host:
+                _write_meta(conn, row["id"], {"status": None, "threat": None},
+                            {"registered": None, "registrar": None}, {"resolves": None, "ips": []})
+                continue
+            uh, rdap, dns = _host_meta(host, cache)
+            _write_meta(conn, row["id"], uh, rdap, dns)
+        except Exception as e:
+            print(f"URL host enrichment error for {row['value'][:60]}: {e}")
+            conn.rollback()
+    if rows:
+        print(f"URL host enrichment: {len(rows)} URL(s) processed ({len(cache)} unique host(s)).")

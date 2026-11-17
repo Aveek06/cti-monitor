@@ -126,7 +126,7 @@ def get_verdict(row: dict) -> str:
         votes -= 1
 
     # URLhaus (domain/URL actively hosting malware)
-    if row.get("urlhaus_domain_status") == "online":
+    if row.get("urlhaus_domain_status") in ("online", "listed"):
         votes += 1
 
     # Hybrid Analysis sandbox verdict (hash IOCs only)
@@ -147,7 +147,7 @@ def get_verdict(row: dict) -> str:
 
     # Domain age: newly registered domains are a strong threat indicator.
     # < 90 days old → very high risk (+2); 90–299 days → elevated risk (+1).
-    if group == "domain" and row.get("domain_registered"):
+    if group in ("domain", "url") and row.get("domain_registered"):
         try:
             reg_date = datetime.strptime(str(row["domain_registered"])[:10], "%Y-%m-%d").date()
             age_days = (datetime.now(timezone.utc).date() - reg_date).days

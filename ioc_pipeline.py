@@ -33,6 +33,7 @@ import hash_enricher
 import hashlookup_enricher
 import ha_enricher
 import typosquat_checker
+import url_refiner
 import ttp_extractor
 import urlhaus_fetcher
 import ai_extractor
@@ -158,6 +159,13 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
                     continue
                 if t == "domain" and ioc_extractor.is_benign_domain(v):
                     continue
+                if t == "url":
+                    v = url_refiner.normalize_url(v)
+                    if not v:
+                        continue
+                    _h = url_refiner.host_of(v)
+                    if _h and not url_refiner.is_ip_host(_h) and ioc_extractor.is_benign_domain(_h):
+                        continue
                 if t == "ipv4" and v in ioc_extractor._FP_IPS:
                     continue
                 if t == "ipv4":
@@ -300,6 +308,12 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
     except Exception as e:
         print(f"Domain meta enrichment error: {e}")
 
+    print("Running URL host enrichment (URLhaus + RDAP + DNS, up to 50 URLs)...")
+    try:
+        domain_enricher.enrich_pending_url_hosts(conn)
+    except Exception as e:
+        print(f"URL host enrichment error: {e}")
+
     print("Running hash meta enrichment (MalwareBazaar + ThreatFox, up to 50 hashes)...")
     try:
         hash_enricher.enrich_pending_hashes(conn)
@@ -325,6 +339,7 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
     print("Running typosquat / brand-abuse check (up to 200 domains)...")
     try:
         typosquat_checker.enrich_pending_domains(conn)
+        typosquat_checker.enrich_pending_url_hosts(conn)
     except Exception as e:
         print(f"Typosquat check error: {e}")
 
@@ -412,6 +427,13 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
             }
             for r in all_active
         ], key=lambda x: x["score"], reverse=True)
+        # Label stored URLs with a heuristic type and risk flags (shown as tags in the dashboard)
+        for e in export:
+            if e["type"] == "url":
+                url_type, flags = url_refiner.classify_url(e["value"])
+                e["url_host"] = url_refiner.host_of(e["value"])
+                e["url_threat"] = url_type if url_type != "other" else ""
+                e["url_tags"] = flags
         # Merge URLhaus online URLs into the export
         urlhaus_key = os.environ.get("URLHAUS_API_KEY", "")
         if urlhaus_key:

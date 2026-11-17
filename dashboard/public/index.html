@@ -2621,7 +2621,7 @@ function _iocEnrichTagsHtml(r){
   const gn=isIp&&r.greynoise_classification?`<span class="ioc-tag" style="${r.greynoise_classification==='malicious'?'background:rgba(239,68,68,.15);color:#f87171':r.greynoise_riot?'background:rgba(34,197,94,.12);color:#4ade80':''}">GN:${esc(r.greynoise_classification)}</span>`:"";
   const org=isIp&&r.ipinfo_org?`<span class="ioc-tag" style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle" title="${esc(r.ipinfo_org)}">${esc(r.ipinfo_org.length>18?r.ipinfo_org.slice(0,17)+'…':r.ipinfo_org)}</span>`:"";
 
-  const isDomain=r.type==="domain"||r.type==="fqdn";
+  const isDomain=r.type==="domain"||r.type==="fqdn"||(r.type==="url"&&(r.domain_registered||r.urlhaus_domain_status==="listed"||r.domain_resolves===false||r.is_typosquat));
   const vtDom=isDomain&&r.vt_domain_malicious!=null?(r.vt_domain_malicious>0?`<span class="ioc-tag" style="background:rgba(239,68,68,.18);color:#f87171">VT:${r.vt_domain_malicious} engines</span>`:`<span class="ioc-tag" style="color:var(--text-muted)">VT:clean</span>`):"";
   const uhDom=isDomain&&r.urlhaus_domain_status==="listed"?`<span class="ioc-tag" style="background:rgba(239,68,68,.15);color:#f87171">URLhaus${r.urlhaus_domain_threat?`: ${esc(r.urlhaus_domain_threat)}`:""}</span>`:"";
   const typosquat=isDomain&&r.is_typosquat?`<span class="ioc-tag" style="background:rgba(239,68,68,.2);color:#f87171;font-weight:600" title="Possible typosquat of ${esc(r.typosquat_of||'')}">⚠ typosquat</span>`:"";
@@ -3196,7 +3196,7 @@ function openIocDrawer(idx){
   const s=r._live!=null?r._live:liveScore(r.last_seen,r.tau,r.ltv,r.verdict);
   const col=scoreColor(s);
   const isHash=r.type==="sha256"||r.type==="sha1"||r.type==="md5";
-  const isDomain=r.type==="domain"||r.type==="fqdn";
+  const isDomain=r.type==="domain"||r.type==="fqdn"||(r.type==="url"&&(r.domain_registered||r.urlhaus_domain_status==="listed"||r.domain_resolves===false||r.is_typosquat));
   const isIp=r.type==="ipv4"||r.type==="ipv6";
   const isUrl=r.type==="url";
   const extSvg=`<svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M3.5 2H2C1.45 2 1 2.45 1 3V8C1 8.55 1.45 9 2 9H7C7.55 9 8 8.55 8 8V6.5M6 1H9M9 1V4M9 1L4.5 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -3349,7 +3349,7 @@ function filterIocs(q,keepLimit){
   const ipOrgRaw=isIp&&r.ipinfo_org?r.ipinfo_org:"";
   const ipOrgBadge=ipOrgRaw?`<span class="ioc-tag" style="margin-top:3px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle" title="${esc(ipOrgRaw)}">${esc(ipOrgRaw.length>26?ipOrgRaw.slice(0,25)+'…':ipOrgRaw)}</span>${r.ipinfo_country?`<span style="font-size:9px;color:var(--text-muted);margin-left:2px">${esc(r.ipinfo_country)}</span>`:""}`:""
   const enrichRow=isIp&&(shodanTagBadges||shodanPortsPill||abuseBadge||gnBadge||ipOrgBadge)?`<div style="margin-top:3px;display:flex;flex-wrap:wrap;gap:3px;align-items:center">${shodanTagBadges}${shodanPortsPill}${abuseBadge}${gnBadge}${ipOrgBadge}</div>`:"";
-  const isDomain=r.type==="domain"||r.type==="fqdn";
+  const isDomain=r.type==="domain"||r.type==="fqdn"||(r.type==="url"&&(r.domain_registered||r.urlhaus_domain_status==="listed"||r.domain_resolves===false||r.is_typosquat));
   const vtDomBadge=isDomain&&r.vt_domain_malicious!=null?(r.vt_domain_malicious>0?`<span class="ioc-tag" style="margin-top:3px;background:rgba(239,68,68,.18);color:#f87171">VT:${r.vt_domain_malicious} engines</span>`:`<span class="ioc-tag" style="margin-top:3px;color:var(--text-muted)">VT:clean</span>`):"";
   const uhDomBadge=isDomain&&r.urlhaus_domain_status==="listed"?`<span class="ioc-tag" style="margin-top:3px;background:rgba(239,68,68,.15);color:#f87171">URLhaus${r.urlhaus_domain_threat?`: ${esc(r.urlhaus_domain_threat)}`:""}</span>`:"";
   const domAgeBadge=(()=>{if(!isDomain||!r.domain_registered)return"";const days=Math.floor((Date.now()-new Date(r.domain_registered).getTime())/86400000);if(days<0||days>365)return"";const col2=days<30?'rgba(239,68,68,.15);color:#f87171':days<90?'rgba(251,146,60,.18);color:#fb923c':'rgba(148,163,184,.12);color:var(--text-muted)';return`<span class="ioc-tag" style="margin-top:3px;background:${col2}" title="Registered ${esc(r.domain_registered)}">Reg:${days}d ago</span>`;})();
