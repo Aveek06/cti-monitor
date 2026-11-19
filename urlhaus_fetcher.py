@@ -9,12 +9,12 @@ MAX_URLS = 500
 def fetch_url_iocs(api_key: str) -> list[dict]:
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     try:
-        resp = requests.post(
-            URLHAUS_API.format(limit=MAX_URLS),
-            headers={"Auth-Key": api_key, "Content-Type": "application/json"},
-            json={},
-            timeout=30,
-        )
+        url = URLHAUS_API.format(limit=MAX_URLS)
+        headers = {"Auth-Key": api_key}
+        # The recent-URLs endpoint is documented as GET; POST now returns 405.
+        resp = requests.get(url, headers=headers, timeout=30)
+        if resp.status_code == 405:
+            resp = requests.post(url, headers={**headers, "Content-Type": "application/json"}, json={}, timeout=30)
         resp.raise_for_status()
         data = resp.json()
     except Exception as e:

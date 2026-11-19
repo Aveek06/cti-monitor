@@ -74,6 +74,25 @@ def is_ip_host(host: str | None) -> bool:
         return False
 
 
+_REFERENCE_PATH = re.compile(
+    r"/(?:blog|blogs|post|posts|news|article|articles|research|insight|insights|resources|docs?|documentation"
+    r"|wiki|knowledge-?base|kb|learn|guides?|whitepapers?|case-studies)(?:/|$)",
+    re.IGNORECASE,
+)
+
+
+def is_reference_url(url: str) -> bool:
+    """True for article-style links (a post cited in a report) that carry no risk signal."""
+    try:
+        path = urlsplit(url).path
+    except ValueError:
+        return False
+    if not _REFERENCE_PATH.search(path):
+        return False
+    kind, flags = classify_url(url)
+    return kind == "other" and not flags
+
+
 def classify_url(url: str) -> tuple[str, list[str]]:
     """Return (type, flags). type is payload, c2, phishing or other; flags are risk traits."""
     try:

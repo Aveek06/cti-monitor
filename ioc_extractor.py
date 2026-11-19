@@ -21,7 +21,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from urllib.parse import urlparse
 from iocsearcher.searcher import Searcher as _IocSearcher
-from url_refiner import normalize_url
+from url_refiner import normalize_url, is_reference_url
 
 _searcher = _IocSearcher()
 _TYPE_MAP = {"fqdn": "domain", "ip4": "ipv4", "ip6": "ipv6"}
@@ -581,6 +581,9 @@ def extract_iocs(text: str, source_url: str | None = None) -> list[dict]:
                 continue
             # Skip URLs on trusted TLDs
             if any(url_host.endswith(tld) for tld in _FP_TRUSTED_TLDS):
+                continue
+            # Skip article-style links (blog posts cited in a report) with no risk signal
+            if is_reference_url(v):
                 continue
         if t == "domain":
             if _is_fp(v):

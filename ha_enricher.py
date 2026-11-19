@@ -45,6 +45,9 @@ def _lookup(value: str, api_key: str):
         raise RuntimeError(f"HA rate limit or auth failure ({resp.status_code})")
     if resp.status_code == 404:
         return dict(_EMPTY)
+    if resp.status_code == 400 and "expected hashes" in resp.text:
+        # Stored value isn't a valid MD5/SHA1/SHA256/SHA512: definitive, never retry it.
+        return dict(_EMPTY)
     if resp.status_code != 200:
         print(f"Hybrid Analysis unexpected status {resp.status_code}: {resp.text[:150]!r}")
         return None

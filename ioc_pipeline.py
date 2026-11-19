@@ -166,6 +166,8 @@ def run(new_items: list[dict], rel_lookup: dict | None = None) -> dict:
                     _h = url_refiner.host_of(v)
                     if _h and not url_refiner.is_ip_host(_h) and ioc_extractor.is_benign_domain(_h):
                         continue
+                    if url_refiner.is_reference_url(v):
+                        continue
                 if t == "ipv4" and v in ioc_extractor._FP_IPS:
                     continue
                 if t == "ipv4":
