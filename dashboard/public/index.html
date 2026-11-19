@@ -3258,7 +3258,7 @@ function openIocDrawer(idx){
   let html="";
   // Attribution
   const attrRows=[];
-  if(r.apt){const cc=r.apt_confidence==="high"?"var(--green)":r.apt_confidence==="medium"?"var(--amber)":"var(--text-muted)";attrRows.push(row("APT Group",`<span class="ioc-apt">${esc(r.apt)}</span>${r.apt_confidence?`<span style="font-size:10px;color:${cc};margin-left:4px">${r.apt_confidence.toUpperCase()}</span>`:""}"`));}
+  if(r.apt){const cc=r.apt_confidence==="high"?"var(--green)":r.apt_confidence==="medium"?"var(--amber)":"var(--text-muted)";attrRows.push(row("APT Group",`<span class="ioc-apt">${esc(r.apt)}</span>${r.apt_confidence?`<span style="font-size:10px;color:${cc};margin-left:4px">${r.apt_confidence.toUpperCase()}</span>`:""}`));}
   if((r.source_count||1)>1)attrRows.push(row("Confirmed In",`<span style="color:var(--green)">${r.source_count} articles</span>`));
   html+=sec("Attribution",attrRows);
   // Source
