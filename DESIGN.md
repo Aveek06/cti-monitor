@@ -18,8 +18,8 @@ Dark, terminal-aesthetic, HUD-like interface for internal security analyst use. 
 | `--border-hi` | `#2e2e2e` | Elevated borders, scrollbars |
 | `--text` | `#d0d0d0` | Body text |
 | `--text-hi` | `#f4f4f4` | High-emphasis values |
-| `--text-dim` | `#808080` | Secondary labels |
-| `--text-muted` | `#484848` | Tertiary / decorative |
+| `--text-dim` | `#a0a0a0` | Secondary labels (about 8:1 on surface) |
+| `--text-muted` | `#808080` | Tertiary text (about 5:1 on surface, passes 4.5:1) |
 | `--green` | `#00ff41` | Primary accent — active, success, IOC |
 | `--green-dim` | `rgba(0,255,65,.07)` | Active backgrounds |
 | `--green-glow` | `rgba(0,255,65,.18)` | Glow effects |
@@ -51,14 +51,18 @@ https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&fami
 | TTP summary numbers | 22px | 700 | mono | |
 | Drawer name | 14px | 700 | mono | `letter-spacing: .06em`, uppercase |
 | Site name | 11px | 500 | mono | |
-| Section title | 9px | 700 | ui | `letter-spacing: .16em`, uppercase |
-| Nav label | 8px | 400 | ui | `letter-spacing: .06em`, uppercase |
-| Badge / pill | 9px | 600 | ui | `letter-spacing: .08em`, uppercase |
-| Table header | 8px | 600 | ui | `letter-spacing: .12em`, uppercase |
+| Section title | 10px | 700 | ui | `letter-spacing: .16em`, uppercase |
+| Nav label | 10px | 400 | ui | `letter-spacing: .04em`, uppercase, `nowrap` |
+| Badge / pill | 10px | 600 | ui | `letter-spacing: .08em`, uppercase |
+| Table header | 10px | 600 | ui | `letter-spacing: .12em`, uppercase |
+
+Minimum text size is 10px (chips, badges, labels). Anything read as content is 11px or larger.
 
 ---
 
 ## Layout
+
+Spacing (padding, margin, gap) sits on a 4px grid; 1px and 2px are allowed for hairlines and small nudges.
 
 | Token | Value |
 |---|---|
@@ -92,7 +96,7 @@ https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&fami
 ### KPI Cards
 - `border-top: 2px solid var(--border-hi)` base; overrides to green/amber/red when expanded
 - `box-shadow: 0 0 20px var(--*-glow)` when expanded
-- `transform: translateY(-2px)` on hover
+- Hover changes background and border only (no lift or scale)
 
 ### Sidebar Nav Button
 - Active state: `border-left: 2px solid var(--green)` + `box-shadow: inset 2px 0 8px var(--green-glow)` + `background: var(--green-dim)`
@@ -106,6 +110,11 @@ https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&fami
 ### Badges
 - `.badge-amber`: `color: var(--amber)` + `background: var(--amber-dim)` + amber border
 - `.badge-red`: `color: var(--red)` + `background: var(--red-dim)` + red border
+
+### IOC Tags
+- `.ioc-tag` plus a variant class: `.t-red`, `.t-amber`, `.t-green` (token color, dim background, ring border) or `.t-muted` (text color only)
+- `.tag-sp` adds the 4px top margin when tags sit under a value; never inline `rgba()` or hex colors in markup
+- Icons inside tags and badges use `_ic(name)` (inline SVG, `currentColor`)
 
 ### Reliability Badge
 - `.rel-green` ≥70, `.rel-amber` 40–69, `.rel-red` <40, `.rel-none` unrated
