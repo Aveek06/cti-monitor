@@ -35,6 +35,19 @@ An automated Cyber Threat Intelligence pipeline that monitors **187 security res
 
 ---
 
+## Interactive diagrams
+
+Click a diagram to open its interactive version: click a node to trace its path, switch dark or light, and export a PNG or PDF.
+
+| Data pipeline | Supabase tables |
+|---|---|
+| [![CTI Monitor data pipeline](docs/diagrams/pipeline_view.png)](https://aveek06.github.io/cti-monitor/diagrams/cti-monitor-pipeline.html) | [![CTI Monitor Supabase tables](docs/diagrams/erd_view.png)](https://aveek06.github.io/cti-monitor/diagrams/cti-monitor-erd.html) |
+| [Open the pipeline diagram](https://aveek06.github.io/cti-monitor/diagrams/cti-monitor-pipeline.html) | [Open the table diagram](https://aveek06.github.io/cti-monitor/diagrams/cti-monitor-erd.html) |
+
+<sub>Generated with [Archify](https://github.com/tt-a1i/archify) (Apache-2.0); license and notices in [`docs/diagrams/`](docs/diagrams/), diagram sources in the `.json` files there. The database has no declared foreign keys, so the table diagram draws logical joins as dashed lines.</sub>
+
+---
+
 ## Architecture
 
 ```

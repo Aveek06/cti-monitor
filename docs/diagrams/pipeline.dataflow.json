@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "CTI Monitor Data Pipeline",
+    "locale": "en",
+    "output": "cti-monitor-pipeline.html",
+    "quality_profile": "showcase"
+  },
+  "stages": [
+    { "label": "Sources" },
+    { "label": "Collect & Extract" },
+    { "label": "Clean & Enrich" },
+    { "label": "Score & Store" },
+    { "label": "Deliver" }
+  ],
+  "nodes": [
+    { "id": "sources", "type": "external", "label": "Security Sources", "sublabel": "216 blogs, CERTs, agencies", "stage": 0, "row": 2, "tag": "RSS / HTML / API" },
+    { "id": "collect", "type": "backend", "label": "Collect & Extract", "sublabel": "9 scraper types + AI", "stage": 1, "row": 2, "tag": "every 8h" },
+    { "id": "refine", "type": "security", "label": "Clean & Enrich", "sublabel": "filters + 7 intel services", "stage": 2, "row": 2, "tag": "verdict vote" },
+    { "id": "store", "type": "database", "label": "Supabase", "sublabel": "STIX 2.1 indicators", "stage": 3, "row": 2, "tag": "Postgres" },
+    { "id": "score", "type": "backend", "label": "Decay Scoring", "sublabel": "MISP + Jakusz (SANS)", "stage": 3, "row": 1, "tag": "live score" },
+    { "id": "sigma", "type": "backend", "label": "Sigma Drafting", "sublabel": "AI, analyst-triggered", "stage": 3, "row": 3, "tag": "on demand" },
+    { "id": "dashboard", "type": "frontend", "label": "Dashboard", "sublabel": "hosted on Vercel", "stage": 4, "row": 0, "tag": "live" },
+    { "id": "email", "type": "external", "label": "Email Digest", "sublabel": "8-hourly + weekly", "stage": 4, "row": 1, "tag": "SMTP" },
+    { "id": "taxii", "type": "cloud", "label": "TAXII 2.1 Feed", "sublabel": "OpenCTI, MISP, SIEM", "stage": 4, "row": 2, "tag": "STIX 2.1" }
+  ],
+  "flows": [
+    { "id": "posts", "from": "sources", "to": "collect", "label": "new posts", "classification": "public blogs", "variant": "emphasis" },
+    { "id": "articles", "from": "collect", "to": "refine", "label": "IOCs, TTPs, APT", "classification": "AI + regex extraction", "variant": "emphasis" },
+    { "id": "verified", "from": "refine", "to": "store", "label": "verified IOCs", "classification": "VT, Shodan, URLhaus", "variant": "emphasis" },
+    { "id": "stored", "from": "store", "to": "score", "label": "stored IOCs", "classification": "tau + LTV", "variant": "default" },
+    { "id": "techniques", "from": "store", "to": "sigma", "label": "TTPs + IOCs", "classification": "per technique", "variant": "dashed" },
+    { "id": "to-dashboard", "from": "score", "to": "dashboard", "label": "scored export", "classification": "decay applied", "variant": "default" },
+    { "id": "to-email", "from": "score", "to": "email", "label": "active IOCs", "classification": "new + expiring", "variant": "default" },
+    { "id": "to-taxii", "from": "store", "to": "taxii", "label": "STIX objects", "classification": "read-only", "variant": "default" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Collect & Refine",
+      "items": [
+        "216 sources checked every 8 hours; nine scraper types cope with bot protection",
+        "AI reads each new article for IOCs, MITRE ATT&CK techniques and the APT group",
+        "Filters drop vendor domains, popular sites, private IPs and article-style links"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "Enrich & Score",
+      "items": [
+        "VirusTotal, Hybrid Analysis, Shodan, AbuseIPDB, GreyNoise, IPinfo and URLhaus vote on a verdict",
+        "Decay model: MISP formula extended with Jakusz (SANS 2025) APT coefficients",
+        "Source reliability and corroboration lengthen or shorten an indicator's life"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Deliver",
+      "items": [
+        "Dashboard on Vercel, database on Supabase, pipeline on GitHub Actions",
+        "TAXII 2.1 serves STIX 2.1 to OpenCTI, MISP and SIEMs",
+        "Sigma rules are drafted from observed techniques and stored with a review lifecycle"
+      ]
+    }
+  ]
+}

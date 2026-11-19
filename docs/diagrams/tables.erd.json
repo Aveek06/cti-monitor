@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "diagram_type": "erd",
+  "meta": {
+    "title": "CTI Monitor Supabase Tables",
+    "locale": "en",
+    "output": "cti-monitor-erd.html",
+    "quality_profile": "standard"
+  },
+  "layout": { "mode": "grid", "gapY": 56, "gapX": 96 },
+  "entities": [
+    {
+      "id": "ioc_indicators", "label": "ioc_indicators", "sublabel": "30 of 67 columns shown", "tag": "indicators", "row": 0, "col": 0, "width": 280,
+      "attributes": [
+        { "name": "id", "type": "serial", "key": "pk" },
+        { "name": "stix_id", "type": "text", "key": "uk" },
+        { "name": "stix_object", "type": "jsonb" },
+        { "name": "value", "type": "text" },
+        { "name": "type", "type": "text" },
+        { "name": "first_seen", "type": "date" },
+        { "name": "last_seen", "type": "date" },
+        { "name": "attributed_apt", "type": "text" },
+        { "name": "ltv", "type": "float" },
+        { "name": "tau", "type": "float" },
+        { "name": "source_article", "type": "text" },
+        { "name": "source_blog", "type": "text" },
+        { "name": "source_count", "type": "int" },
+        { "name": "apt_match_method", "type": "text" },
+        { "name": "vt_verified", "type": "boolean" },
+        { "name": "vt_malicious", "type": "int" },
+        { "name": "vt_domain_malicious", "type": "int" },
+        { "name": "abuseipdb_score", "type": "int" },
+        { "name": "greynoise_classification", "type": "text" },
+        { "name": "shodan_tags", "type": "jsonb" },
+        { "name": "domain_registered", "type": "text" },
+        { "name": "urlhaus_domain_status", "type": "text" },
+        { "name": "is_typosquat", "type": "boolean" },
+        { "name": "mb_signature", "type": "text" },
+        { "name": "tf_threat_type", "type": "text" },
+        { "name": "hashlookup_trust", "type": "int" },
+        { "name": "ha_verdict", "type": "text" },
+        { "name": "ha_threat_score", "type": "int" },
+        { "name": "created_at", "type": "timestamptz" },
+        { "name": "updated_at", "type": "timestamptz" }
+      ]
+    },
+    {
+      "id": "threat_actor_profiles", "label": "threat_actor_profiles", "sublabel": "MITRE ATT&CK + ransomware.live", "tag": "actors", "row": 0, "col": 1, "width": 280,
+      "attributes": [
+        { "name": "id", "type": "serial", "key": "pk" },
+        { "name": "actor_name", "type": "text", "key": "uk" },
+        { "name": "match_method", "type": "text" },
+        { "name": "mitre_group_id", "type": "text" },
+        { "name": "mitre_url", "type": "text" },
+        { "name": "aliases", "type": "jsonb" },
+        { "name": "description", "type": "text" },
+        { "name": "techniques", "type": "jsonb" },
+        { "name": "software", "type": "jsonb" },
+        { "name": "campaigns", "type": "jsonb" },
+        { "name": "mitre_synced", "type": "timestamptz" },
+        { "name": "ransomware_live_id", "type": "text" },
+        { "name": "ransomware_description", "type": "text" },
+        { "name": "victim_count", "type": "int" },
+        { "name": "first_seen_rw", "type": "date" },
+        { "name": "last_seen_rw", "type": "date" },
+        { "name": "recent_victims", "type": "jsonb" },
+        { "name": "sectors_targeted", "type": "jsonb" },
+        { "name": "tools", "type": "jsonb" },
+        { "name": "ransomware_ttps", "type": "jsonb" },
+        { "name": "leak_sites", "type": "jsonb" },
+        { "name": "vulnerabilities", "type": "jsonb" },
+        { "name": "negotiation_stats", "type": "jsonb" },
+        { "name": "ransom_note_names", "type": "jsonb" },
+        { "name": "ransom_notes", "type": "jsonb" },
+        { "name": "yara_rules", "type": "jsonb" },
+        { "name": "ransomware_synced", "type": "timestamptz" },
+        { "name": "created_at", "type": "timestamptz" },
+        { "name": "updated_at", "type": "timestamptz" }
+      ]
+    },
+    {
+      "id": "ttp_observations", "label": "ttp_observations", "sublabel": "MITRE ATT&CK techniques per article", "tag": "techniques & rules", "row": 0, "col": 2, "width": 280,
+      "attributes": [
+        { "name": "id", "type": "serial", "key": "pk" },
+        { "name": "technique_id", "type": "text" },
+        { "name": "technique_name", "type": "text" },
+        { "name": "tactic", "type": "text" },
+        { "name": "source_article", "type": "text" },
+        { "name": "source_blog", "type": "text" },
+        { "name": "attributed_apt", "type": "text" },
+        { "name": "first_seen", "type": "date" },
+        { "name": "last_seen", "type": "date" },
+        { "name": "observation_count", "type": "int" },
+        { "name": "confidence", "type": "float" },
+        { "name": "evidence_text", "type": "text" }
+      ]
+    },
+    {
+      "id": "site_ratings", "label": "site_ratings", "sublabel": "analyst 1-5 star ratings", "tag": "platform", "row": 1, "col": 0, "width": 280,
+      "attributes": [
+        { "name": "id", "type": "serial", "key": "pk" },
+        { "name": "site_name", "type": "text" },
+        { "name": "rating", "type": "int" },
+        { "name": "note", "type": "text" },
+        { "name": "rater", "type": "text" },
+        { "name": "rated_at", "type": "timestamptz" }
+      ]
+    },
+    {
+      "id": "pipeline_state", "label": "pipeline_state", "sublabel": "JSON exports for the dashboard", "tag": "platform", "row": 1, "col": 1, "width": 280,
+      "attributes": [
+        { "name": "key", "type": "text", "key": "pk" },
+        { "name": "data", "type": "jsonb" },
+        { "name": "updated_at", "type": "timestamptz" }
+      ]
+    },
+    {
+      "id": "sigma_rules", "label": "sigma_rules", "sublabel": "AI-drafted detection rules", "tag": "techniques & rules", "row": 1, "col": 2, "width": 280,
+      "attributes": [
+        { "name": "id", "type": "serial", "key": "pk" },
+        { "name": "technique_id", "type": "text" },
+        { "name": "technique_name", "type": "text" },
+        { "name": "tactic", "type": "text" },
+        { "name": "source_article", "type": "text" },
+        { "name": "source_blog", "type": "text" },
+        { "name": "attributed_apt", "type": "text" },
+        { "name": "sigma_yaml", "type": "text" },
+        { "name": "sigma_status", "type": "text" },
+        { "name": "splunk_spl", "type": "text" },
+        { "name": "sentinel_kql", "type": "text" },
+        { "name": "elastic_eql", "type": "text" },
+        { "name": "qradar_aql", "type": "text" },
+        { "name": "created_at", "type": "timestamptz" }
+      ]
+    }
+  ],
+  "relationships": [
+    { "id": "ioc_actor", "from": "ioc_indicators", "to": "threat_actor_profiles", "label": "attributed_apt = actor_name", "fromCardinality": "many", "fromOptional": true, "toCardinality": "one", "toOptional": true, "identifying": false },
+    { "id": "ttp_actor", "from": "ttp_observations", "to": "threat_actor_profiles", "label": "attributed_apt = actor_name", "fromCardinality": "many", "fromOptional": true, "toCardinality": "one", "toOptional": true, "identifying": false },
+    { "id": "sigma_ttp", "from": "sigma_rules", "to": "ttp_observations", "label": "technique_id + source_article", "fromCardinality": "one", "fromOptional": true, "toCardinality": "one", "identifying": false }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Logical links, not foreign keys",
+      "items": [
+        "The database declares no foreign keys; tables join on shared text values",
+        "IOCs and TTPs share a source_article, which is how Sigma drafting finds an article's indicators",
+        "attributed_apt on IOCs and TTPs matches actor_name on the actor profile"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Uniqueness",
+      "items": [
+        "ioc_indicators is unique on (value, type); stix_id is a deterministic UUID, so re-ingesting never duplicates",
+        "ttp_observations and sigma_rules are each unique on (technique_id, source_article): first draft wins",
+        "site_ratings joins to sources by site name; sources themselves live in config.json"
+      ]
+    }
+  ]
+}
